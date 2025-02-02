@@ -82,6 +82,11 @@ type Remainder struct {
 	Bits  []Bit
 }
 
+// NewRemainder initializes a new instance of a Remainder type with empty slices.
+func NewRemainder() Remainder {
+	return Remainder{[]byte{}, []Bit{}}
+}
+
 // ToBytes takes in binary data and returns it in Remainder form.
 func ToBytes(bits []Bit) Remainder {
 	// The resulting slice of bytes
