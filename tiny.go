@@ -1,4 +1,4 @@
-package tiny
+package main
 
 import (
 	"reflect"
