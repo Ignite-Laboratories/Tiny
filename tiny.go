@@ -40,6 +40,18 @@ const Zero Bit = 0
 // One -> 1
 const One Bit = 1
 
+// ZeroZero -> 00
+const ZeroZero Crumb = 0
+
+// ZeroOne -> 01
+const ZeroOne Crumb = 1
+
+// OneZero -> 10
+const OneZero Crumb = 2
+
+// OneOne -> 11
+const OneOne Crumb = 3
+
 // CrumbMax -> 3
 const CrumbMax = 3
 
