@@ -1,10 +1,5 @@
 package tiny
 
-import (
-	"reflect"
-	"unsafe"
-)
-
 // Tiny is a package devoted to making it easier to interface with small bit ranges in Golang. Some of the bit
 // ranges already have defined terms, but I've filled in the gaps with as fitting of terms as I could find.
 //
@@ -95,30 +90,32 @@ func ToBytes(bits []Bit) Remainder {
 	return Remainder{bytes, remainingBits}
 }
 
-// ToBits takes a generic type and returns its constituent bits.  If the type is a string, it converts
-// it directly to a []byte before processing it.
-func ToBits[T any](value T) []Bit {
-	var bytes []byte
-
-	switch v := any(value).(type) {
-	case string:
-		// Convert the string to its byte slice representation
-		bytes = []byte(v)
-	default:
-		// Handle all other types
-		size := reflect.TypeOf(value).Size()
-		ptr := unsafe.Pointer(&value)
-		bytes = unsafe.Slice((*byte)(ptr), size)
+// ToBits takes a generic type and returns its constituent bits.
+func ToBits(value int) []Bit {
+	if value == 0 {
+		return []Bit{Bit(0)}
 	}
 
 	var bits []Bit
-	for _, b := range bytes {
-		// Extract bits from each byte
-		for i := 7; i >= 0; i-- {
-			bit := Bit((b >> i) & 1) // Extract each bit (most significant to least)
-			bits = append(bits, bit)
-		}
+	for value > 0 {
+		bit := Bit(value % 2)    // Get the least significant Bit
+		bits = append(bits, bit) // Append the Bit
+		value /= 2               // Shift right by dividing by 2
 	}
 
+	// Reverse the slice
+	for left, right := 0, len(bits)-1; left < right; left, right = left+1, right-1 {
+		bits[left], bits[right] = bits[right], bits[left]
+	}
+
+	return bits
+}
+
+// BytesToBits takes a slice of bytes and returns a slice of all of its individual bits
+func BytesToBits(data []byte) []Bit {
+	bits := make([]Bit, 0, len(data)*8)
+	for _, b := range data {
+		bits = append(bits, ToBits(int(b))...)
+	}
 	return bits
 }
