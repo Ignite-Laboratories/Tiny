@@ -140,7 +140,7 @@ func ToBits(value int) []Bit {
 func BytesToBits(data []byte) []Bit {
 	bits := make([]Bit, 0, len(data)*8)
 	for _, b := range data {
-		bits = append(bits, ToBits(int(b))...)
+		bits = append(bits, ToBitsFixedWidth(int(b), 8)...)
 	}
 	return bits
 }
