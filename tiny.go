@@ -107,7 +107,15 @@ func ToBytes(bits []Bit) Remainder {
 	return Remainder{bytes, remainingBits}
 }
 
-// ToBits takes a generic type and returns its constituent bits.
+// ToBitsFixedWidth takes an int and returns its constituent bits, prepended with 0 to the desired width.
+func ToBitsFixedWidth(value int, width int) []Bit {
+	bits := ToBits(value)
+	result := make([]Bit, width-len(bits))
+	result = append(result, bits...)
+	return result
+}
+
+// ToBits takes an int and returns its constituent bits.
 func ToBits(value int) []Bit {
 	if value == 0 {
 		return []Bit{Bit(0)}
