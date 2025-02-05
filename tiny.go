@@ -1,5 +1,9 @@
 package tiny
 
+import (
+	"log"
+)
+
 // Tiny is a package devoted to making it easier to interface with small bit ranges in Golang. Some of the bit
 // ranges already have defined terms, but I've filled in the gaps with as fitting of terms as I could find.
 //
@@ -105,6 +109,22 @@ func ToBytes(bits []Bit) Remainder {
 	remainingBits := bits[len(bytes)*8:]
 
 	return Remainder{bytes, remainingBits}
+}
+
+// ToByte takes in binary data and returns its byte.
+func ToByte(bits []Bit) byte {
+	if len(bits) > 8 {
+		log.Fatalf("input must contain no more than 8 bits")
+	}
+
+	result := byte(0)
+	padding := 8 - len(bits) // Calculate left padding for smaller slices
+
+	for i, bit := range bits {
+		// Shift each bit to its correct position considering the padding
+		result |= byte(bit) << (7 - (i + padding))
+	}
+	return result
 }
 
 // ToBitsFixedWidth takes an int and returns its constituent bits, prepended with 0 to the desired width.
