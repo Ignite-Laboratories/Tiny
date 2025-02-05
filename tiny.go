@@ -4,19 +4,6 @@ import (
 	"log"
 )
 
-// Tiny is a package devoted to making it easier to interface with small bit ranges in Golang. Some of the bit
-// ranges already have defined terms, but I've filled in the gaps with as fitting of terms as I could find.
-//
-// Bit Range Terminology:
-// Width  Range   Name
-//   1      0-1    Bit
-//   2      0-3    Crumb
-//   3      0-7    Note
-//   4     0-15    Nibble
-//   5     0-31    Flake
-//   6     0-63    Morsel
-//   7    0-127    Shred
-
 // A Bit represents one binary value. [0 - 1]
 type Bit byte
 
