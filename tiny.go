@@ -43,26 +43,26 @@ const OneZero Crumb = 2
 // OneOne -> 11
 const OneOne Crumb = 3
 
-// CrumbMax -> 3
-const CrumbMax = 3
+// MaxCrumb -> 3
+const MaxCrumb = 3
 
-// NoteMax -> 7
-const NoteMax = 7
+// MaxNote -> 7
+const MaxNote = 7
 
-// NibbleMax -> 15
-const NibbleMax = 15
+// MaxNibble -> 15
+const MaxNibble = 15
 
-// FlakeMax -> 31
-const FlakeMax = 31
+// MaxFlake -> 31
+const MaxFlake = 31
 
-// MorselMax -> 63
-const MorselMax = 63
+// MaxMorsel -> 63
+const MaxMorsel = 63
 
-// ShredMax -> 127
-const ShredMax = 127
+// MaxShred -> 127
+const MaxShred = 127
 
-// ByteMax -> 255
-const ByteMax = 255
+// MaxByte -> 255
+const MaxByte = 255
 
 // A Remainder is used to efficiently store Bits in operating memory.  In Golang, all types are
 // sized around 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory.
