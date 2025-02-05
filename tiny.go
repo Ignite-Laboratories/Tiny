@@ -8,7 +8,7 @@ import (
 // ranges already have defined terms, but I've filled in the gaps with as fitting of terms as I could find.
 //
 // Bit Range Terminology:
-// Width  Range  Name
+// Width  Range   Name
 //   1      0-1    Bit
 //   2      0-3    Crumb
 //   3      0-7    Note
@@ -17,25 +17,25 @@ import (
 //   6     0-63    Morsel
 //   7    0-127    Shred
 
-// A Bit represents one binary value [0 - 1]
+// A Bit represents one binary value. [0 - 1]
 type Bit byte
 
-// A Crumb represents two binary values [0-3]
+// A Crumb represents two binary values. [0-3]
 type Crumb byte
 
-// A Note represents three binary values [0-7]
+// A Note represents three binary values. [0-7]
 type Note byte
 
-// A Nibble represents four binary values [0-15]
+// A Nibble represents four binary values. [0-15]
 type Nibble byte
 
-// A Flake represents five binary values [0-31]
+// A Flake represents five binary values. [0-31]
 type Flake byte
 
-// A Morsel represents six binary values [0-63]
+// A Morsel represents six binary values. [0-63]
 type Morsel byte
 
-// A Shred represents seven binary values [0-127]
+// A Shred represents seven binary values. [0-127]
 type Shred byte
 
 // Zero -> 0
@@ -156,7 +156,7 @@ func ToBits(value int) []Bit {
 	return bits
 }
 
-// BytesToBits takes a slice of bytes and returns a slice of all of its individual bits
+// BytesToBits takes a slice of bytes and returns a slice of all of its individual bits.
 func BytesToBits(data []byte) []Bit {
 	bits := make([]Bit, 0, len(data)*8)
 	for _, b := range data {
