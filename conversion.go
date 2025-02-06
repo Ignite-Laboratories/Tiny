@@ -1,82 +1,6 @@
 package tiny
 
-import (
-	"log"
-)
-
-// A Bit represents one binary value. [0 - 1]
-type Bit byte
-
-// A Crumb represents two binary values. [0-3]
-type Crumb byte
-
-// A Note represents three binary values. [0-7]
-type Note byte
-
-// A Nibble represents four binary values. [0-15]
-type Nibble byte
-
-// A Flake represents five binary values. [0-31]
-type Flake byte
-
-// A Morsel represents six binary values. [0-63]
-type Morsel byte
-
-// A Shred represents seven binary values. [0-127]
-type Shred byte
-
-// Zero -> 0
-const Zero Bit = 0
-
-// One -> 1
-const One Bit = 1
-
-// ZeroZero -> 00
-const ZeroZero Crumb = 0
-
-// ZeroOne -> 01
-const ZeroOne Crumb = 1
-
-// OneZero -> 10
-const OneZero Crumb = 2
-
-// OneOne -> 11
-const OneOne Crumb = 3
-
-// MaxCrumb -> 3
-const MaxCrumb = 3
-
-// MaxNote -> 7
-const MaxNote = 7
-
-// MaxNibble -> 15
-const MaxNibble = 15
-
-// MaxFlake -> 31
-const MaxFlake = 31
-
-// MaxMorsel -> 63
-const MaxMorsel = 63
-
-// MaxShred -> 127
-const MaxShred = 127
-
-// MaxByte -> 255
-const MaxByte = 255
-
-// A Remainder is used to efficiently store Bits in operating memory.  In Golang, all types are
-// sized around 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory.
-// Because of this, we only operate at the Bit level when necessary. The Bytes field holds the majority of the
-// information, while the Bits field holds the remaining bits that didn't fit into a multiple of 8 in size.
-type Remainder struct {
-	Bytes []byte
-	Bits  []Bit
-}
-
-// NewRemainder initializes a new instance of a Remainder type with empty slices.
-func NewRemainder() Remainder {
-	return Remainder{[]byte{}, []Bit{}}
-}
+import "log"
 
 // ToBytes takes in binary data and returns it in Remainder form.
 func ToBytes(bits []Bit) Remainder {
@@ -141,6 +65,12 @@ func ToBits(value int) []Bit {
 	}
 
 	return bits
+}
+
+// FromByte takes a byte and returns its constituent bits.
+func FromByte(b byte) []Bit {
+	// Yes, this is a shorthand convenience method - sue me =)
+	return ToBitsFixedWidth(int(b), 8)
 }
 
 // BytesToBits takes a slice of bytes and returns a slice of all of its individual bits.
