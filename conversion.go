@@ -25,7 +25,7 @@ func ToBytes(bits []Bit) Remainder {
 // ToByte takes in binary data and returns its byte.
 func ToByte(bits []Bit) byte {
 	if len(bits) > 8 {
-		log.Fatalf("input must contain no more than 8 bits")
+		log.Fatalf("input must contain less than 8 bits")
 	}
 
 	result := byte(0)

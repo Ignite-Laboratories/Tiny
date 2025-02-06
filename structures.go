@@ -6,6 +6,7 @@ const ZeroZero Crumb = 0
 const ZeroOne Crumb = 1
 const OneZero Crumb = 2
 const OneOne Crumb = 3
+
 const MaxCrumb = 3
 const MaxNote = 7
 const MaxNibble = 15
