@@ -68,7 +68,8 @@ type Count struct {
 	PredominantlyDark bool
 }
 
-func shadeCount(count Count) Count {
+// ShadeCount fills in a Count's Shade information.
+func ShadeCount(count Count) Count {
 	count.PredominantlyDark = count.Ones > count.Total/2
 
 	if count.Zeros == 0 && count.Ones >= 0 {

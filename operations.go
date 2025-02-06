@@ -13,7 +13,7 @@ func GetBitShade(bits []Bit) Count {
 	}
 	count.Total++
 
-	return shadeCount(count)
+	return ShadeCount(count)
 }
 
 // GetDataShade checks if the number of ones in the data exceeds half it's the length.
@@ -27,7 +27,7 @@ func GetDataShade(data []byte) Count {
 		count.Total += c.Total
 	}
 
-	return shadeCount(count)
+	return ShadeCount(count)
 }
 
 // ToggleBits XORs every bit with 1.
