@@ -1,34 +1,24 @@
 package tiny
 
 // GetShade counts the number of 1s and 0s in the data.
-func GetShade(data Remainder) Count {
+func GetShade(bits []Bit) Count {
 	count := Count{}
 
-	// Define how to count
-	increment := func(bits []Bit) {
-		for i := 0; i < len(bits); i++ {
-			if bits[i] == One {
-				count.Ones++
-			} else {
-				count.Zeros++
-			}
+	for i := 0; i < len(bits); i++ {
+		if bits[i] == One {
+			count.Ones++
+		} else {
+			count.Zeros++
 		}
-		count.Total++
 	}
-
-	// Walk each byte and count
-	for i := 0; i < len(data.Bytes); i++ {
-		increment(FromByte(data.Bytes[i]))
-	}
-	// Walk each remaining bit and count
-	increment(data.Bits)
+	count.Total++
 
 	return count
 }
 
 // IsOneDominant checks if the number of ones in the data exceeds half it's the length.
-func IsOneDominant(data Remainder) bool {
-	count := GetShade(data)
+func IsOneDominant(bits []Bit) bool {
+	count := GetShade(bits)
 	return count.Ones > count.Total/2
 }
 
@@ -40,8 +30,8 @@ func ToggleBits(bits []Bit) []Bit {
 	return bits
 }
 
-// ToggleData XORs every bit of a Remainder with 1.
-func ToggleData(data Remainder) Remainder {
+// ToggleRemainder XORs every bit of a Remainder with 1.
+func ToggleRemainder(data Remainder) Remainder {
 	for i := 0; i < len(data.Bytes); i++ {
 		data.Bytes[i] ^= MaxByte
 	}
