@@ -16,9 +16,17 @@ func GetShade(bits []Bit) Count {
 	return count
 }
 
-// IsOneDominant checks if the number of ones in the data exceeds half it's the length.
-func IsOneDominant(bits []Bit) bool {
-	count := GetShade(bits)
+// IsDataOneDominant checks if the number of ones in the data exceeds half it's the length.
+func IsDataOneDominant(data []byte) bool {
+	count := Count{}
+
+	for i := 0; i < len(data); i++ {
+		c := GetShade(FromByte(data[i]))
+		count.Ones += c.Ones
+		count.Zeros += c.Zeros
+		count.Total += c.Total
+	}
+
 	return count.Ones > count.Total/2
 }
 
