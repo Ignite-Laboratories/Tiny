@@ -45,11 +45,6 @@ type Remainder struct {
 	Bits  []Bit
 }
 
-// NewRemainder initializes a new instance of a Remainder type with empty slices.
-func NewRemainder() Remainder {
-	return Remainder{[]byte{}, []Bit{}}
-}
-
 // Shade is a descriptor of whether the binary data is Light, Dark, or Grey.
 type Shade int
 
