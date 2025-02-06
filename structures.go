@@ -66,7 +66,23 @@ const (
 
 // Count represents the count of 1s and 0s within binary data.
 type Count struct {
-	Zeros uint64
-	Ones  uint64
-	Total uint64
+	Zeros             uint64
+	Ones              uint64
+	Total             uint64
+	Shade             Shade
+	PredominantlyDark bool
+}
+
+func shadeCount(count Count) Count {
+	count.PredominantlyDark = count.Ones > count.Total/2
+
+	if count.Zeros == 0 && count.Ones >= 0 {
+		count.Shade = Light
+	} else if count.Zeros > 0 && count.Ones == 0 {
+		count.Shade = Dark
+	} else {
+		count.Shade = Grey
+	}
+
+	return count
 }

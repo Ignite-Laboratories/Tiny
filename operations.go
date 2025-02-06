@@ -1,7 +1,7 @@
 package tiny
 
-// GetShade counts the number of 1s and 0s in the data.
-func GetShade(bits []Bit) Count {
+// GetBitShade counts the number of 1s and 0s in the data.
+func GetBitShade(bits []Bit) Count {
 	count := Count{}
 
 	for i := 0; i < len(bits); i++ {
@@ -13,21 +13,21 @@ func GetShade(bits []Bit) Count {
 	}
 	count.Total++
 
-	return count
+	return shadeCount(count)
 }
 
-// IsDataOneDominant checks if the number of ones in the data exceeds half it's the length.
-func IsDataOneDominant(data []byte) bool {
+// GetDataShade checks if the number of ones in the data exceeds half it's the length.
+func GetDataShade(data []byte) Count {
 	count := Count{}
 
 	for i := 0; i < len(data); i++ {
-		c := GetShade(FromByte(data[i]))
+		c := GetBitShade(FromByte(data[i]))
 		count.Ones += c.Ones
 		count.Zeros += c.Zeros
 		count.Total += c.Total
 	}
 
-	return count.Ones > count.Total/2
+	return shadeCount(count)
 }
 
 // ToggleBits XORs every bit with 1.
