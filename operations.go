@@ -38,11 +38,10 @@ func ToggleBits(bits []Bit) []Bit {
 	return bits
 }
 
-// ToggleRemainder XORs every bit of a Remainder with 1.
-func ToggleRemainder(data Remainder) Remainder {
-	for i := 0; i < len(data.Bytes); i++ {
-		data.Bytes[i] ^= MaxByte
+// ToggleData XORs every bit of a Remainder with 1.
+func ToggleData(data []byte) []byte {
+	for i := 0; i < len(data); i++ {
+		data[i] ^= MaxByte
 	}
-	data.Bits = ToggleBits(data.Bits)
 	return data
 }
