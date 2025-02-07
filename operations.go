@@ -27,6 +27,7 @@ func GetDataShade(data []byte) Count {
 		count.Zeros += c.Zeros
 		count.Total += c.Total
 	}
+	count.Distribution = GetDistributionOfOnes(data)
 	count.Calculate()
 
 	return count

@@ -61,11 +61,12 @@ const (
 
 // Count represents the count of 1s and 0s within binary data.
 type Count struct {
-	Zeros             uint64
-	Ones              uint64
-	Total             uint64
+	Zeros             int
+	Ones              int
+	Total             int
 	Shade             Shade
 	PredominantlyDark bool
+	Distribution      [8]int
 }
 
 // Calculate fills in a Count's Shade information.
