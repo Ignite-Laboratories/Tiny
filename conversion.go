@@ -67,12 +67,6 @@ func ToBits(value int) []Bit {
 	return bits
 }
 
-// FromByte takes a byte and returns its constituent bits.
-func FromByte(b byte) []Bit {
-	// Yes, this is a shorthand convenience method - sue me =)
-	return ToBitsFixedWidth(int(b), 8)
-}
-
 // BytesToBits takes a slice of bytes and returns a slice of all of its individual bits.
 func BytesToBits(data []byte) []Bit {
 	bits := make([]Bit, 0, len(data)*8)
@@ -80,4 +74,41 @@ func BytesToBits(data []byte) []Bit {
 		bits = append(bits, ToBitsFixedWidth(int(b), 8)...)
 	}
 	return bits
+}
+
+// CONVENIENCE METHODS
+
+// FromCrumb takes a byte and returns its constituent bits.
+func FromCrumb(value Crumb) []Bit {
+	return ToBitsFixedWidth(int(value), 2)
+}
+
+// FromNote takes a byte and returns its constituent bits.
+func FromNote(value Note) []Bit {
+	return ToBitsFixedWidth(int(value), 3)
+}
+
+// FromNibble takes a byte and returns its constituent bits.
+func FromNibble(value Nibble) []Bit {
+	return ToBitsFixedWidth(int(value), 4)
+}
+
+// FromFlake takes a byte and returns its constituent bits.
+func FromFlake(value Flake) []Bit {
+	return ToBitsFixedWidth(int(value), 5)
+}
+
+// FromMorsel takes a byte and returns its constituent bits.
+func FromMorsel(value Morsel) []Bit {
+	return ToBitsFixedWidth(int(value), 6)
+}
+
+// FromShred takes a byte and returns its constituent bits.
+func FromShred(value Shred) []Bit {
+	return ToBitsFixedWidth(int(value), 7)
+}
+
+// FromByte takes a byte and returns its constituent bits.
+func FromByte(value byte) []Bit {
+	return ToBitsFixedWidth(int(value), 8)
 }
