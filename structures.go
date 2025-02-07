@@ -36,10 +36,10 @@ type Morsel byte
 // A Shred represents seven binary values. [0-127]
 type Shred byte
 
-// A Remainder is used to efficiently store Bits in operating memory.  In Golang, all types are
-// sized around 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory.
-// Because of this, we only operate at the Bit level when necessary. The Bytes field holds the majority of the
-// information, while the Bits field holds the remaining bits that didn't fit into a multiple of 8 in size.
+// A Remainder is used to efficiently store Bits in operating memory.  In Go, all types are sized around
+// 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory. Because of
+// this, we only operate at the Bit level when necessary. The Bytes field holds the majority of the
+// information, while the Bits field holds the remaining bits that didn't fit into a byte.
 type Remainder struct {
 	Bytes []byte
 	Bits  []Bit
@@ -68,17 +68,18 @@ type Count struct {
 	PredominantlyDark bool
 }
 
-// ShadeCount fills in a Count's Shade information.
-func ShadeCount(count Count) Count {
-	count.PredominantlyDark = count.Ones > count.Total/2
+// Calculate fills in a Count's Shade information.
+func (c *Count) Calculate() {
+	c.PredominantlyDark = c.Ones > c.Total/2
 
-	if count.Zeros == 0 && count.Ones >= 0 {
-		count.Shade = Light
-	} else if count.Zeros > 0 && count.Ones == 0 {
-		count.Shade = Dark
+	if c.Zeros > 0 && c.Ones == 0 {
+		// It's all zeros
+		c.Shade = Light
+	} else if c.Zeros == 0 && c.Ones >= 0 {
+		// It's all ones
+		c.Shade = Dark
 	} else {
-		count.Shade = Grey
+		// It's a mixture
+		c.Shade = Grey
 	}
-
-	return count
 }
