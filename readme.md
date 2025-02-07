@@ -1,8 +1,8 @@
 # Tiny
 
-### A helper package for working at the bit level in Go
+A very simplistic helper package for working at the bit level in Go.
 
-Some of the bit ranges already have defined terms, but I've filled in the gaps with as fitting of terms as I could find.
+----
 
 | Width  | Range  |  Name   |
 |:------:|:------:|:-------:|
