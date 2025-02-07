@@ -1,5 +1,7 @@
 package tiny
 
+import "log"
+
 // GetBitShade counts the number of 1s and 0s in the data.
 func GetBitShade(bits []Bit) Count {
 	count := Count{}
@@ -31,6 +33,20 @@ func GetDataShade(data []byte) Count {
 	count.Calculate()
 
 	return count
+}
+
+// XORWithPattern takes the provided byte and XORs the provided bits against it, starting at the most significant bit.
+func XORWithPattern(b byte, pattern []Bit) byte {
+	if len(pattern) > 8 {
+		log.Fatalf("input pattern should not be larger than a byte")
+	}
+
+	bits := FromByte(b)
+	for i := 0; i < len(pattern); i++ {
+		bits[i] ^= pattern[i]
+	}
+
+	return ToByte(bits)
 }
 
 // ToggleBits XORs every bit with 1.
