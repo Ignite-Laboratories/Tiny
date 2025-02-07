@@ -47,3 +47,16 @@ func ToggleData(data []byte) []byte {
 	}
 	return data
 }
+
+// GetDistributionOfOnes counts how many ones occupy each position of the provided slice of bytes.
+func GetDistributionOfOnes(data []byte) [8]int {
+	output := [8]int{}
+	for _, b := range data {
+		for i := 0; i < 8; i++ {
+			if (b & (1 << (7 - i))) != 0 { // Extract the i-th bit (starting from MSB)
+				output[i]++
+			}
+		}
+	}
+	return output
+}
