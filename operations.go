@@ -2,7 +2,6 @@ package tiny
 
 import (
 	"log"
-	"strconv"
 )
 
 // GetBitShade counts the number of 1s and 0s in the data.
@@ -38,7 +37,15 @@ func GetDataShade(data []byte) Count {
 	return count
 }
 
-// XORWithPattern takes the provided byte and XORs the provided bits against it, starting at the most significant bit.
+// XORDataWithPattern XORs a pattern of bits against every byte, starting at the most significant bit of each.
+func XORDataWithPattern(data []byte, pattern []Bit) []byte {
+	for i := 0; i < len(data); i++ {
+		data[i] = XORWithPattern(data[i], pattern)
+	}
+	return data
+}
+
+// XORWithPattern XORs a pattern of bits against a byte, starting at the most significant bit.
 func XORWithPattern(b byte, pattern []Bit) byte {
 	if len(pattern) > 8 {
 		log.Fatalf("input pattern should not be larger than a byte")
@@ -77,15 +84,6 @@ func GetDistributionOfOnes(data []byte) [8]int {
 				output[i]++
 			}
 		}
-	}
-	return output
-}
-
-// ToString converts a set of Bit values into a string.
-func ToString[T SubByte](bits []T) string {
-	output := ""
-	for i := 0; i < len(bits); i++ {
-		output += strconv.Itoa(int(bits[i]))
 	}
 	return output
 }

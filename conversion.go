@@ -1,6 +1,9 @@
 package tiny
 
-import "log"
+import (
+	"log"
+	"strconv"
+)
 
 // ToBytes takes in binary data and returns it in Remainder form.
 func ToBytes(bits []Bit) Remainder {
@@ -114,6 +117,15 @@ func FromByte(value byte) []Bit {
 }
 
 // STRINGER METHODS
+
+// ToString converts a set of Bit values into a string.
+func ToString[T SubByte](bits []T) string {
+	output := ""
+	for i := 0; i < len(bits); i++ {
+		output += strconv.Itoa(int(bits[i]))
+	}
+	return output
+}
 
 // String converts a Bit to a string
 func (v Bit) String() string {
