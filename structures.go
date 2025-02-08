@@ -1,30 +1,30 @@
 package tiny
 
-// A SubByte is any type representable in less than 8 bits.
+// SubByte is any type representable in less than 8 bits.
 type SubByte interface {
 	Bit | Crumb | Note | Nibble | Flake | Morsel | Shred
 	String() string
 }
 
-// A Bit represents one binary value. [0 - 1]
+// Bit represents one binary value. [0 - 1]
 type Bit byte
 
-// A Crumb represents two binary values. [0-3]
+// Crumb represents two binary values. [0-3]
 type Crumb byte
 
-// A Note represents three binary values. [0-7]
+// Note represents three binary values. [0-7]
 type Note byte
 
-// A Nibble represents four binary values. [0-15]
+// Nibble represents four binary values. [0-15]
 type Nibble byte
 
-// A Flake represents five binary values. [0-31]
+// Flake represents five binary values. [0-31]
 type Flake byte
 
-// A Morsel represents six binary values. [0-63]
+// Morsel represents six binary values. [0-63]
 type Morsel byte
 
-// A Shred represents seven binary values. [0-127]
+// Shred represents seven binary values. [0-127]
 type Shred byte
 
 // Shade is a descriptor of whether the binary data is Light, Dark, or Grey.
@@ -41,27 +41,32 @@ const (
 	Grey
 )
 
-// A Remainder is used to efficiently store Bits in operating memory.  In Go, all types are sized around
-// 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory. Because of
-// this, we only operate at the Bit level when necessary. The Bytes field holds the majority of the
-// information, while the Bits field holds the remaining bits that didn't fit into a byte.
+// Remainder is used to efficiently store Bits in operating memory.
 type Remainder struct {
+	// Bytes holds complete byte data.
 	Bytes []byte
-	Bits  []Bit
+	// Bits holds any remaining bits that didn't fit into a byte for whatever reason.
+	Bits []Bit
 }
 
-// Count represents the count of 1s and 0s within binary data.
-type Count struct {
-	Zeros             int
-	Ones              int
-	Total             int
-	Shade             Shade
+// BinaryCount is a count of the number of 0s and 1s within the target.
+type BinaryCount struct {
+	// Zeros are a count of the number of 0s in the target.
+	Zeros int
+	// Ones are a count of the number of 1s in the target.
+	Ones int
+	// Total is a tally of all 1s and 0s.
+	Total int
+	// Shade details the general nature of the 1s and 0s.
+	Shade Shade
+	// PredominantlyDark is true if more than half of the binary data is a 1.
 	PredominantlyDark bool
-	Distribution      [8]int
+	// Distribution is a count of how many ones are in each position of every byte of the target.
+	Distribution [8]int
 }
 
-// Calculate fills in a Count's Shade information.
-func (c *Count) Calculate() {
+// Calculate fills in a BinaryCount's Shade information.
+func (c *BinaryCount) Calculate() {
 	c.PredominantlyDark = c.Ones > c.Total/2
 
 	if c.Zeros > 0 && c.Ones == 0 {

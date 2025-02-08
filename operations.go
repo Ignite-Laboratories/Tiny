@@ -5,8 +5,8 @@ import (
 )
 
 // GetBitShade counts the number of 1s and 0s in the data.
-func GetBitShade(bits []Bit) Count {
-	count := Count{}
+func GetBitShade(bits []Bit) BinaryCount {
+	count := BinaryCount{}
 
 	for i := 0; i < len(bits); i++ {
 		if bits[i] == One {
@@ -22,8 +22,8 @@ func GetBitShade(bits []Bit) Count {
 }
 
 // GetDataShade checks if the number of ones in the data exceeds half it's the length.
-func GetDataShade(data []byte) Count {
-	count := Count{}
+func GetDataShade(data []byte) BinaryCount {
+	count := BinaryCount{}
 
 	for i := 0; i < len(data); i++ {
 		c := GetBitShade(FromByte(data[i]))

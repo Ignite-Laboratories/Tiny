@@ -39,26 +39,26 @@ const MaxShred = 127
 // MaxByte is the maximum value a byte can hold.
 const MaxByte = 255
 
-// WidthBit is the number of binary positions a Bit represents
+// WidthBit is the number of binary positions a Bit represents.
 const WidthBit = 1
 
-// WidthCrumb is the number of binary positions a Crumb represents
+// WidthCrumb is the number of binary positions a Crumb represents.
 const WidthCrumb = 2
 
-// WidthNote is the number of binary positions a Note represents
+// WidthNote is the number of binary positions a Note represents.
 const WidthNote = 3
 
-// WidthNibble is the number of binary positions a Nibble represents
+// WidthNibble is the number of binary positions a Nibble represents.
 const WidthNibble = 4
 
-// WidthFlake is the number of binary positions a Flake represents
+// WidthFlake is the number of binary positions a Flake represents.
 const WidthFlake = 5
 
-// WidthMorsel is the number of binary positions a Morsel represents
+// WidthMorsel is the number of binary positions a Morsel represents.
 const WidthMorsel = 6
 
-// WidthShred is the number of binary positions a Shred represents
+// WidthShred is the number of binary positions a Shred represents.
 const WidthShred = 7
 
-// WidthByte is the number of binary positions a Byte represents
+// WidthByte is the number of binary positions a Byte represents.
 const WidthByte = 8
