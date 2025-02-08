@@ -81,39 +81,39 @@ func BytesToBits(data []byte) []Bit {
 
 // CONVENIENCE METHODS
 
-// FromCrumb takes a byte and returns its constituent bits.
-func FromCrumb(value Crumb) []Bit {
-	return ToBitsFixedWidth(int(value), 2)
+// ToBits returns a Crumb's constituent bits.
+func (v Crumb) ToBits() []Bit {
+	return ToBitsFixedWidth(int(v), 2)
 }
 
-// FromNote takes a byte and returns its constituent bits.
-func FromNote(value Note) []Bit {
-	return ToBitsFixedWidth(int(value), 3)
+// ToBits returns a Note's constituent bits.
+func (v Note) ToBits() []Bit {
+	return ToBitsFixedWidth(int(v), 3)
 }
 
-// FromNibble takes a byte and returns its constituent bits.
-func FromNibble(value Nibble) []Bit {
-	return ToBitsFixedWidth(int(value), 4)
+// ToBits returns a Nibble's constituent bits.
+func (v Nibble) ToBits() []Bit {
+	return ToBitsFixedWidth(int(v), 4)
 }
 
-// FromFlake takes a byte and returns its constituent bits.
-func FromFlake(value Flake) []Bit {
-	return ToBitsFixedWidth(int(value), 5)
+// ToBits returns a Flake's constituent bits.
+func (v Flake) ToBits() []Bit {
+	return ToBitsFixedWidth(int(v), 5)
 }
 
-// FromMorsel takes a byte and returns its constituent bits.
-func FromMorsel(value Morsel) []Bit {
-	return ToBitsFixedWidth(int(value), 6)
+// ToBits returns a Morsel's constituent bits.
+func (v Morsel) ToBits() []Bit {
+	return ToBitsFixedWidth(int(v), 6)
 }
 
-// FromShred takes a byte and returns its constituent bits.
-func FromShred(value Shred) []Bit {
-	return ToBitsFixedWidth(int(value), 7)
+// ToBits returns a Shred's constituent bits.
+func (v Shred) ToBits() []Bit {
+	return ToBitsFixedWidth(int(v), 7)
 }
 
-// FromByte takes a byte and returns its constituent bits.
-func FromByte(value byte) []Bit {
-	return ToBitsFixedWidth(int(value), 8)
+// FromByte returns a byte's constituent bits.
+func FromByte(b byte) []Bit {
+	return ToBitsFixedWidth(int(b), 8)
 }
 
 // STRINGER METHODS
