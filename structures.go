@@ -6,29 +6,6 @@ type SubByte interface {
 	String() string
 }
 
-const Zero Bit = 0
-const One Bit = 1
-const ZeroZero Crumb = 0
-const ZeroOne Crumb = 1
-const OneZero Crumb = 2
-const OneOne Crumb = 3
-
-const MaxCrumb = 3
-const MaxNote = 7
-const MaxNibble = 15
-const MaxFlake = 31
-const MaxMorsel = 63
-const MaxShred = 127
-const MaxByte = 255
-
-const WidthBit = 1
-const WidthCrumb = 2
-const WidthNote = 3
-const WidthNibble = 4
-const WidthFlake = 5
-const WidthMorsel = 6
-const WidthShred = 7
-
 // A Bit represents one binary value. [0 - 1]
 type Bit byte
 
@@ -50,15 +27,6 @@ type Morsel byte
 // A Shred represents seven binary values. [0-127]
 type Shred byte
 
-// A Remainder is used to efficiently store Bits in operating memory.  In Go, all types are sized around
-// 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory. Because of
-// this, we only operate at the Bit level when necessary. The Bytes field holds the majority of the
-// information, while the Bits field holds the remaining bits that didn't fit into a byte.
-type Remainder struct {
-	Bytes []byte
-	Bits  []Bit
-}
-
 // Shade is a descriptor of whether the binary data is Light, Dark, or Grey.
 type Shade int
 
@@ -72,6 +40,15 @@ const (
 	// Grey represents a mixture of 1s and 0s.
 	Grey
 )
+
+// A Remainder is used to efficiently store Bits in operating memory.  In Go, all types are sized around
+// 8-bits (a byte) - thus, every instance of the Bit type takes up 8 bits of operational memory. Because of
+// this, we only operate at the Bit level when necessary. The Bytes field holds the majority of the
+// information, while the Bits field holds the remaining bits that didn't fit into a byte.
+type Remainder struct {
+	Bytes []byte
+	Bits  []Bit
+}
 
 // Count represents the count of 1s and 0s within binary data.
 type Count struct {

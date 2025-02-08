@@ -41,12 +41,13 @@ func ToByte(bits []Bit) byte {
 	return result
 }
 
-// ToBitsFixedWidth takes an int and returns its constituent bits, prepended with 0 to the desired width.
-func ToBitsFixedWidth(value int, width int) []Bit {
-	bits := ToBits(value)
-	result := make([]Bit, width-len(bits))
-	result = append(result, bits...)
-	return result
+// BytesToBits takes a slice of bytes and returns a slice of all of its individual bits.
+func BytesToBits(data []byte) []Bit {
+	bits := make([]Bit, 0, len(data)*8)
+	for _, b := range data {
+		bits = append(bits, ToBitsFixedWidth(int(b), 8)...)
+	}
+	return bits
 }
 
 // ToBits takes an int and returns its constituent bits.
@@ -70,16 +71,13 @@ func ToBits(value int) []Bit {
 	return bits
 }
 
-// BytesToBits takes a slice of bytes and returns a slice of all of its individual bits.
-func BytesToBits(data []byte) []Bit {
-	bits := make([]Bit, 0, len(data)*8)
-	for _, b := range data {
-		bits = append(bits, ToBitsFixedWidth(int(b), 8)...)
-	}
-	return bits
+// ToBitsFixedWidth takes an int and returns its constituent bits, prepended with 0 to the desired width.
+func ToBitsFixedWidth(value int, width int) []Bit {
+	bits := ToBits(value)
+	result := make([]Bit, width-len(bits))
+	result = append(result, bits...)
+	return result
 }
-
-// CONVENIENCE METHODS
 
 // ToBits returns a Crumb's constituent bits.
 func (v Crumb) ToBits() []Bit {
@@ -116,8 +114,6 @@ func FromByte(b byte) []Bit {
 	return ToBitsFixedWidth(int(b), 8)
 }
 
-// STRINGER METHODS
-
 // ToString converts a set of Bit values into a string.
 func ToString[T SubByte](bits []T) string {
 	output := ""
@@ -126,6 +122,10 @@ func ToString[T SubByte](bits []T) string {
 	}
 	return output
 }
+
+/**
+String()
+*/
 
 // String converts a Bit to a string
 func (v Bit) String() string {
