@@ -1,6 +1,9 @@
 package tiny
 
-import "log"
+import (
+	"log"
+	"strconv"
+)
 
 // GetBitShade counts the number of 1s and 0s in the data.
 func GetBitShade(bits []Bit) Count {
@@ -74,6 +77,15 @@ func GetDistributionOfOnes(data []byte) [8]int {
 				output[i]++
 			}
 		}
+	}
+	return output
+}
+
+// ToString converts a set of Bit values into a string.
+func ToString[T SubByte](bits []T) string {
+	output := ""
+	for i := 0; i < len(bits); i++ {
+		output += strconv.Itoa(int(bits[i]))
 	}
 	return output
 }

@@ -1,5 +1,11 @@
 package tiny
 
+// A SubByte is any type representable in less than 8 bits.
+type SubByte interface {
+	Bit | Crumb | Note | Nibble | Flake | Morsel | Shred
+	String() string
+}
+
 const Zero Bit = 0
 const One Bit = 1
 const ZeroZero Crumb = 0
@@ -14,6 +20,14 @@ const MaxFlake = 31
 const MaxMorsel = 63
 const MaxShred = 127
 const MaxByte = 255
+
+const WidthBit = 1
+const WidthCrumb = 2
+const WidthNote = 3
+const WidthNibble = 4
+const WidthFlake = 5
+const WidthMorsel = 6
+const WidthShred = 7
 
 // A Bit represents one binary value. [0 - 1]
 type Bit byte
