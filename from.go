@@ -10,37 +10,37 @@ func (_ fRom) Bits(bits ...Bit) []Bit {
 
 // Crumb uses the provided value to build a 2-bit slice.
 func (f fRom) Crumb(value Crumb) []Bit {
-	return f.Int(int(value), WidthCrumb)
+	return f.Number(int(value), WidthCrumb)
 }
 
 // Note uses the provided value to build a 3-bit slice.
 func (f fRom) Note(value Note) []Bit {
-	return f.Int(int(value), WidthNote)
+	return f.Number(int(value), WidthNote)
 }
 
 // Nibble uses the provided value to build a 4-bit slice.
 func (f fRom) Nibble(value Nibble) []Bit {
-	return f.Int(int(value), WidthNibble)
+	return f.Number(int(value), WidthNibble)
 }
 
 // Flake uses the provided value to build a 5-bit slice.
 func (f fRom) Flake(value Flake) []Bit {
-	return f.Int(int(value), WidthFlake)
+	return f.Number(int(value), WidthFlake)
 }
 
 // Morsel uses the provided value to build a 6-bit slice.
 func (f fRom) Morsel(value Morsel) []Bit {
-	return f.Int(int(value), WidthMorsel)
+	return f.Number(int(value), WidthMorsel)
 }
 
 // Shred uses the provided value to build a 7-bit slice.
 func (f fRom) Shred(value Shred) []Bit {
-	return f.Int(int(value), WidthShred)
+	return f.Number(int(value), WidthShred)
 }
 
 // Byte uses the provided value to build a 8-bit slice.
 func (f fRom) Byte(value byte) []Bit {
-	return f.Int(int(value), WidthByte)
+	return f.Number(int(value), WidthByte)
 }
 
 // Bytes uses the provided slice of bytes to build a tiny.Bit slice.
@@ -52,10 +52,10 @@ func (f fRom) Bytes(bytes ...byte) []Bit {
 	return output
 }
 
-// Int uses the provided int to build a tiny.Bit slice. If no width is provided, the result is
+// Number uses the provided int to build a tiny.Bit slice. If no width is provided, the result is
 // given in its smallest possible width.  Otherwise, the data is MSB padded with 0s to the
 // specified width.
-func (_ fRom) Int(value int, width ...int) []Bit {
+func (_ fRom) Number(value int, width ...int) []Bit {
 	if value == 0 {
 		return []Bit{Bit(0)}
 	}

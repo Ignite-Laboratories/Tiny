@@ -2,7 +2,7 @@ package tiny
 
 // Bits uses the provided value to build a 1 Bit slice.
 func (v Bit) Bits() []Bit {
-	return From.Int(int(v))
+	return From.Number(int(v))
 }
 
 // Bits uses the provided value to build a 2 Bit slice.
