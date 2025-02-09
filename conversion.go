@@ -79,8 +79,8 @@ func ToBitsFixedWidth(value int, width int) []Bit {
 	return result
 }
 
-// FromBits uses the provided ones and zeros to build a Bit slice.
-func FromBits(bits ...Bit) []Bit {
+// BitBuilder uses the provided ones and zeros to build a Bit slice.
+func BitBuilder(bits ...Bit) []Bit {
 	return append([]Bit{}, bits...)
 }
 
