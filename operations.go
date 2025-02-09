@@ -27,7 +27,7 @@ func GetDataShade(data []byte) BinaryCount {
 	count := BinaryCount{}
 
 	for i := 0; i < len(data); i++ {
-		c := GetBitShade(FromByte(data[i]))
+		c := GetBitShade(From.Byte(data[i]))
 		count.Ones += c.Ones
 		count.Zeros += c.Zeros
 		count.Total += c.Total
@@ -66,12 +66,12 @@ func XORWithPattern(b byte, pattern []Bit) byte {
 		log.Fatalf("input pattern should not be larger than a byte")
 	}
 
-	bits := FromByte(b)
+	bits := From.Byte(b)
 	for i := 0; i < len(pattern); i++ {
 		bits[i] ^= pattern[i]
 	}
 
-	return ToByte(bits)
+	return To.Byte(bits...)
 }
 
 // ToggleBits XORs every bit with 1.

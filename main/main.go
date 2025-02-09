@@ -8,13 +8,13 @@ import (
 // TODO: Test this library
 
 func main() {
-	PrintUpToValue[tiny.Note](tiny.MaxCrumb)
-	PrintUpToValue[tiny.Flake](tiny.MaxCrumb)
-	PrintUpToValue[tiny.Shred](tiny.MaxCrumb)
-}
+	val := tiny.From.Int(2345)
+	fmt.Println(tiny.To.String(val...))
 
-func PrintUpToValue[T tiny.SubByte](maxValue int) {
-	for i := 0; i < maxValue; i++ {
-		fmt.Println(T(i).String())
-	}
+	test := tiny.To.Byte(1, 0, 1, 1)
+	fmt.Println(test)
+	fmt.Println(tiny.To.String(tiny.From.Byte(test)...))
+
+	grey := tiny.Create.Grey(4, tiny.From.Bits(0, 1, 1, 0)...)
+	fmt.Println(grey)
 }
