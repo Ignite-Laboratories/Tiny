@@ -84,6 +84,11 @@ func FromBits(bits ...Bit) []Bit {
 	return append([]Bit{}, bits...)
 }
 
+// Bits uses the provided value to build a 1 Bit slice.
+func (v Bit) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthBit)
+}
+
 // Bits uses the provided value to build a 2 Bit slice.
 func (v Crumb) Bits() []Bit {
 	return ToBitsFixedWidth(int(v), WidthCrumb)
