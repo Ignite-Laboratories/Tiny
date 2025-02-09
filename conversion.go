@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-// BuildBits uses the provided ones and zeros to build a Bit slice.
-func BuildBits(bits ...Bit) []Bit {
+// Bits uses the provided ones and zeros to build a Bit slice.
+func Bits(bits ...Bit) []Bit {
 	return append([]Bit{}, bits...)
 }
 
