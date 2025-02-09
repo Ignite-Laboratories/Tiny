@@ -79,11 +79,6 @@ func ToBitsFixedWidth(value int, width int) []Bit {
 	return result
 }
 
-// BitBuilder uses the provided ones and zeros to build a Bit slice.
-func BitBuilder(bits ...Bit) []Bit {
-	return append([]Bit{}, bits...)
-}
-
 // Bits uses the provided value to build a 1 Bit slice.
 func (v Bit) Bits() []Bit {
 	return ToBitsFixedWidth(int(v), WidthBit)
