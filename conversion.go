@@ -5,11 +5,6 @@ import (
 	"strconv"
 )
 
-// Bits uses the provided ones and zeros to build a Bit slice.
-func Bits(bits ...Bit) []Bit {
-	return append([]Bit{}, bits...)
-}
-
 // ToBytes takes in binary data and returns it in Remainder form.
 func ToBytes(bits []Bit) Remainder {
 	// The resulting slice of bytes
@@ -55,7 +50,7 @@ func BytesToBits(data []byte) []Bit {
 	return bits
 }
 
-// ToBits takes an int and returns its constituent bits.
+// ToBits takes an int and returns its minimum constituent bits.
 func ToBits(value int) []Bit {
 	if value == 0 {
 		return []Bit{Bit(0)}
@@ -84,39 +79,44 @@ func ToBitsFixedWidth(value int, width int) []Bit {
 	return result
 }
 
-// ToBits returns a Crumb's constituent bits.
-func (v Crumb) ToBits() []Bit {
-	return ToBitsFixedWidth(int(v), 2)
+// FromBits uses the provided ones and zeros to build a Bit slice.
+func FromBits(bits ...Bit) []Bit {
+	return append([]Bit{}, bits...)
 }
 
-// ToBits returns a Note's constituent bits.
-func (v Note) ToBits() []Bit {
-	return ToBitsFixedWidth(int(v), 3)
+// Bits uses the provided value to build a 2 Bit slice.
+func (v Crumb) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthCrumb)
 }
 
-// ToBits returns a Nibble's constituent bits.
-func (v Nibble) ToBits() []Bit {
-	return ToBitsFixedWidth(int(v), 4)
+// Bits uses the provided value to build a 3 Bit slice.
+func (v Note) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthNote)
 }
 
-// ToBits returns a Flake's constituent bits.
-func (v Flake) ToBits() []Bit {
-	return ToBitsFixedWidth(int(v), 5)
+// Bits uses the provided value to build a 4 Bit slice.
+func (v Nibble) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthNibble)
 }
 
-// ToBits returns a Morsel's constituent bits.
-func (v Morsel) ToBits() []Bit {
-	return ToBitsFixedWidth(int(v), 6)
+// Bits uses the provided value to build a 5 Bit slice.
+func (v Flake) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthFlake)
 }
 
-// ToBits returns a Shred's constituent bits.
-func (v Shred) ToBits() []Bit {
-	return ToBitsFixedWidth(int(v), 7)
+// Bits uses the provided value to build a 6 Bit slice.
+func (v Morsel) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthMorsel)
+}
+
+// Bits uses the provided value to build a 7 Bit slice.
+func (v Shred) Bits() []Bit {
+	return ToBitsFixedWidth(int(v), WidthShred)
 }
 
 // FromByte returns a byte's constituent bits.
 func FromByte(b byte) []Bit {
-	return ToBitsFixedWidth(int(b), 8)
+	return ToBitsFixedWidth(int(b), WidthByte)
 }
 
 // ToString converts a set of Bit values into a string.
