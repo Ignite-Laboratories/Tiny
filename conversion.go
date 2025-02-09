@@ -127,37 +127,37 @@ func ToString[T SubByte](bits []T) string {
 String()
 */
 
-// String converts a Bit to a string.
+// String converts a Bit to a 1-bit string.
 func (v Bit) String() string {
 	return ToString([]Bit{v})
 }
 
-// String converts a Crumb to a string.
+// String converts a Crumb to a 2-bit string.
 func (v Crumb) String() string {
 	return ToString(ToBitsFixedWidth(int(v), WidthCrumb))
 }
 
-// String converts a Note to a string.
+// String converts a Note to a 3-bit string.
 func (v Note) String() string {
 	return ToString(ToBitsFixedWidth(int(v), WidthNote))
 }
 
-// String converts a Nibble to a string.
+// String converts a Nibble to a 4-bit string.
 func (v Nibble) String() string {
 	return ToString(ToBitsFixedWidth(int(v), WidthNibble))
 }
 
-// String converts a Flake to a string.
+// String converts a Flake to a 5-bit string.
 func (v Flake) String() string {
 	return ToString(ToBitsFixedWidth(int(v), WidthFlake))
 }
 
-// String converts a Morsel to a string.
+// String converts a Morsel to a 6-bit string.
 func (v Morsel) String() string {
 	return ToString(ToBitsFixedWidth(int(v), WidthMorsel))
 }
 
-// String converts a Shred to a string.
+// String converts a Shred to a 7-bit string.
 func (v Shred) String() string {
 	return ToString(ToBitsFixedWidth(int(v), WidthShred))
 }

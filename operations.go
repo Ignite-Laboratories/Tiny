@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"bytes"
 	"log"
 )
 
@@ -35,6 +36,20 @@ func GetDataShade(data []byte) BinaryCount {
 	count.Calculate()
 
 	return count
+}
+
+// SubToByte is a convenience method to upcast slices of SubByte to byte.
+func SubToByte[TIn SubByte](data []TIn) []byte {
+	out := make([]byte, len(data))
+	for i, bit := range data {
+		out[i] = byte(bit)
+	}
+	return out
+}
+
+// HasPrefix upcasts the input slices to bytes and then calls bytes.HasPrefix.
+func HasPrefix(data []Bit, pattern []Bit) bool {
+	return bytes.HasPrefix(SubToByte(data), SubToByte(pattern))
 }
 
 // XORDataWithPattern XORs a pattern of bits against every byte, starting at the most significant bit of each.
