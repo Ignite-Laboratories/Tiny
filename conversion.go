@@ -5,6 +5,11 @@ import (
 	"strconv"
 )
 
+// BuildBits uses the provided ones and zeros to build a Bit slice.
+func BuildBits(bits ...Bit) []Bit {
+	return append([]Bit{}, bits...)
+}
+
 // ToBytes takes in binary data and returns it in Remainder form.
 func ToBytes(bits []Bit) Remainder {
 	// The resulting slice of bytes
