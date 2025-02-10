@@ -50,7 +50,8 @@ const (
 	Grey
 )
 
-// Remainder is used to efficiently store Bits in operating memory.
+// Remainder is used to efficiently store Bits in operating memory, as the
+// language inherently requires at least 8 bits to store any custom type.
 type Remainder struct {
 	// Bytes holds complete byte data.
 	Bytes []byte
@@ -58,7 +59,57 @@ type Remainder struct {
 	Bits []Bit
 }
 
-// BinaryCount is a count of the number of 0s and 1s within the target.
+// NewRemainder constructs a Remainder, which represents an uneven amount of binary bits.
+func NewRemainder(bytes []byte, bits ...Bit) Remainder {
+	return Remainder{
+		Bytes: bytes,
+		Bits:  bits,
+	}
+}
+
+// AppendBits places the provided bits at the end of the source Remainder.
+func (source *Remainder) AppendBits(bits ...Bit) {
+	source.Bits = append(source.Bits, bits...)          // Add the bits to the last remainder
+	toAdd := To.Bytes(source.Bits...)                   // Convert that to byte form
+	source.Bytes = append(source.Bytes, toAdd.Bytes...) // Combine the whole bytes
+	source.Bits = toAdd.Bits                            // Bring forward the remaining bits
+}
+
+// AppendBytes places the provided bytes at the end of the source Remainder.
+func (source *Remainder) AppendBytes(bytes ...byte) {
+	remainderLength := len(source.Bits)
+	lastRemainder := source.Bits
+	for _, b := range bytes {
+		bits := From.Byte(b)
+		newBits := append(lastRemainder, bits[:remainderLength]...)
+		lastRemainder = bits[remainderLength:]
+		source.Bytes = append(source.Bytes, To.Byte(newBits...))
+	}
+	source.Bits = lastRemainder
+}
+
+// AppendRemainder places the provided Remainder at the end of the source Remainder.
+func (source *Remainder) AppendRemainder(remainder Remainder) {
+	source.AppendBytes(remainder.Bytes...)
+	source.AppendBits(remainder.Bits...)
+}
+
+// PrependBits places the provided bits at the beginning of the source Remainder.
+func (source *Remainder) PrependBits(bits ...Bit) {
+
+}
+
+// PrependBytes places the provided bytes at the beginning of the source Remainder.
+func (source *Remainder) PrependBytes(bytes ...byte) {
+
+}
+
+// PrependRemainder places the provided Remainder at the beginning of the source Remainder.
+func (source *Remainder) PrependRemainder(remainder Remainder) {
+
+}
+
+// BinaryCount is a count of the number of 0s and 1s within binary data.
 type BinaryCount struct {
 	// Zeros are a count of the number of 0s in the target.
 	Zeros int
@@ -74,8 +125,7 @@ type BinaryCount struct {
 	Distribution [8]int
 }
 
-// Calculate fills in a BinaryCount's Shade information.
-func (c *BinaryCount) Calculate() {
+func (c *BinaryCount) calculate() {
 	c.PredominantlyDark = c.Ones > c.Total/2
 
 	if c.Zeros > 0 && c.Ones == 0 {

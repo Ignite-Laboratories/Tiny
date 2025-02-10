@@ -17,7 +17,7 @@ func (_ analyze) BitShade(bits []Bit) BinaryCount {
 		}
 		count.Total++
 	}
-	count.Calculate()
+	count.calculate()
 
 	return count
 }
@@ -33,7 +33,7 @@ func (a analyze) DataShade(data []byte) BinaryCount {
 		count.Total += c.Total
 	}
 	count.Distribution = a.OneDistribution(data)
-	count.Calculate()
+	count.calculate()
 
 	return count
 }
