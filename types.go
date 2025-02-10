@@ -1,5 +1,54 @@
 package tiny
 
+// Shade is a descriptor of whether the binary data is Light, Dark, or Grey.
+type Shade int
+
+const (
+	// Light represents all 0s.
+	Light Shade = iota
+
+	// Dark represents all 1s.
+	Dark
+
+	// Grey represents a mixture of 1s and 0s.
+	Grey
+)
+
+// BinaryCount is a count of the number of 0s and 1s within binary data.
+type BinaryCount struct {
+	// Zeros are a count of the number of 0s in the target.
+	Zeros int
+	// Ones are a count of the number of 1s in the target.
+	Ones int
+	// Total is a tally of all 1s and 0s.
+	Total int
+	// Shade details the general nature of the 1s and 0s.
+	Shade Shade
+	// PredominantlyDark is true if more than half of the binary data is a 1.
+	PredominantlyDark bool
+	// Distribution is a count of how many ones are in each position of every byte of the target.
+	Distribution [8]int
+}
+
+func (c *BinaryCount) calculate() {
+	c.PredominantlyDark = c.Ones > c.Total/2
+
+	if c.Zeros > 0 && c.Ones == 0 {
+		// It's all zeros
+		c.Shade = Light
+	} else if c.Zeros == 0 && c.Ones >= 0 {
+		// It's all ones
+		c.Shade = Dark
+	} else {
+		// It's a mixture
+		c.Shade = Grey
+	}
+}
+
+/**
+Sub Byte Types
+*/
+
 // SubByte is any type representable in less than 8 bits.
 type SubByte interface {
 	Bit | Crumb | Note | Nibble | Flake | Morsel | Shred
@@ -35,110 +84,6 @@ type Morsel byte
 
 // Shred represents seven binary values. [0-127]
 type Shred byte
-
-// Shade is a descriptor of whether the binary data is Light, Dark, or Grey.
-type Shade int
-
-const (
-	// Light represents all 0s.
-	Light Shade = iota
-
-	// Dark represents all 1s.
-	Dark
-
-	// Grey represents a mixture of 1s and 0s.
-	Grey
-)
-
-// Remainder is used to efficiently store Bits in operating memory, as the
-// language inherently requires at least 8 bits to store any custom type.
-type Remainder struct {
-	// Bytes holds complete byte data.
-	Bytes []byte
-	// Bits holds any remaining bits that didn't fit into a byte for whatever reason.
-	Bits []Bit
-}
-
-// NewRemainder constructs a Remainder, which represents an uneven amount of binary bits.
-func NewRemainder(bytes []byte, bits ...Bit) Remainder {
-	return Remainder{
-		Bytes: bytes,
-		Bits:  bits,
-	}
-}
-
-// AppendBits places the provided bits at the end of the source Remainder.
-func (source *Remainder) AppendBits(bits ...Bit) {
-	source.Bits = append(source.Bits, bits...)          // Add the bits to the last remainder
-	toAdd := To.Bytes(source.Bits...)                   // Convert that to byte form
-	source.Bytes = append(source.Bytes, toAdd.Bytes...) // Combine the whole bytes
-	source.Bits = toAdd.Bits                            // Bring forward the remaining bits
-}
-
-// AppendBytes places the provided bytes at the end of the source Remainder.
-func (source *Remainder) AppendBytes(bytes ...byte) {
-	remainderLength := len(source.Bits)
-	lastRemainder := source.Bits
-	for _, b := range bytes {
-		bits := From.Byte(b)
-		newBits := append(lastRemainder, bits[:remainderLength]...)
-		lastRemainder = bits[remainderLength:]
-		source.Bytes = append(source.Bytes, To.Byte(newBits...))
-	}
-	source.Bits = lastRemainder
-}
-
-// AppendRemainder places the provided Remainder at the end of the source Remainder.
-func (source *Remainder) AppendRemainder(remainder Remainder) {
-	source.AppendBytes(remainder.Bytes...)
-	source.AppendBits(remainder.Bits...)
-}
-
-// PrependBits places the provided bits at the beginning of the source Remainder.
-func (source *Remainder) PrependBits(bits ...Bit) {
-
-}
-
-// PrependBytes places the provided bytes at the beginning of the source Remainder.
-func (source *Remainder) PrependBytes(bytes ...byte) {
-
-}
-
-// PrependRemainder places the provided Remainder at the beginning of the source Remainder.
-func (source *Remainder) PrependRemainder(remainder Remainder) {
-
-}
-
-// BinaryCount is a count of the number of 0s and 1s within binary data.
-type BinaryCount struct {
-	// Zeros are a count of the number of 0s in the target.
-	Zeros int
-	// Ones are a count of the number of 1s in the target.
-	Ones int
-	// Total is a tally of all 1s and 0s.
-	Total int
-	// Shade details the general nature of the 1s and 0s.
-	Shade Shade
-	// PredominantlyDark is true if more than half of the binary data is a 1.
-	PredominantlyDark bool
-	// Distribution is a count of how many ones are in each position of every byte of the target.
-	Distribution [8]int
-}
-
-func (c *BinaryCount) calculate() {
-	c.PredominantlyDark = c.Ones > c.Total/2
-
-	if c.Zeros > 0 && c.Ones == 0 {
-		// It's all zeros
-		c.Shade = Light
-	} else if c.Zeros == 0 && c.Ones >= 0 {
-		// It's all ones
-		c.Shade = Dark
-	} else {
-		// It's a mixture
-		c.Shade = Grey
-	}
-}
 
 /**
 Bits()
