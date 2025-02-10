@@ -8,7 +8,7 @@ import (
 // TODO: Test this library
 
 func main() {
-	val := tiny.From.Int(2345)
+	val := tiny.From.Number(2345)
 	fmt.Println(tiny.To.String(val...))
 
 	test := tiny.To.Byte(1, 0, 1, 1)

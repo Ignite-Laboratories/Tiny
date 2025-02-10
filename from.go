@@ -47,7 +47,7 @@ func (f fRom) Byte(value byte) []Bit {
 func (f fRom) Bytes(bytes ...byte) []Bit {
 	var output []Bit
 	for _, v := range bytes {
-		output = append(output, f.Int(int(v), 8)...)
+		output = append(output, f.Number(int(v), 8)...)
 	}
 	return output
 }
