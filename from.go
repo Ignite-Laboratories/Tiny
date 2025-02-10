@@ -3,7 +3,7 @@ package tiny
 // from is a way to analyze binary slices from existing data.
 type from struct{}
 
-// Bits uses the provided ones and zeros to build a tiny.Bit slice.
+// Bits uses the provided ones and zeros to build a Bit slice.
 func (_ from) Bits(bits ...Bit) []Bit {
 	return append([]Bit{}, bits...)
 }
@@ -43,7 +43,7 @@ func (f from) Byte(value byte) []Bit {
 	return f.Number(int(value), WidthByte)
 }
 
-// Bytes uses the provided slice of bytes to build a tiny.Bit slice.
+// Bytes uses the provided slice of bytes to build a Bit slice.
 func (f from) Bytes(bytes ...byte) []Bit {
 	var output []Bit
 	for _, v := range bytes {
