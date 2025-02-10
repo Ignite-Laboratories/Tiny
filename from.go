@@ -1,50 +1,50 @@
 package tiny
 
-// from is a way to get binary slices from existing data.
-type fRom struct{}
+// from is a way to analyze binary slices from existing data.
+type from struct{}
 
 // Bits uses the provided ones and zeros to build a tiny.Bit slice.
-func (_ fRom) Bits(bits ...Bit) []Bit {
+func (_ from) Bits(bits ...Bit) []Bit {
 	return append([]Bit{}, bits...)
 }
 
 // Crumb uses the provided value to build a 2-bit slice.
-func (f fRom) Crumb(value Crumb) []Bit {
+func (f from) Crumb(value Crumb) []Bit {
 	return f.Number(int(value), WidthCrumb)
 }
 
 // Note uses the provided value to build a 3-bit slice.
-func (f fRom) Note(value Note) []Bit {
+func (f from) Note(value Note) []Bit {
 	return f.Number(int(value), WidthNote)
 }
 
 // Nibble uses the provided value to build a 4-bit slice.
-func (f fRom) Nibble(value Nibble) []Bit {
+func (f from) Nibble(value Nibble) []Bit {
 	return f.Number(int(value), WidthNibble)
 }
 
 // Flake uses the provided value to build a 5-bit slice.
-func (f fRom) Flake(value Flake) []Bit {
+func (f from) Flake(value Flake) []Bit {
 	return f.Number(int(value), WidthFlake)
 }
 
 // Morsel uses the provided value to build a 6-bit slice.
-func (f fRom) Morsel(value Morsel) []Bit {
+func (f from) Morsel(value Morsel) []Bit {
 	return f.Number(int(value), WidthMorsel)
 }
 
 // Shred uses the provided value to build a 7-bit slice.
-func (f fRom) Shred(value Shred) []Bit {
+func (f from) Shred(value Shred) []Bit {
 	return f.Number(int(value), WidthShred)
 }
 
 // Byte uses the provided value to build a 8-bit slice.
-func (f fRom) Byte(value byte) []Bit {
+func (f from) Byte(value byte) []Bit {
 	return f.Number(int(value), WidthByte)
 }
 
 // Bytes uses the provided slice of bytes to build a tiny.Bit slice.
-func (f fRom) Bytes(bytes ...byte) []Bit {
+func (f from) Bytes(bytes ...byte) []Bit {
 	var output []Bit
 	for _, v := range bytes {
 		output = append(output, f.Number(int(v), 8)...)
@@ -55,7 +55,7 @@ func (f fRom) Bytes(bytes ...byte) []Bit {
 // Number uses the provided int to build a tiny.Bit slice. If no width is provided, the result is
 // given in its smallest possible width.  Otherwise, the data is MSB padded with 0s to the
 // specified width.
-func (_ fRom) Number(value int, width ...int) []Bit {
+func (_ from) Number(value int, width ...int) []Bit {
 	if value == 0 {
 		return []Bit{Bit(0)}
 	}
