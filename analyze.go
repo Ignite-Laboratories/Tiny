@@ -4,10 +4,10 @@ import "bytes"
 
 type _analyze int
 
-// RemainderShade gives heuristics around the distribution of 1s in the provided remainder.
-func (a _analyze) RemainderShade(remainder Remainder) BinaryCount {
-	shade := a.ByteShade(remainder.Bytes...)
-	shade.combine(a.BitShade(remainder.Bits...))
+// MeasureShade gives heuristics around the distribution of 1s in the provided measure.
+func (a _analyze) MeasureShade(measure Measure) BinaryCount {
+	shade := a.ByteShade(measure.Bytes...)
+	shade.combine(a.BitShade(measure.Bits...))
 	return shade
 }
 

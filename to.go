@@ -62,14 +62,14 @@ func (_ _to) Byte(bits ...Bit) byte {
 	return byte(toNumeric(8, bits...))
 }
 
-// Bytes converts a Bit slice to a Remainder.
-func (t _to) Bytes(bits ...Bit) Remainder {
+// Bytes converts a Bit slice to a Measure.
+func (t _to) Bytes(bits ...Bit) Measure {
 	var bytes []byte
 	for i := 0; i+7 < len(bits); i += 8 {
 		bytes = append(bytes, t.Byte(bits[i:i+8]...))
 	}
 	remainingBits := bits[len(bytes)*8:]
-	return Remainder{Bytes: bytes, Bits: remainingBits}
+	return Measure{Bytes: bytes, Bits: remainingBits}
 }
 
 // String creates a slice of mixed 1s and 0s from the provided Bit slice
