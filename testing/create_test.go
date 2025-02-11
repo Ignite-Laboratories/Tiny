@@ -50,6 +50,27 @@ func Test_Create_Repeating(t *testing.T) {
 	patternTester(t, tiny.From.Bits(1, 0, 1, 0, 0)...)
 }
 
+func Test_Create_Pattern(t *testing.T) {
+	// NOTE: Create.Pattern entirely uses Create.Repeating
+	// Create.Pattern only needs to have the length component tested
+
+	uneven := tiny.Create.Pattern(8, tiny.From.Bits(0, 1, 1)...)
+	expectedUneven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1)
+	even := tiny.Create.Pattern(9, tiny.From.Bits(0, 1, 1)...)
+	expectedEven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1, 1)
+
+	for i, bit := range uneven {
+		if bit != expectedUneven[i] {
+			t.Errorf("Expected %d, got %d", expectedUneven[i], bit)
+		}
+	}
+	for i, bit := range even {
+		if bit != expectedEven[i] {
+			t.Errorf("Expected %d, got %d", expectedEven[i], bit)
+		}
+	}
+}
+
 func Test_Create_Random(t *testing.T) {
 	for lengthI := 8; lengthI < 10; lengthI++ {
 		for testI := 0; testI < 10; testI++ {

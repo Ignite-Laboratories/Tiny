@@ -27,6 +27,13 @@ func (_ _create) Repeating(count int, pattern ...Bit) []Bit {
 	return bits
 }
 
+// Pattern creates a slice of the provided pattern repeated and trimmed to the provided length.
+func (_ _create) Pattern(length uint64, pattern ...Bit) []Bit {
+	count := (length / uint64(len(pattern))) + 1
+	repeated := _create{}.Repeating(int(count), pattern...)
+	return repeated[:length]
+}
+
 // Random creates a random sequence of 1s and 0s.
 func (_ _create) Random(width int) []Bit {
 	bits := make([]Bit, width)
