@@ -30,6 +30,16 @@ type BinaryCount struct {
 	Distribution [8]int
 }
 
+func (c *BinaryCount) combine(other BinaryCount) {
+	c.Zeros += other.Zeros
+	c.Ones += other.Ones
+	c.Total += other.Total
+	for i := range c.Distribution {
+		c.Distribution[i] += other.Distribution[i]
+	}
+	c.calculate()
+}
+
 func (c *BinaryCount) calculate() {
 	c.PredominantlyDark = c.Ones > c.Total/2
 

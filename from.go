@@ -56,7 +56,10 @@ func (f _from) Bytes(bytes ...byte) []Bit {
 // specified width.
 func (_ _from) Number(value int, width ...int) []Bit {
 	if value == 0 {
-		return []Bit{Bit(0)}
+		if width == nil {
+			width = []int{1}
+		}
+		return make([]Bit, width[0])
 	}
 
 	var bits []Bit

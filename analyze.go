@@ -6,28 +6,28 @@ type _analyze int
 
 // RemainderShade gives heuristics around the distribution of 1s in the provided remainder.
 func (a _analyze) RemainderShade(remainder Remainder) BinaryCount {
-	byteShade := a.ByteShade(remainder.Bytes...)
-	bitShade := a.BitShade(remainder.Bits...)
-	count := BinaryCount{
-		Zeros: byteShade.Zeros + bitShade.Zeros,
-		Ones:  byteShade.Ones + bitShade.Ones,
-		Total: byteShade.Total + bitShade.Total,
-	}
-	count.calculate()
-	return count
+	shade := a.ByteShade(remainder.Bytes...)
+	shade.combine(a.BitShade(remainder.Bits...))
+	return shade
 }
 
 // BitShade gives heuristics around the distribution of 1s in the provided bits.
 func (_ _analyze) BitShade(bits ...Bit) BinaryCount {
 	count := BinaryCount{}
 
+	byteIndex := 0
 	for i := 0; i < len(bits); i++ {
 		if bits[i] == One {
+			count.Distribution[byteIndex]++
 			count.Ones++
 		} else {
 			count.Zeros++
 		}
 		count.Total++
+		byteIndex++
+		if byteIndex == 8 {
+			byteIndex = 0
+		}
 	}
 	count.calculate()
 
