@@ -2,11 +2,23 @@ package tiny
 
 import "bytes"
 
-// analyze is a way to glean information about existing binary information.
-type analyze struct{}
+type _analyze int
 
-// BitShade counts the number of 1s and 0s in the data.
-func (_ analyze) BitShade(bits ...Bit) BinaryCount {
+// RemainderShade gives heuristics around the distribution of 1s in the provided remainder.
+func (a _analyze) RemainderShade(remainder Remainder) BinaryCount {
+	byteShade := a.ByteShade(remainder.Bytes...)
+	bitShade := a.BitShade(remainder.Bits...)
+	count := BinaryCount{
+		Zeros: byteShade.Zeros + bitShade.Zeros,
+		Ones:  byteShade.Ones + bitShade.Ones,
+		Total: byteShade.Total + bitShade.Total,
+	}
+	count.calculate()
+	return count
+}
+
+// BitShade gives heuristics around the distribution of 1s in the provided bits.
+func (_ _analyze) BitShade(bits ...Bit) BinaryCount {
 	count := BinaryCount{}
 
 	for i := 0; i < len(bits); i++ {
@@ -22,8 +34,8 @@ func (_ analyze) BitShade(bits ...Bit) BinaryCount {
 	return count
 }
 
-// DataShade checks if the number of ones in the data exceeds half it's the length.
-func (a analyze) DataShade(data ...byte) BinaryCount {
+// ByteShade gives heuristics around the distribution of 1s in the provided bytes.
+func (a _analyze) ByteShade(data ...byte) BinaryCount {
 	count := BinaryCount{}
 
 	for i := 0; i < len(data); i++ {
@@ -39,12 +51,12 @@ func (a analyze) DataShade(data ...byte) BinaryCount {
 }
 
 // HasPrefix upcasts the input slices to bytes and then calls bytes.HasPrefix.
-func (_ analyze) HasPrefix(data []Bit, pattern ...Bit) bool {
-	return bytes.HasPrefix(subToByte(data), subToByte(pattern))
+func (_ _analyze) HasPrefix(data []Bit, pattern ...Bit) bool {
+	return bytes.HasPrefix(upcast(data), upcast(pattern))
 }
 
 // OneDistribution counts how many ones occupy each position of the provided bytes.
-func (_ analyze) OneDistribution(data ...byte) [8]int {
+func (_ _analyze) OneDistribution(data ...byte) [8]int {
 	output := [8]int{}
 	for _, b := range data {
 		for i := 0; i < 8; i++ {

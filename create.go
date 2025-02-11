@@ -2,11 +2,10 @@ package tiny
 
 import "crypto/rand"
 
-// create is a way to synthesize binary slices from known parameters.
-type create struct{}
+type _create struct{}
 
 // Ones creates a slice of '1's of the requested length.
-func (_ create) Ones(count int) []Bit {
+func (_ _create) Ones(count int) []Bit {
 	var bits []Bit
 	for i := 0; i < count; i++ {
 		bits = append(bits, One)
@@ -15,12 +14,12 @@ func (_ create) Ones(count int) []Bit {
 }
 
 // Zeros creates a slice of '0's of the requested length.
-func (_ create) Zeros(count int) []Bit {
+func (_ _create) Zeros(count int) []Bit {
 	return make([]Bit, count)
 }
 
-// Grey creates a slice of the provided pattern repeated the requested number of times.
-func (_ create) Grey(count int, pattern ...Bit) []Bit {
+// Repeating creates a slice of the provided pattern repeated the requested number of times.
+func (_ _create) Repeating(count int, pattern ...Bit) []Bit {
 	var bits []Bit
 	for i := 0; i < count; i++ {
 		bits = append(bits, pattern...)
@@ -29,7 +28,7 @@ func (_ create) Grey(count int, pattern ...Bit) []Bit {
 }
 
 // Random creates a random sequence of 1s and 0s.
-func (_ create) Random(width int) []Bit {
+func (_ _create) Random(width int) []Bit {
 	bits := make([]Bit, width)
 	for i := 0; i < width; i++ {
 		var b [1]byte
