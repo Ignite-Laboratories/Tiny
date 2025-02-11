@@ -1,27 +1,27 @@
 package tiny
 
-import "log"
-
 type _modify int
 
-// XORBitsWithPattern XORs a pattern of bits against a byte, starting at the most significant bit.
-func (_ _modify) XORBitsWithPattern(b byte, pattern ...Bit) byte {
-	if len(pattern) > 8 {
-		log.Fatalf("input pattern should not be larger than a byte")
+// TODO: XOR with PATTERN of bits!
+
+// XORByteWithBits XORs a fixed range of bits against a byte, starting at the most significant bit.
+func (_ _modify) XORByteWithBits(b byte, bits ...Bit) byte {
+	if len(bits) > 8 {
+		bits = bits[:8]
 	}
 
-	bits := From.Byte(b)
-	for i := 0; i < len(pattern); i++ {
-		bits[i] ^= pattern[i]
+	byteBits := From.Byte(b)
+	for i := 0; i < len(bits); i++ {
+		byteBits[i] ^= bits[i]
 	}
 
-	return To.Byte(bits...)
+	return To.Byte(byteBits...)
 }
 
-// XORBytesWithPattern XORs a pattern of bits against every byte, starting at the most significant bit of each.
-func (m _modify) XORBytesWithPattern(data []byte, pattern ...Bit) []byte {
+// XORBytesWithBits XORs a fixed range of bits against every byte, starting at the most significant bit of each.
+func (m _modify) XORBytesWithBits(data []byte, bits ...Bit) []byte {
 	for i := 0; i < len(data); i++ {
-		data[i] = m.XORBitsWithPattern(data[i], pattern...)
+		data[i] = m.XORByteWithBits(data[i], bits...)
 	}
 	return data
 }
