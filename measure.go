@@ -1,5 +1,7 @@
 package tiny
 
+import "strconv"
+
 // Measure is used to efficiently store Bits in operating memory, as most
 // languages inherently requires at least 8 bits to store any custom type.
 // Conceptually, this is a musical "measure" - facilitating rhythmic changes
@@ -10,6 +12,10 @@ package tiny
 //
 // TL;DR: This holds bits in byte form, leaving anything less than a byte
 // at the end of the binary information as a remainder of Bits.
+//
+// NOTE: A measure is limited to 32 bits wide by design.  This allows you
+// to easily grow or shrink bits at the byte level and then capture the
+// new value of each individual measure.
 type Measure struct {
 	// Bytes holds complete byte data.
 	Bytes []byte
@@ -175,6 +181,13 @@ func (m *Measure) PrependBytes(bytes ...byte) {
 func (m *Measure) Prepend(remainder Measure) {
 	m.PrependBits(remainder.Bits...)   // First the ending bits get prepended
 	m.PrependBytes(remainder.Bytes...) // Then the starting bytes
+}
+
+// Value gets the integer value of the measure using its current bit representation.
+// NOTE: Measures are limited to 32 bits wide - intentionally limiting them to an int.
+func (m *Measure) Value() int {
+	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, 32)
+	return int(v)
 }
 
 // Toggle XORs every bit of each Measure with 1.
