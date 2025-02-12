@@ -114,6 +114,9 @@ func (m *Measure) ByteBitLength() int { return len(m.Bytes) * 8 }
 
 // AppendBits places the provided bits at the end of the source Measure.
 func (m *Measure) AppendBits(bits ...Bit) {
+	if m.BitLength()+len(bits) > 32 {
+		panic(errorMeasureLimit)
+	}
 	m.Bits = append(m.Bits, bits...)          // Add the bits to the last remainder
 	toAdd := To.Measure(m.Bits...)            // Convert that to byte form
 	m.Bytes = append(m.Bytes, toAdd.Bytes...) // Combine the whole bytes
@@ -122,6 +125,9 @@ func (m *Measure) AppendBits(bits ...Bit) {
 
 // AppendBytes places the provided bytes at the end of the source Measure.
 func (m *Measure) AppendBytes(bytes ...byte) {
+	if m.BitLength()+len(bytes)*8 > 32 {
+		panic(errorMeasureLimit)
+	}
 	remainderLength := len(m.Bits)
 	lastRemainder := m.Bits
 	for _, lastByte := range bytes {
@@ -141,6 +147,9 @@ func (m *Measure) Append(measure Measure) {
 
 // PrependBits places the provided bits at the beginning of the source Measure.
 func (m *Measure) PrependBits(bits ...Bit) {
+	if m.BitLength()+len(bits) > 32 {
+		panic(errorMeasureLimit)
+	}
 	prependLength := len(bits)
 	currentBits := bits
 	newBytes := make([]byte, 0)
@@ -156,6 +165,9 @@ func (m *Measure) PrependBits(bits ...Bit) {
 
 // PrependBytes places the provided bytes at the beginning of the source Measure.
 func (m *Measure) PrependBytes(bytes ...byte) {
+	if m.BitLength()+len(bytes)*8 > 32 {
+		panic(errorMeasureLimit)
+	}
 	m.Bytes = append(bytes, m.Bytes...)
 }
 

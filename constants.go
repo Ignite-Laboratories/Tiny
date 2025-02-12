@@ -62,3 +62,9 @@ const WidthShred = 7
 
 // WidthByte is the number of binary positions a Byte represents.
 const WidthByte = 8
+
+/*
+*
+Error Messages
+*/
+const errorMeasureLimit = "Measures are limited to 32 total bits wide"
