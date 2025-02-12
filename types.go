@@ -14,8 +14,8 @@ const (
 	Grey
 )
 
-// BinaryCount is a count of the number of 0s and 1s within binary data.
-type BinaryCount struct {
+// BinaryShade is a count of the number of 0s and 1s within binary data.
+type BinaryShade struct {
 	// Zeros are a count of the number of 0s in the target.
 	Zeros int
 	// Ones are a count of the number of 1s in the target.
@@ -30,7 +30,7 @@ type BinaryCount struct {
 	Distribution [8]int
 }
 
-func (c *BinaryCount) combine(other BinaryCount) {
+func (c *BinaryShade) combine(other BinaryShade) {
 	c.Zeros += other.Zeros
 	c.Ones += other.Ones
 	c.Total += other.Total
@@ -40,7 +40,7 @@ func (c *BinaryCount) combine(other BinaryCount) {
 	c.calculate()
 }
 
-func (c *BinaryCount) calculate() {
+func (c *BinaryShade) calculate() {
 	c.PredominantlyDark = c.Ones > c.Total/2
 
 	if c.Zeros > 0 && c.Ones == 0 {

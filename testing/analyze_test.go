@@ -9,9 +9,9 @@ import (
 Bit/Data/Shade
 */
 
-func Test_Analyze_ReminderShade(t *testing.T) {
+func Test_Analyze_Shade(t *testing.T) {
 	light := tiny.NewMeasure([]byte{0, 0, 0, 0}, tiny.Create.Zeros(3)...)
-	lightExpected := tiny.BinaryCount{
+	lightExpected := tiny.BinaryShade{
 		Zeros:             35,
 		Ones:              0,
 		Total:             35,
@@ -19,10 +19,10 @@ func Test_Analyze_ReminderShade(t *testing.T) {
 		PredominantlyDark: false,
 		Distribution:      [8]int{0, 0, 0, 0, 0, 0, 0, 0},
 	}
-	shadeTester(tiny.Analyze.MeasureShade(light), lightExpected, t)
+	shadeTester(tiny.Analyze.Shade(light), lightExpected, t)
 
 	dark := tiny.NewMeasure([]byte{255, 255, 255, 255}, tiny.Create.Ones(3)...)
-	darkExpected := tiny.BinaryCount{
+	darkExpected := tiny.BinaryShade{
 		Zeros:             0,
 		Ones:              35,
 		Total:             35,
@@ -30,10 +30,10 @@ func Test_Analyze_ReminderShade(t *testing.T) {
 		PredominantlyDark: true,
 		Distribution:      [8]int{5, 5, 5, 4, 4, 4, 4, 4},
 	}
-	shadeTester(tiny.Analyze.MeasureShade(dark), darkExpected, t)
+	shadeTester(tiny.Analyze.Shade(dark), darkExpected, t)
 
 	jumbled := tiny.NewMeasure([]byte{22, 222, 111, 144}, []tiny.Bit{0, 1, 0}...)
-	jumbledExpected := tiny.BinaryCount{
+	jumbledExpected := tiny.BinaryShade{
 		Zeros:             17,
 		Ones:              18,
 		Total:             35,
@@ -41,10 +41,10 @@ func Test_Analyze_ReminderShade(t *testing.T) {
 		PredominantlyDark: true,
 		Distribution:      [8]int{2, 3, 1, 3, 2, 3, 3, 1},
 	}
-	shadeTester(tiny.Analyze.MeasureShade(jumbled), jumbledExpected, t)
+	shadeTester(tiny.Analyze.Shade(jumbled), jumbledExpected, t)
 
 	lessThanHalfGrey := tiny.NewMeasure([]byte{7, 7, 7, 7}, []tiny.Bit{0, 1, 0}...)
-	lessThanHalfGreyExpected := tiny.BinaryCount{
+	lessThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             22,
 		Ones:              13,
 		Total:             35,
@@ -52,10 +52,10 @@ func Test_Analyze_ReminderShade(t *testing.T) {
 		PredominantlyDark: false,
 		Distribution:      [8]int{0, 1, 0, 0, 0, 4, 4, 4},
 	}
-	shadeTester(tiny.Analyze.MeasureShade(lessThanHalfGrey), lessThanHalfGreyExpected, t)
+	shadeTester(tiny.Analyze.Shade(lessThanHalfGrey), lessThanHalfGreyExpected, t)
 
 	halfGrey := tiny.NewMeasure([]byte{15, 15, 15, 15}, []tiny.Bit{0, 1, 0}...)
-	halfGreyExpected := tiny.BinaryCount{
+	halfGreyExpected := tiny.BinaryShade{
 		Zeros:             18,
 		Ones:              17,
 		Total:             35,
@@ -63,10 +63,10 @@ func Test_Analyze_ReminderShade(t *testing.T) {
 		PredominantlyDark: false,
 		Distribution:      [8]int{0, 1, 0, 0, 4, 4, 4, 4},
 	}
-	shadeTester(tiny.Analyze.MeasureShade(halfGrey), halfGreyExpected, t)
+	shadeTester(tiny.Analyze.Shade(halfGrey), halfGreyExpected, t)
 
 	moreThanHalfGrey := tiny.NewMeasure([]byte{31, 31, 31, 31}, []tiny.Bit{0, 1, 0}...)
-	moreThanHalfGreyExpected := tiny.BinaryCount{
+	moreThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             14,
 		Ones:              21,
 		Total:             35,
@@ -74,12 +74,12 @@ func Test_Analyze_ReminderShade(t *testing.T) {
 		PredominantlyDark: true,
 		Distribution:      [8]int{0, 1, 0, 4, 4, 4, 4, 4},
 	}
-	shadeTester(tiny.Analyze.MeasureShade(moreThanHalfGrey), moreThanHalfGreyExpected, t)
+	shadeTester(tiny.Analyze.Shade(moreThanHalfGrey), moreThanHalfGreyExpected, t)
 }
 
 func Test_Analyze_ByteShade(t *testing.T) {
 	light := []byte{0, 0, 0, 0}
-	lightExpected := tiny.BinaryCount{
+	lightExpected := tiny.BinaryShade{
 		Zeros:             32,
 		Ones:              0,
 		Total:             32,
@@ -90,7 +90,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 	shadeTester(tiny.Analyze.ByteShade(light...), lightExpected, t)
 
 	dark := []byte{255, 255, 255, 255}
-	darkExpected := tiny.BinaryCount{
+	darkExpected := tiny.BinaryShade{
 		Zeros:             0,
 		Ones:              32,
 		Total:             32,
@@ -101,7 +101,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 	shadeTester(tiny.Analyze.ByteShade(dark...), darkExpected, t)
 
 	jumbled := []byte{22, 222, 111, 144}
-	jumbledExpected := tiny.BinaryCount{
+	jumbledExpected := tiny.BinaryShade{
 		Zeros:             15,
 		Ones:              17,
 		Total:             32,
@@ -112,7 +112,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 	shadeTester(tiny.Analyze.ByteShade(jumbled...), jumbledExpected, t)
 
 	lessThanHalfGrey := []byte{7, 7, 7, 7}
-	lessThanHalfGreyExpected := tiny.BinaryCount{
+	lessThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             20,
 		Ones:              12,
 		Total:             32,
@@ -123,7 +123,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 	shadeTester(tiny.Analyze.ByteShade(lessThanHalfGrey...), lessThanHalfGreyExpected, t)
 
 	halfGrey := []byte{15, 15, 15, 15}
-	halfGreyExpected := tiny.BinaryCount{
+	halfGreyExpected := tiny.BinaryShade{
 		Zeros:             16,
 		Ones:              16,
 		Total:             32,
@@ -134,7 +134,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 	shadeTester(tiny.Analyze.ByteShade(halfGrey...), halfGreyExpected, t)
 
 	moreThanHalfGrey := []byte{31, 31, 31, 31}
-	moreThanHalfGreyExpected := tiny.BinaryCount{
+	moreThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             12,
 		Ones:              20,
 		Total:             32,
@@ -147,7 +147,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 
 func Test_Analyze_BitShade(t *testing.T) {
 	light := tiny.Create.Zeros(8)
-	lightExpected := tiny.BinaryCount{
+	lightExpected := tiny.BinaryShade{
 		Zeros:             8,
 		Ones:              0,
 		Total:             8,
@@ -158,7 +158,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	shadeTester(tiny.Analyze.BitShade(light...), lightExpected, t)
 
 	dark := tiny.Create.Ones(8)
-	darkExpected := tiny.BinaryCount{
+	darkExpected := tiny.BinaryShade{
 		Zeros:             0,
 		Ones:              8,
 		Total:             8,
@@ -169,7 +169,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	shadeTester(tiny.Analyze.BitShade(dark...), darkExpected, t)
 
 	unevenLengthOfBits := []tiny.Bit{0, 1, 0, 0, 1, 0, 0, 1, 1, 1}
-	jumbledGreyExpected := tiny.BinaryCount{
+	jumbledGreyExpected := tiny.BinaryShade{
 		Zeros:             5,
 		Ones:              5,
 		Total:             10,
@@ -180,7 +180,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	shadeTester(tiny.Analyze.BitShade(unevenLengthOfBits...), jumbledGreyExpected, t)
 
 	lessThanHalfGrey := []tiny.Bit{1, 1, 1, 0, 0, 0, 0, 0}
-	lessThanHalfGreyExpected := tiny.BinaryCount{
+	lessThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             5,
 		Ones:              3,
 		Total:             8,
@@ -191,7 +191,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	shadeTester(tiny.Analyze.BitShade(lessThanHalfGrey...), lessThanHalfGreyExpected, t)
 
 	halfGrey := []tiny.Bit{1, 1, 1, 1, 0, 0, 0, 0}
-	halfGreyExpected := tiny.BinaryCount{
+	halfGreyExpected := tiny.BinaryShade{
 		Zeros:             4,
 		Ones:              4,
 		Total:             8,
@@ -202,7 +202,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	shadeTester(tiny.Analyze.BitShade(halfGrey...), halfGreyExpected, t)
 
 	moreThanHalfGrey := []tiny.Bit{1, 1, 1, 1, 1, 0, 0, 0}
-	moreThanHalfGreyExpected := tiny.BinaryCount{
+	moreThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             3,
 		Ones:              5,
 		Total:             8,
@@ -213,7 +213,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	shadeTester(tiny.Analyze.BitShade(moreThanHalfGrey...), moreThanHalfGreyExpected, t)
 }
 
-func shadeTester(analysis tiny.BinaryCount, expected tiny.BinaryCount, t *testing.T) {
+func shadeTester(analysis tiny.BinaryShade, expected tiny.BinaryShade, t *testing.T) {
 	if analysis.Shade != expected.Shade {
 		t.Errorf("Expected %v, got %v", expected.Shade, analysis.Shade)
 	}

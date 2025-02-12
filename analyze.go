@@ -4,16 +4,16 @@ import "bytes"
 
 type _analyze int
 
-// MeasureShade gives heuristics around the distribution of 1s in the provided measure.
-func (a _analyze) MeasureShade(measure Measure) BinaryCount {
+// Shade gives heuristics around the distribution of 1s in the provided measure.
+func (a _analyze) Shade(measure Measure) BinaryShade {
 	shade := a.ByteShade(measure.Bytes...)
 	shade.combine(a.BitShade(measure.Bits...))
 	return shade
 }
 
 // BitShade gives heuristics around the distribution of 1s in the provided bits.
-func (_ _analyze) BitShade(bits ...Bit) BinaryCount {
-	count := BinaryCount{}
+func (_ _analyze) BitShade(bits ...Bit) BinaryShade {
+	count := BinaryShade{}
 
 	byteIndex := 0
 	for i := 0; i < len(bits); i++ {
@@ -35,8 +35,8 @@ func (_ _analyze) BitShade(bits ...Bit) BinaryCount {
 }
 
 // ByteShade gives heuristics around the distribution of 1s in the provided bytes.
-func (a _analyze) ByteShade(data ...byte) BinaryCount {
-	count := BinaryCount{}
+func (a _analyze) ByteShade(data ...byte) BinaryShade {
+	count := BinaryShade{}
 
 	for i := 0; i < len(data); i++ {
 		c := a.BitShade(From.Byte(data[i])...)
@@ -50,9 +50,9 @@ func (a _analyze) ByteShade(data ...byte) BinaryCount {
 	return count
 }
 
-// HasPrefix upcasts the input slices to bytes and then calls bytes.HasPrefix.
-func (_ _analyze) HasPrefix(data []Bit, pattern ...Bit) bool {
-	return bytes.HasPrefix(upcast(data), upcast(pattern))
+// HasPrefix checks if the source Bit slice begins with the provided Bit slice
+func (_ _analyze) HasPrefix(data []Bit, prefix ...Bit) bool {
+	return bytes.HasPrefix(upcast(data), upcast(prefix))
 }
 
 // OneDistribution counts how many ones occupy each position of the provided bytes.

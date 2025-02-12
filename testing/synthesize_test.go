@@ -5,9 +5,10 @@ import (
 	"testing"
 )
 
-func Test_Create_Ones(t *testing.T) {
+func Test_Synthesize_Ones(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		bits := tiny.Create.Ones(i)
+		measure := tiny.Synthesize.Ones(i)
+		bits := measure.GetAllBits()
 		for ii := 0; ii < i; ii++ {
 			if bits[ii] != 1 {
 				t.Error("Expected all ones")
@@ -16,9 +17,10 @@ func Test_Create_Ones(t *testing.T) {
 	}
 }
 
-func Test_Create_Zeros(t *testing.T) {
+func Test_Synthesize_Zeros(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		bits := tiny.Create.Zeros(i)
+		measure := tiny.Synthesize.Zeros(i)
+		bits := measure.GetAllBits()
 		for ii := 0; ii < i; ii++ {
 			if bits[ii] != 0 {
 				t.Error("Expected all zeros")
@@ -27,10 +29,11 @@ func Test_Create_Zeros(t *testing.T) {
 	}
 }
 
-func Test_Create_Repeating(t *testing.T) {
+func Test_Synthesize_Repeating(t *testing.T) {
 	patternTester := func(t *testing.T, pattern ...tiny.Bit) {
 		for count := 0; count < 8; count++ {
-			bits := tiny.Create.Repeating(count, pattern...)
+			measure := tiny.Synthesize.Repeating(count, pattern...)
+			bits := measure.GetAllBits()
 			for i := 0; i < count; i++ {
 				offset := i * len(pattern)
 				for patternI := 0; patternI < len(pattern); patternI++ {
@@ -50,13 +53,15 @@ func Test_Create_Repeating(t *testing.T) {
 	patternTester(t, tiny.From.Bits(1, 0, 1, 0, 0)...)
 }
 
-func Test_Create_Pattern(t *testing.T) {
+func Test_Synthesize_Pattern(t *testing.T) {
 	// NOTE: Create.Pattern entirely uses Create.Repeating
 	// Create.Pattern only needs to have the length component tested
 
-	uneven := tiny.Create.Pattern(8, tiny.From.Bits(0, 1, 1)...)
+	unevenM := tiny.Synthesize.Pattern(8, tiny.From.Bits(0, 1, 1)...)
+	uneven := unevenM.GetAllBits()
 	expectedUneven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1)
-	even := tiny.Create.Pattern(9, tiny.From.Bits(0, 1, 1)...)
+	evenM := tiny.Synthesize.Pattern(9, tiny.From.Bits(0, 1, 1)...)
+	even := evenM.GetAllBits()
 	expectedEven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1, 1)
 
 	for i, bit := range uneven {
@@ -71,10 +76,11 @@ func Test_Create_Pattern(t *testing.T) {
 	}
 }
 
-func Test_Create_Random(t *testing.T) {
+func Test_Synthesize_Random(t *testing.T) {
 	for lengthI := 8; lengthI < 10; lengthI++ {
 		for testI := 0; testI < 10; testI++ {
-			random := tiny.Create.Random(lengthI)
+			measure := tiny.Synthesize.Random(lengthI)
+			random := measure.GetAllBits()
 
 			allZero := true
 			allOne := true

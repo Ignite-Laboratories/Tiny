@@ -3,7 +3,7 @@ package tiny
 // Measure is used to efficiently store Bits in operating memory, as most
 // languages inherently requires at least 8 bits to store any custom type.
 // Conceptually, this is a musical "measure" - facilitating rhythmic changes
-// to binary information; however, a "measurement" is, abstractly, a unit
+// to binary information; however, a "measurement" is, abstractly, any unit
 // defining the presence of something.  Linguistics are cool, folks!
 // I highly encourage you consider the alternative meanings of every term
 // in your preferred programming languages, they become far more intuitive =)
@@ -25,11 +25,38 @@ func NewMeasure(bytes []byte, bits ...Bit) Measure {
 	}
 }
 
+// ForEachBit calls the provided operation against every bit of the Measure.
+func (m *Measure) ForEachBit(operation func(i int, bit Bit) Bit) {
+	outBytes := make([]byte, len(m.Bytes))
+	outBits := make([]Bit, len(m.Bits))
+	bitI := 0
+	for byteI, b := range m.Bytes {
+		var newBits [8]Bit
+		for subI, bit := range From.Byte(b) {
+			newBits[subI] = operation(bitI, bit)
+			bitI++
+		}
+		outBytes[byteI] = To.Byte(newBits[:]...)
+	}
+	for _, bit := range m.Bits {
+		outBits[bitI] = operation(bitI, bit)
+		bitI++
+	}
+	m.Bytes = outBytes
+	m.Bits = outBits
+}
+
+// GetAllBits returns the measure in the form of a fully expanded Bit slice.
+func (m *Measure) GetAllBits() []Bit {
+	byteBits := From.Bytes(m.Bytes...)
+	return append(byteBits, m.Bits...)
+}
+
 // Read returns the individually addressed bits of the Measure, ranged from the low
 // index (inclusive) to the  high index (exclusive).  This intentionally follows standard
 // Go slice [low:high] indexing, meaning it also fails the same if you reference beyond
 // the measurable index boundaries.
-func (m *Measure) Read(low uint64, high uint64) []Bit {
+func (m *Measure) Read(low int, high int) []Bit {
 	// Step 1: Are we looking entirely in the Bits section?
 	if low >= m.ByteBitLength() {
 		// This only concerns the bits, so we can simply drop the byte's bit length
@@ -78,12 +105,12 @@ func (m *Measure) Read(low uint64, high uint64) []Bit {
 }
 
 // BitLength gets the total length of this Measure's individual bits.
-func (m *Measure) BitLength() uint64 {
-	return m.ByteBitLength() + uint64(len(m.Bits))
+func (m *Measure) BitLength() int {
+	return m.ByteBitLength() + len(m.Bits)
 }
 
 // ByteBitLength gets the total length of this Measure's byte's individual bits.
-func (m *Measure) ByteBitLength() uint64 { return uint64(len(m.Bytes)) * 8 }
+func (m *Measure) ByteBitLength() int { return len(m.Bytes) * 8 }
 
 // AppendBits places the provided bits at the end of the source Measure.
 func (m *Measure) AppendBits(bits ...Bit) {
@@ -106,8 +133,8 @@ func (m *Measure) AppendBytes(bytes ...byte) {
 	m.Bits = lastRemainder
 }
 
-// AppendRemainder places the provided Measure at the end of the source Measure.
-func (m *Measure) AppendRemainder(measure Measure) {
+// Append places the provided Measure at the end of the source Measure.
+func (m *Measure) Append(measure Measure) {
 	m.AppendBytes(measure.Bytes...)
 	m.AppendBits(measure.Bits...)
 }
@@ -132,8 +159,8 @@ func (m *Measure) PrependBytes(bytes ...byte) {
 	m.Bytes = append(bytes, m.Bytes...)
 }
 
-// PrependRemainder places the provided Measure at the beginning of the source Measure.
-func (m *Measure) PrependRemainder(remainder Measure) {
+// Prepend places the provided Measure at the beginning of the source Measure.
+func (m *Measure) Prepend(remainder Measure) {
 	m.PrependBits(remainder.Bits...)   // First the ending bits get prepended
 	m.PrependBytes(remainder.Bytes...) // Then the starting bytes
 }
