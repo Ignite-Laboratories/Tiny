@@ -6,7 +6,7 @@ type _synthesize struct{}
 
 // ForEach calls the provided function the desired number of times and then builds
 // a Measure from the collected results of all invocations.
-// For Example, to synthesize a string of 5 ones:
+// For example, to synthesize a string of 5 ones:
 // Synthesize.ForEach(5, func(i int) Bit { return 1 })
 func (_ _synthesize) ForEach(count int, f func(int) Bit) Measure {
 	var bytes []byte

@@ -2,58 +2,6 @@ package tiny
 
 type _modify int
 
-// XORWithPatternOnInterval creates a repeating pattern of the provided bits and XORs it against
-// the entire length of the Measure on a regular interval.
-// For example, if you want to XOR 11 with the first two bits of every byte, you would provide a
-// Bit pattern of '11' with an interval of '6'
-func (_ _modify) XORWithPatternOnInterval(measure Measure, interval int, pattern ...Bit) {
-	patternI := 0
-	intervalI := 0
-	skipping := false
-	measure.ForEachBit(func(_ int, bit Bit) Bit {
-		if skipping {
-			intervalI++
-			if intervalI >= interval {
-				skipping = false
-			}
-		} else {
-			bit = bit ^ pattern[patternI]
-			patternI++
-			if patternI >= len(pattern) {
-				skipping = true
-				intervalI = 0
-				patternI = 0
-			}
-		}
-		return bit
-	})
-}
-
-// XORWithPattern creates a repeating pattern of the provided bits and XORs it against
-// the entire length of the Measure.
-func (_ _modify) XORWithPattern(measure Measure, pattern ...Bit) {
-	patternI := 0
-	measure.ForEachBit(func(_ int, bit Bit) Bit {
-		bit = bit ^ pattern[patternI]
-		patternI++
-		if patternI >= len(pattern) {
-			patternI = 0
-		}
-		return bit
-	})
-}
-
-// XORWithBits walks the provided pattern and XORs every bit with the source Measure's
-// bits, starting from the most significant bit.
-func (_ _modify) XORWithBits(measure Measure, bits ...Bit) {
-	measure.ForEachBit(func(i int, bit Bit) Bit {
-		if i > len(bits) {
-			return bit
-		}
-		return bit ^ bits[i]
-	})
-}
-
 // XORByteWithBits XORs a fixed range of bits against a byte, starting at the most significant bit.
 func (_ _modify) XORByteWithBits(b byte, bits ...Bit) byte {
 	if len(bits) > 8 {
@@ -74,13 +22,6 @@ func (m _modify) XORBytesWithBits(data []byte, bits ...Bit) []byte {
 		data[i] = m.XORByteWithBits(data[i], bits...)
 	}
 	return data
-}
-
-// Toggle XORs every bit of each Measure with 1.
-func (_ _modify) Toggle(measures ...Measure) {
-	for _, measure := range measures {
-		measure.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
-	}
 }
 
 // ToggleBits XORs every bit with 1.

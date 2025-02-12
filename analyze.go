@@ -52,7 +52,7 @@ func (a _analyze) ByteShade(data ...byte) BinaryShade {
 
 // HasPrefix checks if the source Bit slice begins with the provided Bit slice
 func (_ _analyze) HasPrefix(data []Bit, prefix ...Bit) bool {
-	return bytes.HasPrefix(upcast(data), upcast(prefix))
+	return bytes.HasPrefix(Upcast(data), Upcast(prefix))
 }
 
 // OneDistribution counts how many ones occupy each position of the provided bytes.

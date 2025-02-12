@@ -8,9 +8,9 @@ import (
 // TODO: Test this library
 
 func main() {
-	fmt.Println(tiny.Create.Random(8))
-	fmt.Println(tiny.Create.Random(8))
-	fmt.Println(tiny.Create.Random(8))
-	fmt.Println(tiny.Create.Random(8))
-	fmt.Println(tiny.Create.Random(8))
+	for i := 0; i < 10; i++ {
+		data := tiny.Synthesize.Random(8)
+		bits := data.GetAllBits()
+		fmt.Println(bits)
+	}
 }

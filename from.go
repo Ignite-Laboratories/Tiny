@@ -75,9 +75,13 @@ func (_ _from) Number(value int, width ...int) []Bit {
 	}
 
 	if len(width) > 0 {
-		result := make([]Bit, width[0]-len(bits))
-		result = append(result, bits...)
-		return result
+		if width[0] < len(bits) {
+			return bits[:width[0]]
+		} else {
+			result := make([]Bit, width[0]-len(bits))
+			result = append(result, bits...)
+			return result
+		}
 	}
 
 	return bits

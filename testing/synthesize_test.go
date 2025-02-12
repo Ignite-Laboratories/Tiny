@@ -54,9 +54,6 @@ func Test_Synthesize_Repeating(t *testing.T) {
 }
 
 func Test_Synthesize_Pattern(t *testing.T) {
-	// NOTE: Create.Pattern entirely uses Create.Repeating
-	// Create.Pattern only needs to have the length component tested
-
 	unevenM := tiny.Synthesize.Pattern(8, tiny.From.Bits(0, 1, 1)...)
 	uneven := unevenM.GetAllBits()
 	expectedUneven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1)

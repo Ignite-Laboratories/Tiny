@@ -38,8 +38,8 @@ func (m *Measure) ForEachBit(operation func(i int, bit Bit) Bit) {
 		}
 		outBytes[byteI] = To.Byte(newBits[:]...)
 	}
-	for _, bit := range m.Bits {
-		outBits[bitI] = operation(bitI, bit)
+	for i, bit := range m.Bits {
+		outBits[i] = operation(bitI, bit)
 		bitI++
 	}
 	m.Bytes = outBytes
@@ -163,4 +163,61 @@ func (m *Measure) PrependBytes(bytes ...byte) {
 func (m *Measure) Prepend(remainder Measure) {
 	m.PrependBits(remainder.Bits...)   // First the ending bits get prepended
 	m.PrependBytes(remainder.Bytes...) // Then the starting bytes
+}
+
+// Toggle XORs every bit of each Measure with 1.
+func (m *Measure) Toggle() {
+	m.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
+}
+
+// XORWithPatternOnInterval creates a repeating pattern of the provided bits and XORs it against
+// the entire length of the Measure on a regular interval.
+// For example, if you want to XOR 11 with the first two bits of every byte, you would provide a
+// Bit pattern of '11' with an interval of '6'
+func (m *Measure) XORWithPatternOnInterval(interval int, pattern ...Bit) {
+	patternI := 0
+	intervalI := 0
+	skipping := false
+	m.ForEachBit(func(_ int, bit Bit) Bit {
+		if skipping {
+			intervalI++
+			if intervalI >= interval {
+				skipping = false
+			}
+		} else {
+			bit = bit ^ pattern[patternI]
+			patternI++
+			if patternI >= len(pattern) {
+				skipping = true
+				intervalI = 0
+				patternI = 0
+			}
+		}
+		return bit
+	})
+}
+
+// XORWithPattern creates a repeating pattern of the provided bits and XORs it against
+// the entire length of the Measure.
+func (m *Measure) XORWithPattern(pattern ...Bit) {
+	patternI := 0
+	m.ForEachBit(func(_ int, bit Bit) Bit {
+		bit = bit ^ pattern[patternI]
+		patternI++
+		if patternI >= len(pattern) {
+			patternI = 0
+		}
+		return bit
+	})
+}
+
+// XORWithBits walks the provided pattern and XORs every bit with the source Measure's
+// bits, starting from the most significant bit.
+func (m *Measure) XORWithBits(bits ...Bit) {
+	m.ForEachBit(func(i int, bit Bit) Bit {
+		if i > len(bits) {
+			return bit
+		}
+		return bit ^ bits[i]
+	})
 }

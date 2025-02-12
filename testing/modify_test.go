@@ -5,19 +5,6 @@ import (
 	"testing"
 )
 
-func Test_Modify_XORByteWithByte(t *testing.T) {
-	pattern := tiny.From.Bits(0, 1)
-	bytes := []byte{155, 255, 128, 127, 77}
-	expected := []byte{219, 191, 192, 63, 13}
-	xor := tiny.Modify.XORBytesWithBits(bytes, pattern...)
-
-	for i, b := range xor {
-		if b != expected[i] {
-			t.Errorf("Expected %d, got %d", expected[i], b)
-		}
-	}
-}
-
 func Test_Modify_XORByteWithBits(t *testing.T) {
 	pattern := tiny.From.Bits(0, 1)
 	xor := tiny.Modify.XORByteWithBits(byte(155), pattern...)
@@ -26,16 +13,20 @@ func Test_Modify_XORByteWithBits(t *testing.T) {
 	}
 }
 
+func Test_Modify_XORBytesWithBits(t *testing.T) {
+	pattern := tiny.From.Bits(0, 1)
+	bytes := []byte{155, 255, 128, 127, 77}
+	expected := []byte{219, 191, 192, 63, 13}
+	xor := tiny.Modify.XORBytesWithBits(bytes, pattern...)
+	CompareByteSlices(xor, expected, t)
+}
+
 func Test_Modify_ToggleBytes(t *testing.T) {
 	bytes := []byte{255, 0, 128, 127, 77}
 	inverse := []byte{0, 255, 127, 128, 178}
 
 	toggled := tiny.Modify.ToggleBytes(bytes...)
-	for i, b := range toggled {
-		if b != inverse[i] {
-			t.Errorf("Expected %d, got %d", inverse[i], b)
-		}
-	}
+	CompareByteSlices(toggled, inverse, t)
 }
 
 func Test_Modify_ToggleBits(t *testing.T) {
@@ -43,11 +34,7 @@ func Test_Modify_ToggleBits(t *testing.T) {
 	inverse := tiny.From.Bits(0, 1, 1, 0, 0, 1, 0, 0)
 
 	toggled := tiny.Modify.ToggleBits(data...)
-	for i, bit := range toggled {
-		if bit != inverse[i] {
-			t.Errorf("Expected %d, got %d", inverse[i], bit)
-		}
-	}
+	CompareBitSlices(toggled, inverse, t)
 }
 
 func Test_Modify_DropMostSignificantBit(t *testing.T) {
@@ -56,11 +43,7 @@ func Test_Modify_DropMostSignificantBit(t *testing.T) {
 		t.Errorf("Expected 7 bits, got %d", len(remainder.Bits))
 	}
 	expected := tiny.From.Bits(0, 0, 1, 1, 0, 1, 1)
-	for i, bit := range expected {
-		if remainder.Bits[i] != bit {
-			t.Errorf("Expected %d, got %d", bit, remainder.Bits[i])
-		}
-	}
+	CompareBitSlices(remainder.Bits, expected, t)
 }
 
 func Test_Modify_DropMostSignificantBits(t *testing.T) {

@@ -65,8 +65,8 @@ type SubByte interface {
 	String() string
 }
 
-// upcast is a convenience method to upcast slices of SubByte to byte.
-func upcast[TIn SubByte](data []TIn) []byte {
+// Upcast is a convenience method to upcast slices of SubByte to byte.
+func Upcast[TIn SubByte](data []TIn) []byte {
 	out := make([]byte, len(data))
 	for i, bit := range data {
 		out[i] = byte(bit)
