@@ -74,7 +74,7 @@ func (m *Measure) Read(low int, high int) []Bit {
 	highByteIndex := high / 8
 	highByteSubIndex := high % 8
 
-	// Step 2: Are we split across both the Bits and Bytes?
+	// Step 2: Are we split across both the Bits and Measure?
 	if high > m.ByteBitLength() {
 		// Yes?  Grab all the bytes from the starting byte...
 		foundBytes = m.Bytes[lowByteIndex:]
@@ -115,7 +115,7 @@ func (m *Measure) ByteBitLength() int { return len(m.Bytes) * 8 }
 // AppendBits places the provided bits at the end of the source Measure.
 func (m *Measure) AppendBits(bits ...Bit) {
 	m.Bits = append(m.Bits, bits...)          // Add the bits to the last remainder
-	toAdd := To.Bytes(m.Bits...)              // Convert that to byte form
+	toAdd := To.Measure(m.Bits...)            // Convert that to byte form
 	m.Bytes = append(m.Bytes, toAdd.Bytes...) // Combine the whole bytes
 	m.Bits = toAdd.Bits                       // Bring forward the remaining bits
 }
