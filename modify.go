@@ -40,19 +40,20 @@ func (_ _modify) ToggleBytes(data ...byte) []byte {
 	return data
 }
 
-// DropMostSignificantBit removes the '128' bit from the input bytes and returns a Measure as
-// it may not fit into a standard slice of bytes.
+// DropMostSignificantBit removes the '128' bit from the input bytes and returns them in Measure form.
 // This should be called when your bytes are naturally all below the 128 threshold.
-func (m _modify) DropMostSignificantBit(data ...byte) Measure {
+func (m _modify) DropMostSignificantBit(data ...byte) []Measure {
 	return m.DropMostSignificantBits(1, data...)
 }
 
 // DropMostSignificantBits removes the provided number of most significant bits from the input bytes
-// and returns a Measure from this operation, as it may not fit back into a standard slice of bytes.
-func (_ _modify) DropMostSignificantBits(count int, data ...byte) Measure {
-	remainder := Measure{}
+// and returns them in Measure form.
+func (_ _modify) DropMostSignificantBits(count int, data ...byte) []Measure {
+	var measures []Measure
 	for _, b := range data {
-		remainder.AppendBits(From.Byte(b)[count:]...)
+		var m Measure
+		m.AppendBits(From.Byte(b)[count:]...)
+		measures = append(measures, m)
 	}
-	return remainder
+	return measures
 }

@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"fmt"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -38,12 +39,13 @@ func Test_Modify_ToggleBits(t *testing.T) {
 }
 
 func Test_Modify_DropMostSignificantBit(t *testing.T) {
-	remainder := tiny.Modify.DropMostSignificantBit(byte(155))
-	if len(remainder.Bits) != 7 {
-		t.Errorf("Expected 7 bits, got %d", len(remainder.Bits))
+	for _, measure := range tiny.Modify.DropMostSignificantBit(byte(155)) {
+		if len(measure.Bits) != 7 {
+			t.Errorf("Expected 7 bits, got %d", len(measure.Bits))
+		}
+		expected := tiny.From.Bits(0, 0, 1, 1, 0, 1, 1)
+		CompareBitSlices(measure.Bits, expected, t)
 	}
-	expected := tiny.From.Bits(0, 0, 1, 1, 0, 1, 1)
-	CompareBitSlices(remainder.Bits, expected, t)
 }
 
 func Test_Modify_DropMostSignificantBits(t *testing.T) {
@@ -53,28 +55,20 @@ func Test_Modify_DropMostSignificantBits(t *testing.T) {
 		expected33 := tiny.From.Bits(0, 0, 1, 0, 0, 0, 0, 1)[count:]
 		expected127 := tiny.From.Bits(0, 1, 1, 1, 1, 1, 1, 1)[count:]
 		expected0 := tiny.From.Bits(0, 0, 0, 0, 0, 0, 0, 0)[count:]
-		expectedBits := append(expected155, expected255...)
-		expectedBits = append(expectedBits, expected33...)
-		expectedBits = append(expectedBits, expected127...)
-		expectedBits = append(expectedBits, expected0...)
-
-		remainder := tiny.Modify.DropMostSignificantBits(count, byte(155), byte(255), byte(33), byte(127), byte(0))
-		count := 0
-		for _, b := range remainder.Bytes {
-			bits := tiny.From.Byte(b)
-			for _, bit := range bits {
-				if bit != expectedBits[count] {
-					t.Errorf("Expected %d, got %d", expectedBits[count], bit)
-				}
-				count++
-			}
+		expectedBits := [][]tiny.Bit{
+			expected155,
+			expected255,
+			expected33,
+			expected127,
+			expected0,
 		}
-		for i := 0; i < len(remainder.Bits); i++ {
-			if remainder.Bits[i] != expectedBits[count] {
-				t.Errorf("Expected 0, got %d", remainder.Bits[i])
-			}
 
-			count++
+		for i, measure := range tiny.Modify.DropMostSignificantBits(count, byte(155), byte(255), byte(33), byte(127), byte(0)) {
+			if len(measure.Bytes) > 0 {
+				t.Errorf("Expected 7 bits, got %d bytes + %d bits", len(measure.Bytes), len(measure.Bits))
+			}
+			fmt.Println(measure.Bits)
+			CompareBitSlices(measure.Bits, expectedBits[i], t)
 		}
 	}
 }
