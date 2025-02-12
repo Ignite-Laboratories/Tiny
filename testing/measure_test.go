@@ -24,3 +24,26 @@ func Test_Measure_Toggle(t *testing.T) {
 		}
 	}
 }
+
+func Test_Measure_GetAllBits(t *testing.T) {
+	expected := []tiny.Bit{0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0}
+	measure := tiny.NewMeasure([]byte{}, expected...)
+	bits := measure.GetAllBits()
+	CompareBitSlices(bits, expected, t)
+}
+
+func Test_Measure_ForEachBit(t *testing.T) {
+	random := tiny.Synthesize.Random(22)
+	bits := random.GetAllBits()
+	count := 0
+	random.ForEachBit(func(i int, bit tiny.Bit) tiny.Bit {
+		count++
+		if bit != bits[i] {
+			t.Errorf("Expected %d, got %d", bits[i], bit)
+		}
+		return bit
+	})
+	if count != len(bits) {
+		t.Errorf("Expected %d, got %d", len(bits), count)
+	}
+}
