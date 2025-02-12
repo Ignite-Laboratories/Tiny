@@ -6,7 +6,16 @@ import (
 )
 
 func Test_Modify_XORByteWithByte(t *testing.T) {
+	pattern := tiny.From.Bits(0, 1)
+	bytes := []byte{155, 255, 128, 127, 77}
+	expected := []byte{219, 191, 192, 63, 13}
+	xor := tiny.Modify.XORBytesWithBits(bytes, pattern...)
 
+	for i, b := range xor {
+		if b != expected[i] {
+			t.Errorf("Expected %d, got %d", expected[i], b)
+		}
+	}
 }
 
 func Test_Modify_XORByteWithBits(t *testing.T) {

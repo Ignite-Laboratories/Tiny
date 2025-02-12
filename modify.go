@@ -2,7 +2,24 @@ package tiny
 
 type _modify int
 
+// XORWithPattern creates a repeating pattern of the provided bits and XORs it against
+// the entire length of the Measure.
+func (_ _modify) XORWithPattern(m Measure, pattern ...Bit) {
+	toXOR := Synthesize.Pattern(m.BitLength(), pattern...)
+	result := Modify.XORMeasureWithBits(*m, toXOR...)
+	m.Bytes = result.Bytes
+	m.Bits = result.Bits
+}
+
 // TODO: XOR with PATTERN of bits!
+func (_ _modify) XORMeasureWithBits(measure Measure, bits ...Bit) Measure {
+	return measure.ForEachBit(func(i int, bit Bit) Bit {
+		if i > len(bits) {
+			return bit
+		}
+		return bit ^ bits[i]
+	})
+}
 
 // XORByteWithBits XORs a fixed range of bits against a byte, starting at the most significant bit.
 func (_ _modify) XORByteWithBits(b byte, bits ...Bit) byte {
@@ -24,6 +41,13 @@ func (m _modify) XORBytesWithBits(data []byte, bits ...Bit) []byte {
 		data[i] = m.XORByteWithBits(data[i], bits...)
 	}
 	return data
+}
+
+// Toggle XORs every bit of each Measure with 1.
+func (_ _modify) Toggle(measures ...Measure) Measure {
+	for _, measure := range measures {
+		measure.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
+	}
 }
 
 // ToggleBits XORs every bit with 1.
