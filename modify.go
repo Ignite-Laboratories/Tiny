@@ -4,16 +4,22 @@ type _modify int
 
 // XORWithPattern creates a repeating pattern of the provided bits and XORs it against
 // the entire length of the Measure.
-func (_ _modify) XORWithPattern(m Measure, pattern ...Bit) {
-	toXOR := Synthesize.Pattern(m.BitLength(), pattern...)
-	result := Modify.XORMeasureWithBits(*m, toXOR...)
-	m.Bytes = result.Bytes
-	m.Bits = result.Bits
+func (_ _modify) XORWithPattern(measure Measure, pattern ...Bit) {
+	patternI := 0
+	measure.ForEachBit(func(i int, bit Bit) Bit {
+		bit = bit ^ pattern[patternI]
+		patternI++
+		if patternI >= len(pattern) {
+			patternI = 0
+		}
+		return bit
+	})
 }
 
-// TODO: XOR with PATTERN of bits!
-func (_ _modify) XORMeasureWithBits(measure Measure, bits ...Bit) Measure {
-	return measure.ForEachBit(func(i int, bit Bit) Bit {
+// XORWithBits walks the provided pattern and XORs every bit with the source Measure's
+// bits, starting from the most significant bit.
+func (_ _modify) XORWithBits(measure Measure, bits ...Bit) {
+	measure.ForEachBit(func(i int, bit Bit) Bit {
 		if i > len(bits) {
 			return bit
 		}
@@ -44,7 +50,7 @@ func (m _modify) XORBytesWithBits(data []byte, bits ...Bit) []byte {
 }
 
 // Toggle XORs every bit of each Measure with 1.
-func (_ _modify) Toggle(measures ...Measure) Measure {
+func (_ _modify) Toggle(measures ...Measure) {
 	for _, measure := range measures {
 		measure.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
 	}
