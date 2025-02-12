@@ -10,7 +10,7 @@ Bit/Data/Shade
 */
 
 func Test_Analyze_Shade(t *testing.T) {
-	light := tiny.NewMeasure([]byte{0, 0, 0, 0}, tiny.Create.Zeros(3)...)
+	light := tiny.NewMeasure([]byte{0, 0, 0, 0}, 0, 0, 0)
 	lightExpected := tiny.BinaryShade{
 		Zeros:             35,
 		Ones:              0,
@@ -21,7 +21,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(light), lightExpected, t)
 
-	dark := tiny.NewMeasure([]byte{255, 255, 255, 255}, tiny.Create.Ones(3)...)
+	dark := tiny.NewMeasure([]byte{255, 255, 255, 255}, 1, 1, 1)
 	darkExpected := tiny.BinaryShade{
 		Zeros:             0,
 		Ones:              35,
@@ -32,7 +32,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(dark), darkExpected, t)
 
-	jumbled := tiny.NewMeasure([]byte{22, 222, 111, 144}, []tiny.Bit{0, 1, 0}...)
+	jumbled := tiny.NewMeasure([]byte{22, 222, 111, 144}, 0, 1, 0)
 	jumbledExpected := tiny.BinaryShade{
 		Zeros:             17,
 		Ones:              18,
@@ -43,7 +43,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(jumbled), jumbledExpected, t)
 
-	lessThanHalfGrey := tiny.NewMeasure([]byte{7, 7, 7, 7}, []tiny.Bit{0, 1, 0}...)
+	lessThanHalfGrey := tiny.NewMeasure([]byte{7, 7, 7, 7}, 0, 1, 0)
 	lessThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             22,
 		Ones:              13,
@@ -54,7 +54,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(lessThanHalfGrey), lessThanHalfGreyExpected, t)
 
-	halfGrey := tiny.NewMeasure([]byte{15, 15, 15, 15}, []tiny.Bit{0, 1, 0}...)
+	halfGrey := tiny.NewMeasure([]byte{15, 15, 15, 15}, 0, 1, 0)
 	halfGreyExpected := tiny.BinaryShade{
 		Zeros:             18,
 		Ones:              17,
@@ -65,7 +65,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(halfGrey), halfGreyExpected, t)
 
-	moreThanHalfGrey := tiny.NewMeasure([]byte{31, 31, 31, 31}, []tiny.Bit{0, 1, 0}...)
+	moreThanHalfGrey := tiny.NewMeasure([]byte{31, 31, 31, 31}, 0, 1, 0)
 	moreThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             14,
 		Ones:              21,
@@ -146,7 +146,7 @@ func Test_Analyze_ByteShade(t *testing.T) {
 }
 
 func Test_Analyze_BitShade(t *testing.T) {
-	light := tiny.Create.Zeros(8)
+	light := tiny.From.Byte(0)
 	lightExpected := tiny.BinaryShade{
 		Zeros:             8,
 		Ones:              0,
@@ -157,7 +157,7 @@ func Test_Analyze_BitShade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.BitShade(light...), lightExpected, t)
 
-	dark := tiny.Create.Ones(8)
+	dark := tiny.From.Byte(255)
 	darkExpected := tiny.BinaryShade{
 		Zeros:             0,
 		Ones:              8,
@@ -262,9 +262,10 @@ func Test_Analyze_HasPrefix_Static(t *testing.T) {
 }
 
 func Test_Analyze_HasPrefix_Random(t *testing.T) {
-	data := tiny.Create.Random(8)
-	prefix := data[:5]
-	if !tiny.Analyze.HasPrefix(data, prefix...) {
+	random := tiny.Synthesize.Random(8)
+	bits := random.GetAllBits()
+	prefix := bits[:5]
+	if !tiny.Analyze.HasPrefix(bits, prefix...) {
 		t.Errorf("Data did not have the prefix %v", tiny.To.String(prefix...))
 	}
 }
@@ -278,8 +279,9 @@ func Test_Analyze_HasPrefix_Synthesized(t *testing.T) {
 	}
 
 	for _, prefix := range prefixes {
-		data := tiny.Create.Repeating(4, prefix...)
-		if !tiny.Analyze.HasPrefix(data, prefix...) {
+		repeating := tiny.Synthesize.Repeating(4, prefix...)
+		bits := repeating.GetAllBits()
+		if !tiny.Analyze.HasPrefix(bits, prefix...) {
 			t.Errorf("Data did not have the prefix %v", tiny.To.String(prefix...))
 		}
 	}
