@@ -6,7 +6,7 @@ import (
 )
 
 /**
-Bit/Data/Shade
+Bit/Measure/Shade
 */
 
 func Test_Analyze_Shade(t *testing.T) {
