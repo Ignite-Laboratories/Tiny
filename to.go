@@ -1,7 +1,7 @@
 package tiny
 
 import (
-	"github.com/ignite-laboratories/support/operation"
+	"github.com/ignite-laboratories/support/operate"
 	"strconv"
 )
 
@@ -14,7 +14,7 @@ type _to int
 // For example: If 4 is provided, a Nibble value of [0-15] is returned even if 8 bits are provided.
 func (_ _to) Number(width int, bits ...Bit) int {
 	if width > 31 {
-		l := operation.Min(32, len(bits))
+		l := operate.Min(32, len(bits))
 		bits = bits[:l]
 	}
 

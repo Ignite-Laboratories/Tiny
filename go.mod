@@ -1,3 +1,3 @@
-module github.com/ignite-laboratories/tiny
+module ignitelabs.net/git/tiny
 
 go 1.23.4

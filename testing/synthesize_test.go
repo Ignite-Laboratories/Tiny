@@ -1,7 +1,7 @@
 package testing
 
 import (
-	"github.com/ignite-laboratories/tiny"
+	"ignitelabs.net/git/tiny"
 	"testing"
 )
 
