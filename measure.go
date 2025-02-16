@@ -31,6 +31,32 @@ func NewMeasure(bytes []byte, bits ...Bit) Measure {
 	}
 }
 
+// GetAllBits returns the measure in the form of a fully expanded Bit slice.
+func (m *Measure) GetAllBits() []Bit {
+	byteBits := From.Bytes(m.Bytes...)
+	return append(byteBits, m.Bits...)
+}
+
+// BitLength gets the total length of this Measure's individual bits.
+func (m *Measure) BitLength() int {
+	return m.ByteBitLength() + len(m.Bits)
+}
+
+// ByteBitLength gets the total length of this Measure's byte's individual bits.
+func (m *Measure) ByteBitLength() int { return len(m.Bytes) * 8 }
+
+// Value gets the integer value of the measure using its current bit representation.
+// NOTE: Measures are limited to 32 bits wide - intentionally limiting them to an int.
+func (m *Measure) Value() int {
+	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, 32)
+	return int(v)
+}
+
+// Toggle XORs every bit of each Measure with 1.
+func (m *Measure) Toggle() {
+	m.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
+}
+
 // ForEachBit calls the provided operation against every bit of the Measure.
 func (m *Measure) ForEachBit(operation func(i int, bit Bit) Bit) {
 	outBytes := make([]byte, len(m.Bytes))
@@ -52,12 +78,6 @@ func (m *Measure) ForEachBit(operation func(i int, bit Bit) Bit) {
 	m.Bits = outBits
 }
 
-// GetAllBits returns the measure in the form of a fully expanded Bit slice.
-func (m *Measure) GetAllBits() []Bit {
-	byteBits := From.Bytes(m.Bytes...)
-	return append(byteBits, m.Bits...)
-}
-
 // Read returns the individually addressed bits of the Measure, ranged from the low
 // index (inclusive) to the  high index (exclusive).  This intentionally follows standard
 // Go slice [low:high] indexing, meaning it also fails the same if you reference beyond
@@ -71,24 +91,25 @@ func (m *Measure) Read(low int, high int) []Bit {
 		return m.Bits[low:high]
 	}
 
-	var foundBytes []byte
-	var foundBits []Bit
-	var output []Bit
-
 	lowByteIndex := low / 8    // This is the byte index
 	lowByteSubIndex := low % 8 // This is the bit index of that byte
 	highByteIndex := high / 8
 	highByteSubIndex := high % 8
 
+	var output []Bit
+	var foundBytes []byte
+	var foundBits []Bit
+	var isSplit bool
+
 	// Step 2: Are we split across both the Bits and Measure?
 	if high > m.ByteBitLength() {
 		// Yes?  Grab all the bytes from the starting byte...
 		foundBytes = m.Bytes[lowByteIndex:]
-		high -= m.ByteBitLength()
-		foundBits = m.Bits[:high]
+		foundBits = m.Bits[:highByteSubIndex]
+		isSplit = true
 	} else {
 		// No?  Grab
-		foundBytes = m.Bytes[lowByteIndex:highByteIndex]
+		foundBytes = m.Bytes[lowByteIndex : highByteIndex+1]
 	}
 
 	// Step 3: Split the found bytes apart
@@ -96,7 +117,7 @@ func (m *Measure) Read(low int, high int) []Bit {
 		if i == 0 {
 			// We need to use the low side's sub index
 			output = append(output, From.Byte(b)[lowByteSubIndex:]...)
-		} else if i == len(foundBytes) {
+		} else if !isSplit && i == len(foundBytes)-1 {
 			// We need to use the high side's sub index
 			output = append(output, From.Byte(b)[:highByteSubIndex]...)
 		} else {
@@ -109,14 +130,6 @@ func (m *Measure) Read(low int, high int) []Bit {
 	output = append(output, foundBits...)
 	return output
 }
-
-// BitLength gets the total length of this Measure's individual bits.
-func (m *Measure) BitLength() int {
-	return m.ByteBitLength() + len(m.Bits)
-}
-
-// ByteBitLength gets the total length of this Measure's byte's individual bits.
-func (m *Measure) ByteBitLength() int { return len(m.Bytes) * 8 }
 
 // AppendBits places the provided bits at the end of the source Measure.
 func (m *Measure) AppendBits(bits ...Bit) {
@@ -134,15 +147,15 @@ func (m *Measure) AppendBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
 	}
-	remainderLength := len(m.Bits)
-	lastRemainder := m.Bits
-	for _, lastByte := range bytes {
-		bits := From.Byte(lastByte)
-		newBits := append(lastRemainder, bits[:remainderLength]...)
-		lastRemainder = bits[remainderLength:]
-		m.Bytes = append(m.Bytes, To.Byte(newBits...))
+	lastBits := m.Bits
+	for _, b := range bytes {
+		byteBits := From.Byte(b)
+		blended := append(lastBits, byteBits[:8-len(lastBits)]...)
+		lastBits = byteBits[8-len(lastBits):]
+		newByte := To.Byte(blended...)
+		m.Bytes = append(m.Bytes, newByte)
 	}
-	m.Bits = lastRemainder
+	m.Bits = lastBits
 }
 
 // Append places the provided Measure at the end of the source Measure.
@@ -156,17 +169,13 @@ func (m *Measure) PrependBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
 	}
-	prependLength := len(bits)
-	currentBits := bits
-	newBytes := make([]byte, 0)
-	for _, nextByte := range m.Bytes {
-		bits = From.Byte(nextByte)                                // Get the next byte
-		newBits := append(currentBits, bits[:8-prependLength]...) // Grab the bits to complete the current byte out of it
-		currentBits = bits[8-prependLength:]                      // Grab the remaining bits as what to prepend next
-		newBytes = append(newBytes, To.Byte(newBits...))          // Add the newly formed bit structure to the bytes
-	}
-	m.Bytes = newBytes
-	m.Bits = currentBits // This is now the last few bits of the original last byte
+	oldBits := m.Bits
+	oldBytes := m.Bytes
+	m.Bytes = []byte{}
+	m.Bits = []Bit{}
+	m.AppendBits(bits...)
+	m.AppendBytes(oldBytes...)
+	m.AppendBits(oldBits...)
 }
 
 // PrependBytes places the provided bytes at the beginning of the source Measure.
@@ -178,71 +187,7 @@ func (m *Measure) PrependBytes(bytes ...byte) {
 }
 
 // Prepend places the provided Measure at the beginning of the source Measure.
-func (m *Measure) Prepend(remainder Measure) {
-	m.PrependBits(remainder.Bits...)   // First the ending bits get prepended
-	m.PrependBytes(remainder.Bytes...) // Then the starting bytes
-}
-
-// Value gets the integer value of the measure using its current bit representation.
-// NOTE: Measures are limited to 32 bits wide - intentionally limiting them to an int.
-func (m *Measure) Value() int {
-	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, 32)
-	return int(v)
-}
-
-// Toggle XORs every bit of each Measure with 1.
-func (m *Measure) Toggle() {
-	m.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
-}
-
-// XORWithPatternOnInterval creates a repeating pattern of the provided bits and XORs it against
-// the entire length of the Measure on a regular interval.
-// For example, if you want to XOR 11 with the first two bits of every byte, you would provide a
-// Bit pattern of '11' with an interval of '6'
-func (m *Measure) XORWithPatternOnInterval(interval int, pattern ...Bit) {
-	patternI := 0
-	intervalI := 0
-	skipping := false
-	m.ForEachBit(func(_ int, bit Bit) Bit {
-		if skipping {
-			intervalI++
-			if intervalI >= interval {
-				skipping = false
-			}
-		} else {
-			bit = bit ^ pattern[patternI]
-			patternI++
-			if patternI >= len(pattern) {
-				skipping = true
-				intervalI = 0
-				patternI = 0
-			}
-		}
-		return bit
-	})
-}
-
-// XORWithPattern creates a repeating pattern of the provided bits and XORs it against
-// the entire length of the Measure.
-func (m *Measure) XORWithPattern(pattern ...Bit) {
-	patternI := 0
-	m.ForEachBit(func(_ int, bit Bit) Bit {
-		bit = bit ^ pattern[patternI]
-		patternI++
-		if patternI >= len(pattern) {
-			patternI = 0
-		}
-		return bit
-	})
-}
-
-// XORWithBits walks the provided pattern and XORs every bit with the source Measure's
-// bits, starting from the most significant bit.
-func (m *Measure) XORWithBits(bits ...Bit) {
-	m.ForEachBit(func(i int, bit Bit) Bit {
-		if i > len(bits) {
-			return bit
-		}
-		return bit ^ bits[i]
-	})
+func (m *Measure) Prepend(measure Measure) {
+	m.PrependBits(measure.Bits...)   // First the ending bits get prepended
+	m.PrependBytes(measure.Bytes...) // Then the starting bytes
 }

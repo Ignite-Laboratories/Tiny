@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func Test_Synthesize_ForEach(t *testing.T) {
+	script := tiny.From.Bytes(170, 85)
+	script = append(script, tiny.From.Bits(0, 1, 1, 0, 1, 0)...)
+	measure := tiny.Synthesize.ForEach(22, func(i int) tiny.Bit {
+		return script[i]
+	})
+	CompareBitSlices(measure.GetAllBits(), script, t)
+}
+
 func Test_Synthesize_Ones(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		measure := tiny.Synthesize.Ones(i)

@@ -5,6 +5,18 @@ import (
 	"testing"
 )
 
+func ShouldPanic(t *testing.T) {
+	if r := recover(); r == nil {
+		t.Errorf("Expected panic, but didn't get one")
+	}
+}
+
+func CompareValues[T comparable](a T, b T, t *testing.T) {
+	if a != b {
+		t.Errorf("Expected %v, got %v", a, b)
+	}
+}
+
 func CompareBitSlices(a []tiny.Bit, b []tiny.Bit, t *testing.T) {
 	CompareByteSlices(tiny.Upcast(a), tiny.Upcast(b), t)
 }
