@@ -5,10 +5,10 @@ import "crypto/rand"
 type _synthesize struct{}
 
 // ForEach calls the provided function the desired number of times and then builds
-// a Measure from the collected results of all invocations.
+// a Measurement from the collected results of all invocations.
 // For example, to synthesize a string of 5 ones:
 // Synthesize.ForEach(5, func(i int) Bit { return 1 })
-func (_ _synthesize) ForEach(count int, f func(int) Bit) Measure {
+func (_ _synthesize) ForEach(count int, f func(int) Bit) Measurement {
 	var bytes []byte
 	var bits []Bit
 	subI := 0
@@ -26,19 +26,19 @@ func (_ _synthesize) ForEach(count int, f func(int) Bit) Measure {
 }
 
 // Ones creates a slice of '1's of the requested length.
-func (s _synthesize) Ones(count int) Measure {
+func (s _synthesize) Ones(count int) Measurement {
 	return s.ForEach(count, func(i int) Bit { return One })
 }
 
 // Zeros creates a slice of '0's of the requested length.
-func (s _synthesize) Zeros(count int) Measure {
+func (s _synthesize) Zeros(count int) Measurement {
 	return s.ForEach(count, func(i int) Bit { return Zero })
 }
 
 // Repeating repeats the provided pattern the desired number of times.
 // Use Repeating when you want the entire pattern emitted a fixed number of times.
 // Use Pattern when you want the pattern to fit within a specified length.
-func (s _synthesize) Repeating(count int, pattern ...Bit) Measure {
+func (s _synthesize) Repeating(count int, pattern ...Bit) Measurement {
 	patternI := 0
 	return s.ForEach(count*len(pattern), func(_ int) Bit {
 		bit := pattern[patternI]
@@ -53,7 +53,7 @@ func (s _synthesize) Repeating(count int, pattern ...Bit) Measure {
 // Pattern repeats the provided pattern up to the desired length.
 // Use Pattern when you want the pattern to fit within a specified length.
 // Use Repeating when you want the entire pattern emitted a fixed number of times.
-func (s _synthesize) Pattern(length int, pattern ...Bit) Measure {
+func (s _synthesize) Pattern(length int, pattern ...Bit) Measurement {
 	patternI := 0
 	return s.ForEach(length, func(_ int) Bit {
 		bit := pattern[patternI]
@@ -66,7 +66,7 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Measure {
 }
 
 // Random creates a random sequence of 1s and 0s.
-func (s _synthesize) Random(length int) Measure {
+func (s _synthesize) Random(length int) Measurement {
 	return s.ForEach(length, func(_ int) Bit {
 		var b [1]byte
 		_, _ = rand.Read(b[:])

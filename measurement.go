@@ -2,7 +2,7 @@ package tiny
 
 import "strconv"
 
-// Measure is used to efficiently store Bits in operating memory, as most
+// Measurement is used to efficiently store Bits in operating memory, as most
 // languages inherently requires at least 8 bits to store any custom type.
 // Conceptually, this is a musical "measure" - facilitating rhythmic changes
 // to binary information; however, a "measurement" is, abstractly, any unit
@@ -16,49 +16,55 @@ import "strconv"
 // NOTE: A measure is limited to 32 bits wide by design.  This allows you
 // to easily grow or shrink bits at the byte level and then capture the
 // new value of each individual measure.
-type Measure struct {
+type Measurement struct {
 	// Bytes holds complete byte data.
 	Bytes []byte
 	// Bits holds any remaining bits that didn't fit into a byte for whatever reason.
 	Bits []Bit
 }
 
-// NewMeasure constructs a Measure, which represents an uneven amount of binary bits.
-func NewMeasure(bytes []byte, bits ...Bit) Measure {
-	return Measure{
+// NewMeasure constructs a Measurement, which represents an uneven amount of binary bits.
+func NewMeasure(bytes []byte, bits ...Bit) Measurement {
+	return Measurement{
 		Bytes: bytes,
 		Bits:  bits,
 	}
 }
 
 // GetAllBits returns the measure in the form of a fully expanded Bit slice.
-func (m *Measure) GetAllBits() []Bit {
+func (m *Measurement) GetAllBits() []Bit {
 	byteBits := From.Bytes(m.Bytes...)
 	return append(byteBits, m.Bits...)
 }
 
-// BitLength gets the total length of this Measure's individual bits.
-func (m *Measure) BitLength() int {
+// BitLength gets the total length of this Measurement's individual bits.
+func (m *Measurement) BitLength() int {
 	return m.ByteBitLength() + len(m.Bits)
 }
 
-// ByteBitLength gets the total length of this Measure's byte's individual bits.
-func (m *Measure) ByteBitLength() int { return len(m.Bytes) * 8 }
+// ByteBitLength gets the total length of this Measurement's byte's individual bits.
+func (m *Measurement) ByteBitLength() int { return len(m.Bytes) * 8 }
 
 // Value gets the integer value of the measure using its current bit representation.
 // NOTE: Measures are limited to 32 bits wide - intentionally limiting them to an int.
-func (m *Measure) Value() int {
+func (m *Measurement) Value() int {
 	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, 32)
 	return int(v)
 }
 
-// Toggle XORs every bit of each Measure with 1.
-func (m *Measure) Toggle() {
+// Clear empties the Measurement of all bit information.
+func (m *Measurement) Clear() {
+	m.Bytes = []byte{}
+	m.Bits = []Bit{}
+}
+
+// Toggle XORs every bit of each Measurement with 1.
+func (m *Measurement) Toggle() {
 	m.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
 }
 
-// ForEachBit calls the provided operation against every bit of the Measure.
-func (m *Measure) ForEachBit(operation func(i int, bit Bit) Bit) {
+// ForEachBit calls the provided operation against every bit of the Measurement.
+func (m *Measurement) ForEachBit(operation func(i int, bit Bit) Bit) {
 	outBytes := make([]byte, len(m.Bytes))
 	outBits := make([]Bit, len(m.Bits))
 	bitI := 0
@@ -78,11 +84,11 @@ func (m *Measure) ForEachBit(operation func(i int, bit Bit) Bit) {
 	m.Bits = outBits
 }
 
-// Read returns the individually addressed bits of the Measure, ranged from the low
+// Read returns the individually addressed bits of the Measurement, ranged from the low
 // index (inclusive) to the  high index (exclusive).  This intentionally follows standard
 // Go slice [low:high] indexing, meaning it also fails the same if you reference beyond
 // the measurable index boundaries.
-func (m *Measure) Read(low int, high int) []Bit {
+func (m *Measurement) Read(low int, high int) []Bit {
 	// Step 1: Are we looking entirely in the Bits section?
 	if low >= m.ByteBitLength() {
 		// This only concerns the bits, so we can simply drop the byte's bit length
@@ -101,7 +107,7 @@ func (m *Measure) Read(low int, high int) []Bit {
 	var foundBits []Bit
 	var isSplit bool
 
-	// Step 2: Are we split across both the Bits and Measure?
+	// Step 2: Are we split across both the Bits and Measurement?
 	if high > m.ByteBitLength() {
 		// Yes?  Grab all the bytes from the starting byte...
 		foundBytes = m.Bytes[lowByteIndex:]
@@ -131,8 +137,8 @@ func (m *Measure) Read(low int, high int) []Bit {
 	return output
 }
 
-// AppendBits places the provided bits at the end of the source Measure.
-func (m *Measure) AppendBits(bits ...Bit) {
+// AppendBits places the provided bits at the end of the source Measurement.
+func (m *Measurement) AppendBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
 	}
@@ -142,8 +148,8 @@ func (m *Measure) AppendBits(bits ...Bit) {
 	m.Bits = toAdd.Bits                       // Bring forward the remaining bits
 }
 
-// AppendBytes places the provided bytes at the end of the source Measure.
-func (m *Measure) AppendBytes(bytes ...byte) {
+// AppendBytes places the provided bytes at the end of the source Measurement.
+func (m *Measurement) AppendBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
 	}
@@ -158,14 +164,14 @@ func (m *Measure) AppendBytes(bytes ...byte) {
 	m.Bits = lastBits
 }
 
-// Append places the provided Measure at the end of the source Measure.
-func (m *Measure) Append(measure Measure) {
+// Append places the provided Measurement at the end of the source Measurement.
+func (m *Measurement) Append(measure Measurement) {
 	m.AppendBytes(measure.Bytes...)
 	m.AppendBits(measure.Bits...)
 }
 
-// PrependBits places the provided bits at the beginning of the source Measure.
-func (m *Measure) PrependBits(bits ...Bit) {
+// PrependBits places the provided bits at the beginning of the source Measurement.
+func (m *Measurement) PrependBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
 	}
@@ -178,16 +184,44 @@ func (m *Measure) PrependBits(bits ...Bit) {
 	m.AppendBits(oldBits...)
 }
 
-// PrependBytes places the provided bytes at the beginning of the source Measure.
-func (m *Measure) PrependBytes(bytes ...byte) {
+// PrependBytes places the provided bytes at the beginning of the source Measurement.
+func (m *Measurement) PrependBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
 	}
 	m.Bytes = append(bytes, m.Bytes...)
 }
 
-// Prepend places the provided Measure at the beginning of the source Measure.
-func (m *Measure) Prepend(measure Measure) {
+// Prepend places the provided Measurement at the beginning of the source Measurement.
+func (m *Measurement) Prepend(measure Measurement) {
 	m.PrependBits(measure.Bits...)   // First the ending bits get prepended
 	m.PrependBytes(measure.Bytes...) // Then the starting bytes
+}
+
+// QuarterSplit is a unique operation to a byte.  The two most significant bits in a byte
+// represent 128 and 64, which means that those two bits cover three quarters of the entire
+// address space.  The act of quarter splitting exploits this to reduce the size of bytes
+// under a value of 64, while keeping no change in bit length for 64-127, but taking at 1-bit
+// hit on anything 128+.  In doing so, a self describing bit scheme can be used for readability.
+// The first 1-2 bits describe how to read the next bits:
+// 0: 6 more bits (the value was under 64)
+// 10: 6 more bits (the value was 64-127 and has had 64 subtracted from it)
+// 11: 7 more bits (the value was 128+ and has had 128 subtracted from it)
+func (m *Measurement) QuarterSplit() {
+	// Get the measurement's value and clear it out
+	value := m.Value()
+	valueWidth := 6
+	m.Clear()
+
+	if value < 64 {
+		m.AppendBits(0)
+	} else if value < 128 {
+		m.AppendBits(1, 0)
+		value -= 64
+	} else {
+		m.AppendBits(1, 1)
+		value -= 128
+		valueWidth = 7
+	}
+	m.AppendBits(From.Number(value, valueWidth)...)
 }

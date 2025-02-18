@@ -5,7 +5,7 @@ import "bytes"
 type _analyze int
 
 // Shade gives heuristics around the distribution of 1s in the provided measure.
-func (a _analyze) Shade(measure Measure) BinaryShade {
+func (a _analyze) Shade(measure Measurement) BinaryShade {
 	shade := a.ByteShade(measure.Bytes...)
 	shade.combine(a.BitShade(measure.Bits...))
 	return shade

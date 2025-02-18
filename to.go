@@ -66,14 +66,14 @@ func (t _to) Byte(bits ...Bit) byte {
 	return byte(t.Number(8, bits...))
 }
 
-// Measure converts a Bit slice to a Measure.
-func (t _to) Measure(bits ...Bit) Measure {
+// Measurement converts a Bit slice to a Measurement.
+func (t _to) Measure(bits ...Bit) Measurement {
 	var bytes []byte
 	for i := 0; i+7 < len(bits); i += 8 {
 		bytes = append(bytes, t.Byte(bits[i:i+8]...))
 	}
 	remainingBits := bits[len(bytes)*8:]
-	return Measure{Bytes: bytes, Bits: remainingBits}
+	return Measurement{Bytes: bytes, Bits: remainingBits}
 }
 
 // String creates a slice of mixed 1s and 0s from the provided Bit slice

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_Measure_GetAllBits(t *testing.T) {
+func Test_Measurement_GetAllBits(t *testing.T) {
 	bits := []tiny.Bit{0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0}
 	expected := append([]tiny.Bit{1, 0, 1, 0, 1, 0, 1, 0}, bits...)
 	measure := tiny.NewMeasure([]byte{170}, bits...)
@@ -13,7 +13,7 @@ func Test_Measure_GetAllBits(t *testing.T) {
 	CompareBitSlices(result, expected, t)
 }
 
-func Test_Measure_BitLength(t *testing.T) {
+func Test_Measurement_BitLength(t *testing.T) {
 	bits := []tiny.Bit{0, 1, 0}
 	bytes := []byte{170, 85}
 
@@ -27,7 +27,7 @@ func Test_Measure_BitLength(t *testing.T) {
 	CompareValues(bothMeasure.BitLength(), 19, t)
 }
 
-func Test_Measure_ByteLength(t *testing.T) {
+func Test_Measurement_ByteLength(t *testing.T) {
 	bytes := []byte{170, 85, 38, 75}
 
 	for i := 0; i < len(bytes); i++ {
@@ -37,12 +37,18 @@ func Test_Measure_ByteLength(t *testing.T) {
 	}
 }
 
-func Test_Measure_Value(t *testing.T) {
+func Test_Measurement_Value(t *testing.T) {
 	m := tiny.NewMeasure([]byte{170, 85}, 1, 0, 0, 1)
 	CompareValues(m.Value(), 697689, t)
 }
 
-func Test_Measure_Toggle(t *testing.T) {
+func Test_Measurement_Clear(t *testing.T) {
+	m := tiny.NewMeasure([]byte{170, 85}, 1, 0, 0, 1)
+	m.Clear()
+	CompareBitSlices(m.GetAllBits(), []tiny.Bit{}, t)
+}
+
+func Test_Measurement_Toggle(t *testing.T) {
 	bytes := []byte{255, 0, 128, 127, 77}
 	inverseBytes := []byte{0, 255, 127, 128, 178}
 	bits := tiny.From.Bits(0, 1, 0, 1)
@@ -62,7 +68,7 @@ func Test_Measure_Toggle(t *testing.T) {
 	}
 }
 
-func Test_Measure_ForEachBit(t *testing.T) {
+func Test_Measurement_ForEachBit(t *testing.T) {
 	random := tiny.Synthesize.Random(22)
 	bits := random.GetAllBits()
 	count := 0
@@ -82,19 +88,19 @@ func Test_Measure_ForEachBit(t *testing.T) {
 Read
 */
 
-func Test_Measure_ReadFromBytes(t *testing.T) {
+func Test_Measurement_ReadFromBytes(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{170, 85})
 	result := measure.Read(6, 10)
 	CompareBitSlices(result, tiny.From.Bits(1, 0, 0, 1), t)
 }
 
-func Test_Measure_ReadFromBits(t *testing.T) {
+func Test_Measurement_ReadFromBits(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{255}, 0, 1, 1, 0, 0)
 	result := measure.Read(8, 12)
 	CompareBitSlices(result, tiny.From.Bits(0, 1, 1, 0), t)
 }
 
-func Test_Measure_ReadAcrossBytesAndBits(t *testing.T) {
+func Test_Measurement_ReadAcrossBytesAndBits(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{170, 85}, 0, 1, 0, 1, 1, 0)
 	expected := tiny.From.Bits(1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1)
 	result := measure.Read(6, 21)
@@ -105,19 +111,19 @@ func Test_Measure_ReadAcrossBytesAndBits(t *testing.T) {
 Append
 */
 
-func Test_Measure_ApppendBytesLengthLimit(t *testing.T) {
+func Test_Measurement_ApppendBytesLengthLimit(t *testing.T) {
 	defer ShouldPanic(t)
 	measure := tiny.NewMeasure([]byte{170, 22, 88}, 0, 1, 1)
 	measure.AppendBytes(255)
 }
 
-func Test_Measure_ApppendBitsLengthLimit(t *testing.T) {
+func Test_Measurement_ApppendBitsLengthLimit(t *testing.T) {
 	defer ShouldPanic(t)
 	measure := tiny.NewMeasure([]byte{170, 22, 88}, 0, 1, 1)
 	measure.AppendBits(0, 1, 0, 1, 0, 1, 0, 1)
 }
 
-func Test_Measure_AppendBits(t *testing.T) {
+func Test_Measurement_AppendBits(t *testing.T) {
 	bits170 := tiny.From.Byte(170)
 	measure := tiny.NewMeasure([]byte{170}, 0, 1, 1)
 	measure.AppendBits(0, 0, 1)
@@ -127,7 +133,7 @@ func Test_Measure_AppendBits(t *testing.T) {
 	CompareBitSlices(measure.GetAllBits(), expected, t)
 }
 
-func Test_Measure_AppendBytes(t *testing.T) {
+func Test_Measurement_AppendBytes(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{85}, 0, 1, 1)
 	measure.AppendBytes(255, 170)
 
@@ -142,7 +148,7 @@ func Test_Measure_AppendBytes(t *testing.T) {
 	CompareBitSlices(measure.GetAllBits(), expected, t)
 }
 
-func Test_Measure_Append(t *testing.T) {
+func Test_Measurement_Append(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{85}, 0, 1, 1)
 	measure.Append(tiny.NewMeasure([]byte{170}, 1, 0, 0))
 	expected := append(tiny.From.Byte(85), tiny.From.Bits(0, 1, 1)...)
@@ -155,19 +161,19 @@ func Test_Measure_Append(t *testing.T) {
 Prepend
 */
 
-func Test_Measure_PrependBytesLengthLimit(t *testing.T) {
+func Test_Measurement_PrependBytesLengthLimit(t *testing.T) {
 	defer ShouldPanic(t)
 	measure := tiny.NewMeasure([]byte{170, 22, 88}, 0, 1, 1)
 	measure.PrependBytes(255)
 }
 
-func Test_Measure_PrependBitsLengthLimit(t *testing.T) {
+func Test_Measurement_PrependBitsLengthLimit(t *testing.T) {
 	defer ShouldPanic(t)
 	measure := tiny.NewMeasure([]byte{170, 22, 88}, 0, 1, 1)
 	measure.PrependBits(0, 1, 0, 1, 0, 1, 0, 1)
 }
 
-func Test_Measure_PrependBits(t *testing.T) {
+func Test_Measurement_PrependBits(t *testing.T) {
 	bits170 := tiny.From.Byte(170)
 	measure := tiny.NewMeasure([]byte{170}, 0, 1, 1)
 	measure.PrependBits(0, 0, 1)
@@ -177,18 +183,68 @@ func Test_Measure_PrependBits(t *testing.T) {
 	CompareBitSlices(measure.GetAllBits(), expected, t)
 }
 
-func Test_Measure_PrependBytes(t *testing.T) {
+func Test_Measurement_PrependBytes(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{85}, 0, 1, 1)
 	measure.PrependBytes(255, 170)
 	expected := append(tiny.From.Bytes(255, 170, 85), tiny.From.Bits(0, 1, 1)...)
 	CompareBitSlices(measure.GetAllBits(), expected, t)
 }
 
-func Test_Measure_Prepend(t *testing.T) {
+func Test_Measurement_Prepend(t *testing.T) {
 	measure := tiny.NewMeasure([]byte{85}, 0, 1, 1)
 	measure.Prepend(tiny.NewMeasure([]byte{170}, 1, 0, 0))
 	expected := append(tiny.From.Byte(170), tiny.From.Bits(1, 0, 0)...)
 	expected = append(expected, tiny.From.Byte(85)...)
 	expected = append(expected, tiny.From.Bits(0, 1, 1)...)
 	CompareBitSlices(measure.GetAllBits(), expected, t)
+}
+
+func Test_Measurement_QuarterSplit(t *testing.T) {
+	for i := 0; i < 256; i++ {
+		measure := tiny.NewMeasure([]byte{byte(i)})
+		measure.QuarterSplit()
+
+		if i < 64 {
+			if measure.BitLength() != 7 {
+				t.Errorf("Expected reduction for 0-63")
+			}
+			if measure.Read(0, 1)[0] != 0 {
+				t.Errorf("Expected a code of '0' for 0-63")
+			}
+			valueBits := measure.Read(1, 7)
+			value := tiny.To.Byte(valueBits...)
+			if value != byte(i) {
+				t.Errorf("Expected a value of %d, got %d", i, value)
+			}
+		} else {
+			code := measure.Read(0, 2)
+			if i < 128 {
+				if measure.BitLength() != 8 {
+					t.Errorf("Expected no reduction for 64-127")
+				}
+				if code[0] != 1 && code[1] != 0 {
+					t.Errorf("Expected a code of '10' for 64-127")
+				}
+				valueBits := measure.Read(2, 8)
+				value := tiny.To.Byte(valueBits...)
+				value += 64
+				if value != byte(i) {
+					t.Errorf("Expected a value of %d, got %d", i, value)
+				}
+			} else {
+				if measure.BitLength() != 9 {
+					t.Errorf("Expected 1 growth for 128+")
+				}
+				if code[0] != 1 && code[1] != 1 {
+					t.Errorf("Expected a code of '11' for 128+")
+				}
+				valueBits := measure.Read(2, 9)
+				value := tiny.To.Byte(valueBits...)
+				value += 128
+				if value != byte(i) {
+					t.Errorf("Expected a value of %d, got %d", i, value)
+				}
+			}
+		}
+	}
 }
