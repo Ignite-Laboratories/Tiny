@@ -138,6 +138,7 @@ func (m *Measurement) Read(low int, high int) []Bit {
 }
 
 // AppendBits places the provided bits at the end of the source Measurement.
+// NOTE: A Measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
@@ -149,6 +150,7 @@ func (m *Measurement) AppendBits(bits ...Bit) {
 }
 
 // AppendBytes places the provided bytes at the end of the source Measurement.
+// NOTE: A Measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
@@ -171,6 +173,7 @@ func (m *Measurement) Append(measure Measurement) {
 }
 
 // PrependBits places the provided bits at the beginning of the source Measurement.
+// NOTE: A Measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
@@ -185,6 +188,7 @@ func (m *Measurement) PrependBits(bits ...Bit) {
 }
 
 // PrependBytes places the provided bytes at the beginning of the source Measurement.
+// NOTE: A Measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
