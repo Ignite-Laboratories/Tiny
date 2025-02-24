@@ -2,20 +2,23 @@ package tiny
 
 import "strconv"
 
-// Measurement is used to efficiently store Bits in operating memory, as most
-// languages inherently requires at least 8 bits to store any custom type.
+// Measurement is used to efficiently store bits in operating memory.  As most
+// languages inherently require at least 8 bits to store custom types, storing
+// each bit individually would need 8 times the size of every bit - thus, the
+// measurement was born.
+//
 // Conceptually, this is a musical "measure" - facilitating rhythmic changes
 // to binary information; however, a "measurement" is, abstractly, any unit
-// defining the presence of something.  Linguistics are cool, folks!
+// recording the presence of something.  Linguistics are cool, folks!
 // I highly encourage you consider the alternative meanings of every term
 // in your preferred programming languages, they become far more intuitive =)
 //
 // TL;DR: This holds bits in byte form, leaving anything less than a byte
-// at the end of the binary information as a remainder of Bits.
+// at the end of the binary information as a remainder of bits.
 //
-// NOTE: A measure is limited to 32 bits wide by design.  This allows you
+// NOTE: A measurement is limited to 32 bits wide by design.  This allows you
 // to easily grow or shrink bits at the byte level and then capture the
-// new value of each individual measure.
+// new value of each individual measurement.
 type Measurement struct {
 	// Bytes holds complete byte data.
 	Bytes []byte
