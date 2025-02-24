@@ -248,3 +248,28 @@ func Test_Measurement_QuarterSplit(t *testing.T) {
 		}
 	}
 }
+
+func Test_Measurement_TrimStart(t *testing.T) {
+	for i := 0; i < 256; i++ {
+		for ii := 0; ii < 8; ii++ {
+			measure := tiny.NewMeasure([]byte{byte(i)})
+			bits := measure.GetAllBits()
+			measure.TrimStart(ii)
+			expected := bits[ii:]
+			CompareBitSlices(measure.GetAllBits(), expected, t)
+		}
+	}
+}
+
+func Test_Measurement_TrimEnd(t *testing.T) {
+	for i := 0; i < 256; i++ {
+		for ii := 0; ii < 8; ii++ {
+			measure := tiny.NewMeasure([]byte{byte(i)})
+			bits := measure.GetAllBits()
+			measure.TrimEnd(ii)
+			end := len(bits) - ii - 1
+			expected := bits[:end]
+			CompareBitSlices(measure.GetAllBits(), expected, t)
+		}
+	}
+}

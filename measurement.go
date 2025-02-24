@@ -229,3 +229,18 @@ func (m *Measurement) QuarterSplit() {
 	}
 	m.AppendBits(From.Number(value, valueWidth)...)
 }
+
+// TrimStart removes the provided number of bits from the beginning of the Measurement.
+func (m *Measurement) TrimStart(count int) {
+	bits := m.GetAllBits()
+	m.Clear()
+	m.AppendBits(bits[count:]...)
+}
+
+// TrimEnd removes the provided number of bits from the end of the Measurement.
+func (m *Measurement) TrimEnd(count int) {
+	bits := m.GetAllBits()
+	m.Clear()
+	end := len(bits) - count - 1
+	m.AppendBits(bits[:end]...)
+}
