@@ -141,7 +141,7 @@ func (m *Measurement) Read(low int, high int) []Bit {
 }
 
 // AppendBits places the provided bits at the end of the source Measurement.
-// NOTE: A Measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
@@ -153,7 +153,7 @@ func (m *Measurement) AppendBits(bits ...Bit) {
 }
 
 // AppendBytes places the provided bytes at the end of the source Measurement.
-// NOTE: A Measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
@@ -170,13 +170,14 @@ func (m *Measurement) AppendBytes(bytes ...byte) {
 }
 
 // Append places the provided Measurement at the end of the source Measurement.
+// NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) Append(measure Measurement) {
 	m.AppendBytes(measure.Bytes...)
 	m.AppendBits(measure.Bits...)
 }
 
 // PrependBits places the provided bits at the beginning of the source Measurement.
-// NOTE: A Measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
 		panic(errorMeasureLimit)
@@ -191,7 +192,7 @@ func (m *Measurement) PrependBits(bits ...Bit) {
 }
 
 // PrependBytes places the provided bytes at the beginning of the source Measurement.
-// NOTE: A Measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
 		panic(errorMeasureLimit)
@@ -200,6 +201,7 @@ func (m *Measurement) PrependBytes(bytes ...byte) {
 }
 
 // Prepend places the provided Measurement at the beginning of the source Measurement.
+// NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) Prepend(measure Measurement) {
 	m.PrependBits(measure.Bits...)   // First the ending bits get prepended
 	m.PrependBytes(measure.Bytes...) // Then the starting bytes
