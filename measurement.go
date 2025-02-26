@@ -47,7 +47,9 @@ func (m *Measurement) BitLength() int {
 	return m.ByteBitLength() + len(m.Bits)
 }
 
-// ByteBitLength gets the total length of this Measurement's byte's individual bits.
+// ByteBitLength gets the total length of this Measurement's byte's individual bits,
+// ignoring the measurement's bits entirely.  This is helpful when attempting to find
+// measurements that are not aligned to the width of a standard byte.
 func (m *Measurement) ByteBitLength() int { return len(m.Bytes) * 8 }
 
 // Value gets the integer value of the measure using its current bit representation.
