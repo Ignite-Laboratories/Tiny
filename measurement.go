@@ -28,8 +28,8 @@ type Measurement struct {
 	Bits []Bit
 }
 
-// NewMeasure constructs a Measurement, which represents an uneven amount of binary bits.
-func NewMeasure(bytes []byte, bits ...Bit) Measurement {
+// NewMeasurement constructs a Measurement, which represents an uneven amount of binary bits.
+func NewMeasurement(bytes []byte, bits ...Bit) Measurement {
 	return Measurement{
 		Bytes: bytes,
 		Bits:  bits,
@@ -214,10 +214,12 @@ func (m *Measurement) Prepend(measure Measurement) {
 // address space.  The act of quarter splitting exploits this to reduce the size of bytes
 // under a value of 64, while keeping no change in bit length for 64-127, but taking at 1-bit
 // hit on anything 128+.  In doing so, a self describing bit scheme can be used for readability.
+//
 // The first 1-2 bits describe how to read the next bits:
-// 0: 6 more bits (the value was under 64)
-// 10: 6 more bits (the value was 64-127 and has had 64 subtracted from it)
-// 11: 7 more bits (the value was 128+ and has had 128 subtracted from it)
+//
+//	 0: 6 more bits (the value was under 64)
+//	10: 6 more bits (the value was 64-127 and has had 64 subtracted from it)
+//	11: 7 more bits (the value was 128+ and has had 128 subtracted from it)
 func (m *Measurement) QuarterSplit() {
 	// Get the measurement's value and clear it out
 	value := m.Value()

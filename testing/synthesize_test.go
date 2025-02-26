@@ -82,11 +82,18 @@ func Test_Synthesize_Pattern(t *testing.T) {
 	}
 }
 
+func Test_Synthesize_Random_StressTest(t *testing.T) {
+	for i := 0; i < 10000; i++ {
+		Test_Synthesize_Random(t)
+	}
+}
+
 func Test_Synthesize_Random(t *testing.T) {
-	for lengthI := 8; lengthI < 10; lengthI++ {
+	// There is no way to "test" that 1 or 2 digit binary sets are "random"...it's only four possible values =)
+	for lengthI := 3; lengthI < 10; lengthI++ {
 		for testI := 0; testI < 10; testI++ {
 			measure := tiny.Synthesize.Random(lengthI)
-			random := measure.GetAllBits()
+			bits := measure.GetAllBits()
 
 			allZero := true
 			allOne := true
@@ -95,7 +102,7 @@ func Test_Synthesize_Random(t *testing.T) {
 
 			zeroOne := tiny.Zero
 			oneZero := tiny.One
-			for _, bit := range random {
+			for _, bit := range bits {
 				if bit == 0 {
 					allOne = false
 				}
@@ -114,15 +121,19 @@ func Test_Synthesize_Random(t *testing.T) {
 			}
 			if allZero {
 				t.Error("Expected randomness, got all zeros")
+				t.FailNow()
 			}
 			if allOne {
 				t.Error("Expected randomness, got all ones")
+				t.FailNow()
 			}
 			if toggle0 {
 				t.Error("Expected randomness, got repeating 01s")
+				t.FailNow()
 			}
 			if toggle1 {
 				t.Error("Expected randomness, got repeating 10s")
+				t.FailNow()
 			}
 		}
 	}

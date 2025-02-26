@@ -65,6 +65,30 @@ func (a _analyze) ByteShade(data ...byte) BinaryShade {
 	return count
 }
 
+// Repetition walks the data to see if it repeats the provided pattern.
+//
+// For example, to check if a Bit slice is '10101010' you can invoke:
+//
+//	if tiny.Analyze.Repetition(data, 1, 0) { ... }
+func (_ _analyze) Repetition(data []Bit, pattern ...Bit) bool {
+	if len(pattern) == 0 {
+		panic("pattern cannot be empty")
+	}
+	patternI := 0
+
+	for _, b := range data {
+		if patternI >= len(pattern) {
+			patternI = 0
+		}
+		if b != pattern[patternI] {
+			return false
+		}
+
+		patternI++
+	}
+	return true
+}
+
 // HasPrefix checks if the source Bit slice begins with the provided Bit slice
 func (_ _analyze) HasPrefix(data []Bit, prefix ...Bit) bool {
 	return bytes.HasPrefix(Upcast(data), Upcast(prefix))

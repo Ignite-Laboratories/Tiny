@@ -10,7 +10,7 @@ func Test_Operate_GetAverage(t *testing.T) {
 	bytes := support.RandomBytes(32)
 	data := make([]tiny.Measurement, 32)
 	for i, b := range bytes {
-		data[i] = tiny.NewMeasure([]byte{b})
+		data[i] = tiny.NewMeasurement([]byte{b})
 	}
 	average := 0
 
@@ -30,7 +30,7 @@ Bit/Measurement/Shade
 */
 
 func Test_Analyze_Shade(t *testing.T) {
-	light := tiny.NewMeasure([]byte{0, 0, 0, 0}, 0, 0, 0)
+	light := tiny.NewMeasurement([]byte{0, 0, 0, 0}, 0, 0, 0)
 	lightExpected := tiny.BinaryShade{
 		Zeros:             35,
 		Ones:              0,
@@ -41,7 +41,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(light), lightExpected, t)
 
-	dark := tiny.NewMeasure([]byte{255, 255, 255, 255}, 1, 1, 1)
+	dark := tiny.NewMeasurement([]byte{255, 255, 255, 255}, 1, 1, 1)
 	darkExpected := tiny.BinaryShade{
 		Zeros:             0,
 		Ones:              35,
@@ -52,7 +52,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(dark), darkExpected, t)
 
-	jumbled := tiny.NewMeasure([]byte{22, 222, 111, 144}, 0, 1, 0)
+	jumbled := tiny.NewMeasurement([]byte{22, 222, 111, 144}, 0, 1, 0)
 	jumbledExpected := tiny.BinaryShade{
 		Zeros:             17,
 		Ones:              18,
@@ -63,7 +63,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(jumbled), jumbledExpected, t)
 
-	lessThanHalfGrey := tiny.NewMeasure([]byte{7, 7, 7, 7}, 0, 1, 0)
+	lessThanHalfGrey := tiny.NewMeasurement([]byte{7, 7, 7, 7}, 0, 1, 0)
 	lessThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             22,
 		Ones:              13,
@@ -74,7 +74,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(lessThanHalfGrey), lessThanHalfGreyExpected, t)
 
-	halfGrey := tiny.NewMeasure([]byte{15, 15, 15, 15}, 0, 1, 0)
+	halfGrey := tiny.NewMeasurement([]byte{15, 15, 15, 15}, 0, 1, 0)
 	halfGreyExpected := tiny.BinaryShade{
 		Zeros:             18,
 		Ones:              17,
@@ -85,7 +85,7 @@ func Test_Analyze_Shade(t *testing.T) {
 	}
 	shadeTester(tiny.Analyze.Shade(halfGrey), halfGreyExpected, t)
 
-	moreThanHalfGrey := tiny.NewMeasure([]byte{31, 31, 31, 31}, 0, 1, 0)
+	moreThanHalfGrey := tiny.NewMeasurement([]byte{31, 31, 31, 31}, 0, 1, 0)
 	moreThanHalfGreyExpected := tiny.BinaryShade{
 		Zeros:             14,
 		Ones:              21,
@@ -259,6 +259,36 @@ func shadeTester(analysis tiny.BinaryShade, expected tiny.BinaryShade, t *testin
 			t.Errorf("Expected %d at distribution index %d, got %d", expected.Distribution[i], i, analysis.Distribution[i])
 		}
 	}
+}
+
+func Test_Analyze_Repetition(t *testing.T) {
+	ones := tiny.Synthesize.Repeating(7, 1)
+	zeros := tiny.Synthesize.Repeating(7, 0)
+	oneZeros := tiny.Synthesize.Repeating(7, 1, 0)
+	zeroOnes := tiny.Synthesize.Repeating(7, 0, 1)
+	nonPattern := tiny.From.Byte(77)
+
+	if !tiny.Analyze.Repetition(ones.GetAllBits(), 1) {
+		t.Errorf("Data did not have a repetition of 1")
+	}
+	if !tiny.Analyze.Repetition(zeros.GetAllBits(), 0) {
+		t.Errorf("Data did not have a repetition of 0")
+	}
+	if !tiny.Analyze.Repetition(oneZeros.GetAllBits(), 1, 0) {
+		t.Errorf("Data did not have a repetition of 10")
+	}
+	if !tiny.Analyze.Repetition(zeroOnes.GetAllBits(), 0, 1) {
+		t.Errorf("Data did not have a repetition of 01")
+	}
+	if tiny.Analyze.Repetition(nonPattern, 1) {
+		t.Errorf("Data passed on non-repeating data")
+	}
+}
+
+func Test_Analyze_Repetition_ShouldPanicIfEmptyPattern(t *testing.T) {
+	defer ShouldPanic(t)
+	nonPattern := tiny.From.Byte(77)
+	tiny.Analyze.Repetition(nonPattern)
 }
 
 /**

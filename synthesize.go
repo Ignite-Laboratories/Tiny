@@ -22,7 +22,7 @@ func (_ _synthesize) ForEach(count int, f func(int) Bit) Measurement {
 			subI = 0
 		}
 	}
-	return NewMeasure(bytes, bits...)
+	return NewMeasurement(bytes, bits...)
 }
 
 // Ones creates a slice of '1's of the requested length.
@@ -67,9 +67,28 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Measurement {
 
 // Random creates a random sequence of 1s and 0s.
 func (s _synthesize) Random(length int) Measurement {
-	return s.ForEach(length, func(_ int) Bit {
-		var b [1]byte
-		_, _ = rand.Read(b[:])
-		return Bit(b[0] % 2)
-	})
+	if length == 0 {
+		return NewMeasurement([]byte{})
+	}
+	for {
+		result := s.ForEach(length, func(_ int) Bit {
+			var b [1]byte
+			_, _ = rand.Read(b[:])
+			return Bit(b[0] % 2)
+		})
+		bits := result.GetAllBits()
+		if len(bits) > 2 {
+			ones := Analyze.Repetition(bits, 1)
+			zeros := Analyze.Repetition(bits, 0)
+			oneZeros := Analyze.Repetition(bits, 1, 0)
+			zeroOnes := Analyze.Repetition(bits, 0, 1)
+
+			if !ones && !zeros && !oneZeros && !zeroOnes {
+				return result
+			}
+		} else {
+			// Two digit (or less) requests are always "random"
+			return result
+		}
+	}
 }
