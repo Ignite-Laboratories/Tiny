@@ -1,8 +1,23 @@
 package tiny
 
-import "bytes"
+import (
+	"bytes"
+)
 
 type _analyze int
+
+// Average calculates the average of a slice of tiny.Measurement values and returns the result.
+func (a _analyze) Average(data ...Measurement) int {
+	if len(data) == 0 {
+		return 0
+	}
+	total := uint64(0)
+	for _, d := range data {
+		v := d.Value()
+		total += uint64(v)
+	}
+	return int(total / uint64(len(data)))
+}
 
 // Shade gives heuristics around the distribution of 1s in the provided measure.
 func (a _analyze) Shade(measure Measurement) BinaryShade {

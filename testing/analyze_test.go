@@ -1,9 +1,29 @@
 package testing
 
 import (
+	"github.com/ignite-laboratories/support"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
+
+func Test_Operate_GetAverage(t *testing.T) {
+	bytes := support.RandomBytes(32)
+	data := make([]tiny.Measurement, 32)
+	for i, b := range bytes {
+		data[i] = tiny.NewMeasure([]byte{b})
+	}
+	average := 0
+
+	for _, d := range data {
+		average += int(d.Value())
+	}
+	average /= 32
+	toTest := tiny.Analyze.Average(data...)
+
+	if average != int(toTest) {
+		t.Errorf("Expected %d, got %d", average, toTest)
+	}
+}
 
 /**
 Bit/Measurement/Shade

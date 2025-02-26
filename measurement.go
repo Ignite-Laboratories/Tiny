@@ -1,6 +1,8 @@
 package tiny
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // Measurement is used to efficiently store bits in operating memory.  As most
 // languages inherently require at least 8 bits to store custom types, storing
