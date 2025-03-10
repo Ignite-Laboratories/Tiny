@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/ignite-laboratories/core/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -11,7 +12,7 @@ func Test_Synthesize_ForEach(t *testing.T) {
 	measure := tiny.Synthesize.ForEach(22, func(i int) tiny.Bit {
 		return script[i]
 	})
-	CompareBitSlices(measure.GetAllBits(), script, t)
+	test.CompareSlices(measure.GetAllBits(), script, t)
 }
 
 func Test_Synthesize_Ones(t *testing.T) {

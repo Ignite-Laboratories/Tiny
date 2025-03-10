@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/ignite-laboratories/core/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -52,6 +53,6 @@ func Test_To_Measure(t *testing.T) {
 	combined := append(byteBits, bits...)
 
 	measure := tiny.To.Measure(combined...)
-	CompareByteSlices(measure.Bytes, bytes, t)
-	CompareBitSlices(measure.Bits, bits, t)
+	test.CompareSlices(measure.Bytes, bytes, t)
+	test.CompareSlices(measure.Bits, bits, t)
 }

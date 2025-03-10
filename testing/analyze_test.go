@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/ignite-laboratories/core/test"
 	"github.com/ignite-laboratories/support"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
@@ -286,7 +287,7 @@ func Test_Analyze_Repetition(t *testing.T) {
 }
 
 func Test_Analyze_Repetition_ShouldPanicIfEmptyPattern(t *testing.T) {
-	defer ShouldPanic(t)
+	defer test.ShouldPanic(t)
 	nonPattern := tiny.From.Byte(77)
 	tiny.Analyze.Repetition(nonPattern)
 }

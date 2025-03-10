@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/ignite-laboratories/core/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -10,7 +11,7 @@ func Test_Measurement_GetAllBits(t *testing.T) {
 	expected := append([]tiny.Bit{1, 0, 1, 0, 1, 0, 1, 0}, bits...)
 	measure := tiny.NewMeasurement([]byte{170}, bits...)
 	result := measure.GetAllBits()
-	CompareBitSlices(result, expected, t)
+	test.CompareSlices(result, expected, t)
 }
 
 func Test_Measurement_BitLength(t *testing.T) {
@@ -18,13 +19,13 @@ func Test_Measurement_BitLength(t *testing.T) {
 	bytes := []byte{170, 85}
 
 	bitMeasure := tiny.NewMeasurement([]byte{}, bits...)
-	CompareValues(bitMeasure.BitLength(), 3, t)
+	test.CompareValues(bitMeasure.BitLength(), 3, t)
 
 	byteMeasure := tiny.NewMeasurement(bytes)
-	CompareValues(byteMeasure.BitLength(), 16, t)
+	test.CompareValues(byteMeasure.BitLength(), 16, t)
 
 	bothMeasure := tiny.NewMeasurement(bytes, bits...)
-	CompareValues(bothMeasure.BitLength(), 19, t)
+	test.CompareValues(bothMeasure.BitLength(), 19, t)
 }
 
 func Test_Measurement_ByteLength(t *testing.T) {
@@ -33,19 +34,19 @@ func Test_Measurement_ByteLength(t *testing.T) {
 	for i := 0; i < len(bytes); i++ {
 		toTest := bytes[:len(bytes)-i]
 		m := tiny.NewMeasurement(toTest)
-		CompareValues(m.ByteBitLength(), len(toTest)*8, t)
+		test.CompareValues(m.ByteBitLength(), len(toTest)*8, t)
 	}
 }
 
 func Test_Measurement_Value(t *testing.T) {
 	m := tiny.NewMeasurement([]byte{170, 85}, 1, 0, 0, 1)
-	CompareValues(m.Value(), 697689, t)
+	test.CompareValues(m.Value(), 697689, t)
 }
 
 func Test_Measurement_Clear(t *testing.T) {
 	m := tiny.NewMeasurement([]byte{170, 85}, 1, 0, 0, 1)
 	m.Clear()
-	CompareBitSlices(m.GetAllBits(), []tiny.Bit{}, t)
+	test.CompareSlices(m.GetAllBits(), []tiny.Bit{}, t)
 }
 
 func Test_Measurement_Toggle(t *testing.T) {
@@ -91,20 +92,20 @@ Read
 func Test_Measurement_ReadFromBytes(t *testing.T) {
 	measure := tiny.NewMeasurement([]byte{170, 85})
 	result := measure.Read(6, 10)
-	CompareBitSlices(result, tiny.From.Bits(1, 0, 0, 1), t)
+	test.CompareSlices(result, tiny.From.Bits(1, 0, 0, 1), t)
 }
 
 func Test_Measurement_ReadFromBits(t *testing.T) {
 	measure := tiny.NewMeasurement([]byte{255}, 0, 1, 1, 0, 0)
 	result := measure.Read(8, 12)
-	CompareBitSlices(result, tiny.From.Bits(0, 1, 1, 0), t)
+	test.CompareSlices(result, tiny.From.Bits(0, 1, 1, 0), t)
 }
 
 func Test_Measurement_ReadAcrossBytesAndBits(t *testing.T) {
 	measure := tiny.NewMeasurement([]byte{170, 85}, 0, 1, 0, 1, 1, 0)
 	expected := tiny.From.Bits(1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1)
 	result := measure.Read(6, 21)
-	CompareBitSlices(result, expected, t)
+	test.CompareSlices(result, expected, t)
 }
 
 /**
@@ -112,13 +113,13 @@ Append
 */
 
 func Test_Measurement_ApppendBytesLengthLimit(t *testing.T) {
-	defer ShouldPanic(t)
+	defer test.ShouldPanic(t)
 	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
 	measure.AppendBytes(255)
 }
 
 func Test_Measurement_ApppendBitsLengthLimit(t *testing.T) {
-	defer ShouldPanic(t)
+	defer test.ShouldPanic(t)
 	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
 	measure.AppendBits(0, 1, 0, 1, 0, 1, 0, 1)
 }
@@ -130,7 +131,7 @@ func Test_Measurement_AppendBits(t *testing.T) {
 
 	expected := append(bits170, tiny.From.Bits(0, 1, 1)...)
 	expected = append(expected, tiny.From.Bits(0, 0, 1)...)
-	CompareBitSlices(measure.GetAllBits(), expected, t)
+	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
 func Test_Measurement_AppendBytes(t *testing.T) {
@@ -145,7 +146,7 @@ func Test_Measurement_AppendBytes(t *testing.T) {
 	expected = append(expected, bits255...)
 	expected = append(expected, bits170...)
 
-	CompareBitSlices(measure.GetAllBits(), expected, t)
+	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
 func Test_Measurement_Append(t *testing.T) {
@@ -154,7 +155,7 @@ func Test_Measurement_Append(t *testing.T) {
 	expected := append(tiny.From.Byte(85), tiny.From.Bits(0, 1, 1)...)
 	expected = append(expected, tiny.From.Byte(170)...)
 	expected = append(expected, tiny.From.Bits(1, 0, 0)...)
-	CompareBitSlices(measure.GetAllBits(), expected, t)
+	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
 /**
@@ -162,13 +163,13 @@ Prepend
 */
 
 func Test_Measurement_PrependBytesLengthLimit(t *testing.T) {
-	defer ShouldPanic(t)
+	defer test.ShouldPanic(t)
 	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
 	measure.PrependBytes(255)
 }
 
 func Test_Measurement_PrependBitsLengthLimit(t *testing.T) {
-	defer ShouldPanic(t)
+	defer test.ShouldPanic(t)
 	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
 	measure.PrependBits(0, 1, 0, 1, 0, 1, 0, 1)
 }
@@ -180,14 +181,14 @@ func Test_Measurement_PrependBits(t *testing.T) {
 
 	expected := append(tiny.From.Bits(0, 0, 1), bits170...)
 	expected = append(expected, tiny.From.Bits(0, 1, 1)...)
-	CompareBitSlices(measure.GetAllBits(), expected, t)
+	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
 func Test_Measurement_PrependBytes(t *testing.T) {
 	measure := tiny.NewMeasurement([]byte{85}, 0, 1, 1)
 	measure.PrependBytes(255, 170)
 	expected := append(tiny.From.Bytes(255, 170, 85), tiny.From.Bits(0, 1, 1)...)
-	CompareBitSlices(measure.GetAllBits(), expected, t)
+	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
 func Test_Measurement_Prepend(t *testing.T) {
@@ -196,7 +197,7 @@ func Test_Measurement_Prepend(t *testing.T) {
 	expected := append(tiny.From.Byte(170), tiny.From.Bits(1, 0, 0)...)
 	expected = append(expected, tiny.From.Byte(85)...)
 	expected = append(expected, tiny.From.Bits(0, 1, 1)...)
-	CompareBitSlices(measure.GetAllBits(), expected, t)
+	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
 func Test_Measurement_QuarterSplit(t *testing.T) {
@@ -256,7 +257,7 @@ func Test_Measurement_TrimStart(t *testing.T) {
 			bits := measure.GetAllBits()
 			measure.TrimStart(ii)
 			expected := bits[ii:]
-			CompareBitSlices(measure.GetAllBits(), expected, t)
+			test.CompareSlices(measure.GetAllBits(), expected, t)
 		}
 	}
 }
@@ -269,7 +270,7 @@ func Test_Measurement_TrimEnd(t *testing.T) {
 			measure.TrimEnd(ii)
 			end := len(bits) - ii - 1
 			expected := bits[:end]
-			CompareBitSlices(measure.GetAllBits(), expected, t)
+			test.CompareSlices(measure.GetAllBits(), expected, t)
 		}
 	}
 }
