@@ -255,3 +255,13 @@ func (m *Measurement) TrimEnd(count int) {
 	end := len(bits) - count - 1
 	m.AppendBits(bits[:end]...)
 }
+
+// SplitAtIndex splits the Measurement into two at the provided index and returns their results respectively.
+//
+// The first returned Measurement ("left") contains data from the start and up to (but not including) the index.
+// The second returned Measurement ("right") contains data from the index to the end.
+func (m *Measurement) SplitAtIndex(index int) (Measurement, Measurement) {
+	left := NewMeasurement([]byte{}, m.Read(0, index)...)
+	right := NewMeasurement([]byte{}, m.Read(index, m.BitLength())...)
+	return left, right
+}

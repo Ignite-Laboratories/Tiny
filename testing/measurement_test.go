@@ -274,3 +274,33 @@ func Test_Measurement_TrimEnd(t *testing.T) {
 		}
 	}
 }
+
+/**
+SplitAtIndex
+*/
+
+func Test_Measurement_SplitAtIndex(t *testing.T) {
+	m := tiny.NewMeasurement([]byte{}, 0, 1, 1, 0, 1, 1, 0)
+	left, right := m.SplitAtIndex(3)
+	test.CompareSlices(left.GetAllBits(), tiny.From.Bits(0, 1, 1), t)
+	test.CompareSlices(right.GetAllBits(), tiny.From.Bits(0, 1, 1, 0), t)
+}
+
+func Test_Measurement_SplitAtIndex_Zero(t *testing.T) {
+	m := tiny.NewMeasurement([]byte{}, 0, 1, 1, 0, 1, 1, 0)
+	left, right := m.SplitAtIndex(0)
+	test.CompareSlices(left.GetAllBits(), tiny.From.Bits(), t)
+	test.CompareSlices(right.GetAllBits(), tiny.From.Bits(0, 1, 1, 0, 1, 1, 0), t)
+}
+
+func Test_Measurement_SplitAtIndex_Negative(t *testing.T) {
+	defer test.ShouldPanic(t)
+	m := tiny.NewMeasurement([]byte{}, 0, 1, 1, 0, 1, 1, 0)
+	m.SplitAtIndex(-1)
+}
+
+func Test_Measurement_SplitAtIndex_BeyondBounds(t *testing.T) {
+	defer test.ShouldPanic(t)
+	m := tiny.NewMeasurement([]byte{}, 0, 1, 1, 0, 1, 1, 0)
+	m.SplitAtIndex(42)
+}
