@@ -1,5 +1,13 @@
 package tiny
 
+import (
+	"fmt"
+)
+
+func init() {
+	fmt.Println("init - [tiny]")
+}
+
 // Analyze is a way to glean information about existing binary information.
 var Analyze _analyze
 
