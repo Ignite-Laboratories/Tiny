@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	fmt.Println("[tiny]")
+	fmt.Println("Module - [tiny]")
 }
 
 // Analyze is a way to glean information about existing binary information.
