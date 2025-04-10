@@ -5,3 +5,5 @@
 // The core component of tiny is the Measurement.  This is a standard container for up
 // to 32 bits of information.
 package tiny
+
+var ModuleName = "tiny"
