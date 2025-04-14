@@ -6,4 +6,14 @@
 // to 32 bits of information.
 package tiny
 
+import (
+	"github.com/ignite-laboratories/core"
+)
+
 var ModuleName = "tiny"
+
+func init() {
+	core.ModuleReport(ModuleName)
+}
+
+func Report() {}
