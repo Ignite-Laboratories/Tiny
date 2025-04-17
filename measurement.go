@@ -21,6 +21,9 @@ import (
 // NOTE: A measurement is limited to 32 bits wide by design.  This allows you
 // to easily grow or shrink bits at the byte level and then capture the
 // new value of each individual measurement.
+//
+// For longer stretches of binary information, string together measurements
+// using a Phrase.
 type Measurement struct {
 	// Bytes holds complete byte data.
 	Bytes []byte
@@ -28,7 +31,7 @@ type Measurement struct {
 	Bits []Bit
 }
 
-// NewMeasurement constructs a Measurement, which represents an uneven amount of binary bits.
+// NewMeasurement constructs a Measurement, which represents a variable slice of bits.
 func NewMeasurement(bytes []byte, bits ...Bit) Measurement {
 	return Measurement{
 		Bytes: bytes,
@@ -239,6 +242,30 @@ func (m *Measurement) QuarterSplit() {
 		valueWidth = 7
 	}
 	m.AppendBits(From.Number(value, valueWidth)...)
+}
+
+// UnQuarterSplit is the reverse of a QuarterSplit operation.
+//
+// NOTE: This requires your input Measurement to be quarter split,
+// but will not fail whatsoever if it isn't!  Please be selective
+// of when you call this.
+func (m *Measurement) UnQuarterSplit() {
+	// Get the measurement's value and clear it out
+	bits := m.GetAllBits()
+	m.Clear()
+
+	// Calculate the new value
+	var newValue int
+	if bits[0] == 0 { // 0
+		newValue = To.Number(WidthMorsel, bits[1:]...)
+	} else if bits[1] == 0 { // 1 0
+		newValue = To.Number(WidthMorsel, bits[2:]...)
+		newValue += 64
+	} else { // 1 1
+		newValue = To.Number(WidthShred, bits[2:]...)
+		newValue += 128
+	}
+	m.AppendBytes(byte(newValue))
 }
 
 // TrimStart removes the provided number of bits from the beginning of the Measurement.

@@ -200,6 +200,16 @@ func Test_Measurement_Prepend(t *testing.T) {
 	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
+func Test_Measurement_UnQuarterSplit(t *testing.T) {
+	for i := 0; i < 256; i++ {
+		expected := []byte{byte(i)}
+		data := tiny.NewMeasurement(expected)
+		data.QuarterSplit()
+		data.UnQuarterSplit()
+		test.CompareSlices(expected, data.Bytes, t)
+	}
+}
+
 func Test_Measurement_QuarterSplit(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		measure := tiny.NewMeasurement([]byte{byte(i)})

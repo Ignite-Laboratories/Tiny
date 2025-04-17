@@ -1,6 +1,6 @@
 package tiny
 
-// NewPhrase calls NewMeasurement for each input byte and returns a slice of the results.
+// NewPhrase calls NewMeasurement for each input byte and returns a Phrase of the results.
 func NewPhrase(data ...byte) Phrase {
 	out := make(Phrase, len(data))
 	for i, d := range data {
@@ -31,10 +31,18 @@ func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 	return out, current
 }
 
-// QuarterSplit calls Measurement.QuarterSplit for each Measurement of the Phrase.
+// QuarterSplit quarter splits each Measurement of the Phrase.
 func (phrase Phrase) QuarterSplit() {
 	for i, m := range phrase {
 		m.QuarterSplit()
+		phrase[i] = m
+	}
+}
+
+// UnQuarterSplit reverses a quarter split operation on each Measurement of the Phrase.
+func (phrase Phrase) UnQuarterSplit() {
+	for i, m := range phrase {
+		m.UnQuarterSplit()
 		phrase[i] = m
 	}
 }
