@@ -65,7 +65,7 @@ func (t _to) Byte(bits ...Bit) byte {
 	return byte(t.Number(8, bits...))
 }
 
-// Measurement converts a Bit slice to a Measurement.
+// Measure converts a Bit slice to a Measurement.
 func (t _to) Measure(bits ...Bit) Measurement {
 	var bytes []byte
 	for i := 0; i+7 < len(bits); i += 8 {
