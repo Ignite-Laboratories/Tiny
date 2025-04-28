@@ -110,3 +110,21 @@ func RecombinePhrases(left Phrase, right Phrase) Phrase {
 
 	return out
 }
+
+// AsInts converts each Measurement of the Phrase into an int.
+func (phrase Phrase) AsInts() []int {
+	out := make([]int, len(phrase))
+	for i, m := range phrase {
+		out[i] = m.Value()
+	}
+	return out
+}
+
+// AsBytes converts each Measurement of the Phrase into a byte.
+func (phrase Phrase) AsBytes() []byte {
+	out := make([]byte, len(phrase))
+	for i, m := range phrase {
+		out[i] = byte(m.Value())
+	}
+	return out
+}
