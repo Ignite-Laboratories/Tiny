@@ -7,8 +7,8 @@ import (
 type _to int
 
 // Number takes in a set of bits and converts it to an numeric value up to the
-// specified width.  If the amount of provided bits exceeds that width, the excess
-// bits dropped entirely.  If the width exceeds 32 (a maximum for an int), they
+// specified width.  If the number of provided bits exceeds that width, the excess
+// bits are dropped entirely.  If the width exceeds 32 (a maximum for an int), they
 // are also dropped.  These operations start from the MSB towards the LSB.
 // For example: If 4 is provided, a Nibble value of [0-15] is returned even if 8 bits are provided.
 func (_ _to) Number(width int, bits ...Bit) int {

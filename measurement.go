@@ -99,52 +99,8 @@ func (m *Measurement) ForEachBit(operation func(i int, bit Bit) Bit) {
 // Go slice [low:high] indexing, meaning it also fails the same if you reference beyond
 // the measurable index boundaries.
 func (m *Measurement) Read(low int, high int) []Bit {
-	// Step 1: Are we looking entirely in the Bits section?
-	if low >= m.ByteBitLength() {
-		// This only concerns the bits, so we can simply drop the byte's bit length
-		low -= m.ByteBitLength()
-		high -= m.ByteBitLength()
-		return m.Bits[low:high]
-	}
-
-	lowByteIndex := low / 8    // This is the byte index
-	lowByteSubIndex := low % 8 // This is the bit index of that byte
-	highByteIndex := high / 8
-	highByteSubIndex := high % 8
-
-	var output []Bit
-	var foundBytes []byte
-	var foundBits []Bit
-	var isSplit bool
-
-	// Step 2: Are we split across both the Bits and Measurement?
-	if high > m.ByteBitLength() {
-		// Yes?  Grab all the bytes from the starting byte...
-		foundBytes = m.Bytes[lowByteIndex:]
-		foundBits = m.Bits[:highByteSubIndex]
-		isSplit = true
-	} else {
-		// No?  Grab
-		foundBytes = m.Bytes[lowByteIndex : highByteIndex+1]
-	}
-
-	// Step 3: Split the found bytes apart
-	for i, b := range foundBytes {
-		if i == 0 {
-			// We need to use the low side's sub index
-			output = append(output, From.Byte(b)[lowByteSubIndex:]...)
-		} else if !isSplit && i == len(foundBytes)-1 {
-			// We need to use the high side's sub index
-			output = append(output, From.Byte(b)[:highByteSubIndex]...)
-		} else {
-			// Get the full byte
-			output = append(output, From.Byte(b)...)
-		}
-	}
-
-	// Step 4: Combine the bytes and bits and return
-	output = append(output, foundBits...)
-	return output
+	bits := m.GetAllBits()
+	return bits[low:high]
 }
 
 // AppendBits places the provided bits at the end of the source Measurement.
@@ -283,12 +239,16 @@ func (m *Measurement) TrimEnd(count int) {
 	m.AppendBits(bits[:end]...)
 }
 
-// SplitAtIndex splits the Measurement into two at the provided index and returns their results respectively.
+// BreakApart splits the Measurement into two at the provided index and returns their results respectively.
 //
 // The first returned Measurement ("left") contains data from the start and up to (but not including) the index.
 // The second returned Measurement ("right") contains data from the index to the end.
-func (m *Measurement) SplitAtIndex(index int) (Measurement, Measurement) {
+func (m *Measurement) BreakApart(index int) (Measurement, Measurement) {
 	left := NewMeasurement([]byte{}, m.Read(0, index)...)
 	right := NewMeasurement([]byte{}, m.Read(index, m.BitLength())...)
 	return left, right
+}
+
+func (m Measurement) String() string {
+	return strconv.Itoa(To.Number(32, m.GetAllBits()...))
 }

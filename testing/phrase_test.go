@@ -89,3 +89,45 @@ func Test_Phrase_CountBelowThreshold(t *testing.T) {
 		t.Errorf("Expected %d below a threshold of %d, Got %d", count, threshold, randomCount)
 	}
 }
+
+func Test_Phrase_BreakMeasuresApart(t *testing.T) {
+	// The data in this test intentionally increments the left and right regions of each measure by 1 per measure.
+	data := tiny.NewPhrase(0, 65, 130, 195)
+	l, r := data.BreakMeasuresApart(2)
+
+	for i := 0; i < 4; i++ {
+		if l[i].Value() != i {
+			t.Errorf("Expected %d, Got %d", i, l[i].Value())
+		}
+		if r[i].Value() != i {
+			t.Errorf("Expected %d, Got %d", i, r[i].Value())
+		}
+	}
+}
+
+func Test_Phrase_BreakMeasuresApart_PanicBeyondBounds(t *testing.T) {
+	defer test.ShouldPanic(t)
+
+	data := tiny.NewPhrase(0, 65, 130, 195)
+	data.BreakMeasuresApart(9)
+}
+
+func Test_Phrase_BreakMeasuresApart_EmptyData(t *testing.T) {
+	data := tiny.NewPhrase()
+	data.BreakMeasuresApart(2)
+}
+
+func Test_Phrase_RecombineMeasures(t *testing.T) {
+	expected := []byte{0, 65, 130, 195}
+
+	data := tiny.NewPhrase(expected...)
+	l, r := data.BreakMeasuresApart(2)
+
+	recombined := tiny.RecombinePhrases(l, r)
+
+	for i, m := range recombined {
+		if m.Value() != int(expected[i]) {
+			t.Errorf("Expected %d, Got %d", i, m.Value())
+		}
+	}
+}

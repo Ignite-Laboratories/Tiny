@@ -9,7 +9,7 @@ func NewPhrase(data ...byte) Phrase {
 	return out
 }
 
-// ToBytesAndBits converts its measurements into bytes and a remainder of bits.
+// ToBytesAndBits converts its measurements into bytes and the remainder of bits.
 func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 	out := make([]byte, 0, len(phrase))
 
@@ -75,4 +75,38 @@ func (phrase Phrase) AllBelowThreshold(threshold int) bool {
 		}
 	}
 	return true
+}
+
+// BreakMeasuresApart breaks each Measurement of the Phrase apart at the provided index and returns
+// the two resulting phrases.  The left phrase will contain the most significant bits, while the right
+// phrase will contain the least significant bits.
+func (phrase Phrase) BreakMeasuresApart(index int) (left Phrase, right Phrase) {
+	left = make(Phrase, len(phrase))
+	right = make(Phrase, len(phrase))
+
+	for i, m := range phrase {
+		l, r := m.BreakApart(index)
+		left[i] = l
+		right[i] = r
+	}
+
+	return left, right
+}
+
+// RecombinePhrases recombines the two provided phrases into a single phrase.  The left phrase should
+// contain the most significant bits, while the right phrase should contain the least significant bits.
+//
+// NOTE: The two phrases must be the same length.  If they are not, this will panic.
+func RecombinePhrases(left Phrase, right Phrase) Phrase {
+	if len(left) != len(right) {
+		panic("left and right must be the same length")
+	}
+
+	out := make(Phrase, len(left))
+	for i := 0; i < len(left); i++ {
+		left[i].Append(right[i])
+		out[i] = left[i]
+	}
+
+	return out
 }
