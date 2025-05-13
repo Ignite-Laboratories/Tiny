@@ -4,17 +4,17 @@ import (
 	"strconv"
 )
 
-// Measurement is used to efficiently store bits in operating memory.  As most
-// languages inherently require at least 8 bits to store custom types, storing
-// each bit individually would need 8 times the size of every bit - thus, the
-// measurement was born.
+// Measurement is, effectively, a variable-width slice of bits.  It's used to
+// efficiently store bits in operating memory.  As most languages inherently
+// require at least 8 bits to store custom types, storing each bit individually
+// would need 8 times the size of every bit - thus, the measurement was born.
 //
 // TL;DR: This holds bits in byte form, leaving anything less than a byte
 // at the end of the binary information as a remainder of bits.
 //
 // NOTE: A measurement is limited to 32 bits wide by design.  This allows you
-// to easily grow or shrink bits at the byte level and then capture the
-// new value of each measurement.
+// to easily grow or shrink bytes at the bit level and then capture the
+// new value of each measurement as a standard 'int'.
 //
 // For longer stretches of binary information, string together measurements
 // using a Phrase.
