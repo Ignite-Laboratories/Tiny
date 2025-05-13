@@ -13,11 +13,6 @@ var From _from
 // Modify is a way to alter existing binary information.
 var Modify _modify
 
-// Phrase represents a Measurement slice
-//
-// Colloquially, this represents a musical 'phrase' of information.
-type Phrase []Measurement
-
 // Synthesize is a way to create binary slices from known parameters.
 var Synthesize _synthesize
 

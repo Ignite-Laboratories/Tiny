@@ -1,5 +1,8 @@
 package tiny
 
+// Phrase represents a Measurement slice
+type Phrase []Measurement
+
 // NewPhrase calls NewMeasurement for each input byte and returns a Phrase of the results.
 func NewPhrase(data ...byte) Phrase {
 	out := make(Phrase, len(data))
@@ -77,10 +80,10 @@ func (phrase Phrase) AllBelowThreshold(threshold int) bool {
 	return true
 }
 
-// BreakMeasuresApart breaks each Measurement of the Phrase apart at the provided index and returns
+// BreakMeasurementsApart breaks each Measurement of the Phrase apart at the provided index and returns
 // the two resulting phrases.  The left phrase will contain the most significant bits, while the right
 // phrase will contain the least significant bits.
-func (phrase Phrase) BreakMeasuresApart(index int) (left Phrase, right Phrase) {
+func (phrase Phrase) BreakMeasurementsApart(index int) (left Phrase, right Phrase) {
 	left = make(Phrase, len(phrase))
 	right = make(Phrase, len(phrase))
 

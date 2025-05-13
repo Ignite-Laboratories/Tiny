@@ -9,18 +9,12 @@ import (
 // each bit individually would need 8 times the size of every bit - thus, the
 // measurement was born.
 //
-// Conceptually, this is a musical "measure" - facilitating rhythmic changes
-// to binary information; however, a "measurement" is, abstractly, any unit
-// recording the presence of something.  Linguistics are cool, folks!
-// I highly encourage you consider the alternative meanings of every term
-// in your preferred programming languages, they become far more intuitive =)
-//
 // TL;DR: This holds bits in byte form, leaving anything less than a byte
 // at the end of the binary information as a remainder of bits.
 //
 // NOTE: A measurement is limited to 32 bits wide by design.  This allows you
 // to easily grow or shrink bits at the byte level and then capture the
-// new value of each individual measurement.
+// new value of each measurement.
 //
 // For longer stretches of binary information, string together measurements
 // using a Phrase.

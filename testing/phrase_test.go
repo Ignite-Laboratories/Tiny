@@ -90,10 +90,10 @@ func Test_Phrase_CountBelowThreshold(t *testing.T) {
 	}
 }
 
-func Test_Phrase_BreakMeasuresApart(t *testing.T) {
+func Test_Phrase_BreakMeasurementsApart(t *testing.T) {
 	// The data in this test intentionally increments the left and right regions of each measure by 1 per measure.
 	data := tiny.NewPhrase(0, 65, 130, 195)
-	l, r := data.BreakMeasuresApart(2)
+	l, r := data.BreakMeasurementsApart(2)
 
 	for i := 0; i < 4; i++ {
 		if l[i].Value() != i {
@@ -105,23 +105,23 @@ func Test_Phrase_BreakMeasuresApart(t *testing.T) {
 	}
 }
 
-func Test_Phrase_BreakMeasuresApart_PanicBeyondBounds(t *testing.T) {
+func Test_Phrase_BreakMeasurementsApart_PanicBeyondBounds(t *testing.T) {
 	defer test.ShouldPanic(t)
 
 	data := tiny.NewPhrase(0, 65, 130, 195)
-	data.BreakMeasuresApart(9)
+	data.BreakMeasurementsApart(9)
 }
 
-func Test_Phrase_BreakMeasuresApart_EmptyData(t *testing.T) {
+func Test_Phrase_BreakMeasurementsApart_EmptyData(t *testing.T) {
 	data := tiny.NewPhrase()
-	data.BreakMeasuresApart(2)
+	data.BreakMeasurementsApart(2)
 }
 
 func Test_Phrase_RecombineMeasures(t *testing.T) {
 	expected := []byte{0, 65, 130, 195}
 
 	data := tiny.NewPhrase(expected...)
-	l, r := data.BreakMeasuresApart(2)
+	l, r := data.BreakMeasurementsApart(2)
 
 	recombined := tiny.RecombinePhrases(l, r)
 
