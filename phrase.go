@@ -110,8 +110,10 @@ func RecombineMeasurements(left Phrase, right Phrase) Phrase {
 
 	out := make(Phrase, len(left))
 	for i := 0; i < len(left); i++ {
-		left[i].Append(right[i])
-		out[i] = left[i]
+		// NOTE: We create a new measurement since Append is a pointer operation
+		m := NewMeasurement(left[i].Bytes, left[i].Bits...)
+		m.Append(right[i])
+		out[i] = m
 	}
 
 	return out
@@ -252,10 +254,10 @@ func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Ph
 //		|  Start  |               Middle                |   End   | <- Trifurcated Phrases
 //		|  Start  | Middle1 |     Middle2     | Middle3 |   End   | <- Phrase Measurements
 //
-//	 (Optional) Align()
+//	 (Optional) Start.Align(), Middle.Align(), End.Align()
 //
-//		| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | <- Raw Bits
-//		|      Start      |     Middle      |       End       | <- Aligned Phrases
+//		| 0 1 0 0 | 1 1 0 1 0 0 0 1 - 0 1 1 0 0 0 1 0 | 0 0 0 1 | <- Raw Bits
+//		|  Start  |     Middle1     |     Middle2     |   End   | <- Aligned Phrase Measurements
 func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
 	start, end = phrase.Read(startLen)
 	middle, end = end.Read(middleLen)
