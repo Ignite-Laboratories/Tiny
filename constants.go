@@ -67,4 +67,4 @@ const WidthByte = 8
 *
 Error Messages
 */
-const errorMeasureLimit = "Measures are limited to 32 total bits wide"
+const errorMeasureLimit = "measurements are limited to a maximum of 32 bits wide"

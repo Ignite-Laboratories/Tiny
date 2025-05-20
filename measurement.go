@@ -243,6 +243,6 @@ func (m *Measurement) BreakApart(index int) (Measurement, Measurement) {
 	return left, right
 }
 
-func (m Measurement) String() string {
+func (m *Measurement) String() string {
 	return strconv.Itoa(To.Number(32, m.GetAllBits()...))
 }

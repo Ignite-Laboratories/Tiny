@@ -90,6 +90,10 @@ func Test_Phrase_CountBelowThreshold(t *testing.T) {
 	}
 }
 
+/**
+BreakMeasurementsApart and RecombineMeasurements
+*/
+
 func Test_Phrase_BreakMeasurementsApart(t *testing.T) {
 	// The data in this test intentionally increments the left and right regions of each measure by 1 per measure.
 	data := tiny.NewPhrase(0, 65, 130, 195)
@@ -123,11 +127,356 @@ func Test_Phrase_RecombineMeasures(t *testing.T) {
 	data := tiny.NewPhrase(expected...)
 	l, r := data.BreakMeasurementsApart(2)
 
-	recombined := tiny.RecombinePhrases(l, r)
+	recombined := tiny.RecombineMeasurements(l, r)
 
 	for i, m := range recombined {
 		if m.Value() != int(expected[i]) {
 			t.Errorf("Expected %d, Got %d", i, m.Value())
 		}
 	}
+}
+
+/**
+Align
+*/
+
+func Test_Phrase_AlignOnByteWidth(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//   bits -> 0 1
+	//     77 -> 0 1 0 0 1 1 0 1
+	//     22 -> 0 0 0 1 0 1 1 0
+	//     33 -> 0 0 1 0 0 0 0 1
+	//
+	// Output:
+	//      |       77        |       22        |       33        |  <- "Unaligned"
+	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
+	//  |      83        |       69        |      136        |       <- "Aligned"
+
+	// Build the phrase
+	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
+
+	// Align it
+	aligned := phrase.Align()
+
+	// Test the result
+	expected := tiny.NewPhrase(83, 69, 136)
+	expected = append(expected, tiny.NewMeasurement([]byte{}, 0, 1))
+	test.CompareComplexSlices(aligned, expected, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_AlignOnSmallerWidth(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//   bits -> 0 1
+	//     77 -> 0 1 0 0 1 1 0 1
+	//     22 -> 0 0 0 1 0 1 1 0
+	//     33 -> 0 0 1 0 0 0 0 1
+	//
+	// Output:
+	//      |       77        |       22        |       33        |  <- "Unaligned"
+	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
+	//  |   5   |   3    |    4   |   5    |    8   |   8    |  1    <- "Aligned"
+
+	// Build the phrase
+	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
+
+	// Align it
+	aligned := phrase.Align(4)
+
+	// Test the result
+	one := tiny.NewMeasurement([]byte{}, 0, 1)
+	three := tiny.NewMeasurement([]byte{}, 0, 0, 1, 1)
+	four := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
+	five := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1)
+	eight := tiny.NewMeasurement([]byte{}, 1, 0, 0, 0)
+	expected := tiny.Phrase{five, three, four, five, eight, eight, one}
+	test.CompareComplexSlices(aligned, expected, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_AlignOnLargerWidth(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//   bits -> 0 1
+	//     77 -> 0 1 0 0 1 1 0 1
+	//     22 -> 0 0 0 1 0 1 1 0
+	//     33 -> 0 0 1 0 0 0 0 1
+	//
+	// Output:
+	//      |       77        |       22        |       33        |  <- "Unaligned"
+	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
+	//  |        333          |        88           |     33         <- "Aligned"
+
+	// Build the phrase
+	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
+
+	// Align it
+	aligned := phrase.Align(10)
+
+	// Test the result
+	threeHundredThirtyThree := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1)
+	eightyEight := tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0)
+	thirtyThree := tiny.NewMeasurement([]byte{}, 1, 0, 0, 0, 0, 1)
+	expected := tiny.Phrase{threeHundredThirtyThree, eightyEight, thirtyThree}
+	test.CompareComplexSlices(aligned, expected, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Align_PanicIfZeroWidth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	phrase := tiny.NewPhrase(77, 22, 33)
+	phrase.Align(0)
+}
+
+func Test_Phrase_Align_PanicIfNegativeWidth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	phrase := tiny.NewPhrase(77, 22, 33)
+	phrase.Align(-1)
+}
+
+func Test_Phrase_Align_PanicIfWidthTooLarge(t *testing.T) {
+	defer test.ShouldPanic(t)
+	phrase := tiny.NewPhrase(77, 22, 33)
+	phrase.Align(33)
+}
+
+/**
+Read
+*/
+
+func Test_Phrase_Read(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.Read(4)
+
+	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
+	test.CompareComplexSlices(read, tiny.Phrase{left}, test.MeasurementComparison, t)
+
+	right := tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)
+	test.CompareComplexSlices(remainder, tiny.Phrase{right}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Read_Zero(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.Read(0)
+
+	test.CompareComplexSlices(read, tiny.Phrase{}, test.MeasurementComparison, t)
+	test.CompareComplexSlices(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Read_Negative(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.Read(-5)
+
+	test.CompareComplexSlices(read, tiny.Phrase{}, test.MeasurementComparison, t)
+	test.CompareComplexSlices(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Read_AcrossMeasurements(t *testing.T) {
+	phrase := tiny.NewPhrase(77, 22)
+
+	read, remainder := phrase.Read(10)
+
+	left1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)
+	left2 := tiny.NewMeasurement([]byte{}, 0, 0)
+	test.CompareComplexSlices(read, tiny.Phrase{left1, left2}, test.MeasurementComparison, t)
+
+	right := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 1, 0)
+	test.CompareComplexSlices(remainder, tiny.Phrase{right}, test.MeasurementComparison, t)
+}
+
+/**
+ReadMeasurement
+*/
+
+func Test_Phrase_ReadMeasurement(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.ReadMeasurement(4)
+
+	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
+	test.MeasurementComparison(read, left, t)
+
+	right := tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)
+	test.CompareComplexSlices(remainder, tiny.Phrase{right}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_ReadMeasurement_Zero(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.ReadMeasurement(0)
+
+	test.MeasurementComparison(read, tiny.NewMeasurement([]byte{}), t)
+	test.CompareComplexSlices(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_ReadMeasurement_Negative(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.ReadMeasurement(-5)
+
+	test.MeasurementComparison(read, tiny.NewMeasurement([]byte{}), t)
+	test.CompareComplexSlices(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_ReadMeasurement_OverByte(t *testing.T) {
+	phrase := tiny.NewPhrase(77, 22, 33)
+
+	read, remainder := phrase.ReadMeasurement(10)
+
+	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0)
+	test.MeasurementComparison(read, left, t)
+
+	right1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 1, 0)
+	right2 := tiny.NewMeasurement([]byte{33})
+	test.CompareComplexSlices(remainder, tiny.Phrase{right1, right2}, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_ReadMeasurement_ShouldPanicIfOver32(t *testing.T) {
+	defer test.ShouldPanic(t)
+	tiny.NewPhrase().ReadMeasurement(33)
+}
+
+/**
+Trifurcate
+*/
+
+func Test_Phrase_Trifurcate(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//     77 -> 0 1 0 0 1 1 0 1
+	//     22 -> 0 0 0 1 0 1 1 0
+	//     33 -> 0 0 1 0 0 0 0 1
+	//
+	// Output:
+	//   0 1 0 0 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1  <- Raw Bits
+	//  |     Start      |     Middle      |      End       | <- "Trifurcated"
+	phrase := tiny.NewPhrase(77, 22, 33)
+
+	s, m, e := phrase.Trifurcate(8, 8)
+	test.CompareComplexSlices(s, tiny.NewPhrase(77), test.MeasurementComparison, t)
+	test.CompareComplexSlices(m, tiny.NewPhrase(22), test.MeasurementComparison, t)
+	test.CompareComplexSlices(e, tiny.NewPhrase(33), test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Trifurcate_OddSize(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//     77 -> 0 1 0 0 1 1 0 1
+	//     22 -> 0 0 0 1 0 1 1 0
+	//     33 -> 0 0 1 0 0 0 0 1
+	//
+	// Output:
+	//   0 1 0 0 - 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 - 0 0 0 1  <- Raw Bits
+	//  | Start  | Middle1 |     Middle2     | Middle3 |   End  | <- "Trifurcated"
+	phrase := tiny.NewPhrase(77, 22, 33)
+
+	s, m, e := phrase.Trifurcate(4, 16)
+
+	eStart := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)}
+
+	eMiddle1 := tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)
+	eMiddle2 := tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1, 1, 0)
+	eMiddle3 := tiny.NewMeasurement([]byte{}, 0, 0, 1, 0)
+	eMiddle := tiny.Phrase{eMiddle1, eMiddle2, eMiddle3}
+
+	eEnd := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 0, 1)}
+
+	test.CompareComplexSlices(s, eStart, test.MeasurementComparison, t)
+	test.CompareComplexSlices(m, eMiddle, test.MeasurementComparison, t)
+	test.CompareComplexSlices(e, eEnd, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Trifurcate_ExcessiveMiddleLength(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//     77 -> 0 1 0 0 1 1 0 1
+	//
+	// Output:
+	//   0 1 - 0 0 1 1 0 1      <- Raw Bits
+	//  | S  |   Middle   | E | <- "Trifurcated"
+	phrase := tiny.NewPhrase(77)
+
+	s, m, e := phrase.Trifurcate(2, 8)
+
+	eStart := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}
+	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1)}
+	eEnd := tiny.Phrase{}
+
+	test.CompareComplexSlices(s, eStart, test.MeasurementComparison, t)
+	test.CompareComplexSlices(m, eMiddle, test.MeasurementComparison, t)
+	test.CompareComplexSlices(e, eEnd, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Trifurcate_ExcessiveStartLength(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//     77 -> 0 1 0 0 1 1 0 1
+	//
+	// Output:
+	//   0 1 0 0 1 1 0 1          <- Raw Bits
+	//  |     Start     | M | E | <- "Trifurcated"
+	phrase := tiny.NewPhrase(77)
+
+	s, m, e := phrase.Trifurcate(10, 8)
+
+	eStart := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}
+	eMiddle := tiny.Phrase{}
+	eEnd := tiny.Phrase{}
+
+	test.CompareComplexSlices(s, eStart, test.MeasurementComparison, t)
+	test.CompareComplexSlices(m, eMiddle, test.MeasurementComparison, t)
+	test.CompareComplexSlices(e, eEnd, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Trifurcate_ZeroStartLength(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//     77 -> 0 1 0 0 1 1 0 1
+	//
+	// Output:
+	//       0 1 0 0 - 1 1 0 1  <- Raw Bits
+	//  | S | Middle |  End   | <- "Trifurcated"
+	phrase := tiny.NewPhrase(77)
+
+	s, m, e := phrase.Trifurcate(0, 4)
+
+	eStart := tiny.Phrase{}
+	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)}
+	eEnd := tiny.Phrase{tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)}
+
+	test.CompareComplexSlices(s, eStart, test.MeasurementComparison, t)
+	test.CompareComplexSlices(m, eMiddle, test.MeasurementComparison, t)
+	test.CompareComplexSlices(e, eEnd, test.MeasurementComparison, t)
+}
+
+func Test_Phrase_Trifurcate_ZeroStartLengthAndNoEnd(t *testing.T) {
+	// Test logic:
+	//
+	// Input:
+	//     77 -> 0 1 0 0 1 1 0 1
+	//
+	// Output:
+	//       0 1 0 0 1 1 0 1      <- Raw Bits
+	//  | S |    Middle     | E | <- "Trifurcated"
+	phrase := tiny.NewPhrase(77)
+
+	s, m, e := phrase.Trifurcate(0, 10)
+
+	eStart := tiny.Phrase{}
+	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}
+	eEnd := tiny.Phrase{}
+
+	test.CompareComplexSlices(s, eStart, test.MeasurementComparison, t)
+	test.CompareComplexSlices(m, eMiddle, test.MeasurementComparison, t)
+	test.CompareComplexSlices(e, eEnd, test.MeasurementComparison, t)
 }
