@@ -9,15 +9,3 @@
 //
 // The next major component of tiny is the Phrase.  This is a standard way of working with slices of measurements.
 package tiny
-
-import (
-	"github.com/ignite-laboratories/core"
-)
-
-var ModuleName = "tiny"
-
-func init() {
-	core.ModuleReport(ModuleName)
-}
-
-func Report() {}

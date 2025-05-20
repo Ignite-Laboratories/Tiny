@@ -1,8 +1,8 @@
 package testing
 
 import (
-	"github.com/ignite-laboratories/core/test"
 	"github.com/ignite-laboratories/support"
+	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )

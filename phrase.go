@@ -217,6 +217,33 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	return read, remainder
 }
 
+// FuzzyRead reads the provided number of bits from the source phrase and then passes them to the provided fuzzy
+// projection function.
+// The projection function should return the number of bits to continue reading, based upon the found "key" bits.
+//
+// Finally, the key Measurement, continuation Phrase, and remainder Phrase are returned.
+//
+// For example:
+//
+//	 FuzzyRead(2, tiny.Fuzzy.SixtyFour)
+//
+//		  0 0 - - 0 0 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//		| Key |C|                Remainder                    | <- Fuzzy read
+//
+//		  0 1 - 0 0 - 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//		| Key |  C  |               Remainder                 | <- Fuzzy read
+//
+//		  1 0 - 0 0 1 1 - 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//		| Key |  Cont   |             Remainder               | <- Fuzzy read
+//
+//		  1 1 - 0 0 1 1 0 1 - 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//		| Key |   Continue  |            Remainder            | <- Fuzzy read
+func (phrase Phrase) FuzzyRead(length int, fuzzyProjection func(Measurement) int) (key Measurement, continuation Phrase, remainder Phrase) {
+	key, remainder = phrase.ReadMeasurement(length)
+	continuation, remainder = remainder.Read(fuzzyProjection(key))
+	return key, continuation, remainder
+}
+
 // ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and the
 // remainder as a phrase.
 //

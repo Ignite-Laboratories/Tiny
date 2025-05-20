@@ -1,8 +1,8 @@
 package testing
 
 import (
-	"github.com/ignite-laboratories/core/test"
 	"github.com/ignite-laboratories/support"
+	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -163,7 +163,7 @@ func Test_Phrase_AlignOnByteWidth(t *testing.T) {
 	// Test the result
 	expected := tiny.NewPhrase(83, 69, 136)
 	expected = append(expected, tiny.NewMeasurement([]byte{}, 0, 1))
-	test.ComparePhrases(aligned, expected, t)
+	ComparePhrases(aligned, expected, t)
 }
 
 func Test_Phrase_AlignOnSmallerWidth(t *testing.T) {
@@ -193,7 +193,7 @@ func Test_Phrase_AlignOnSmallerWidth(t *testing.T) {
 	five := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1)
 	eight := tiny.NewMeasurement([]byte{}, 1, 0, 0, 0)
 	expected := tiny.Phrase{five, three, four, five, eight, eight, one}
-	test.ComparePhrases(aligned, expected, t)
+	ComparePhrases(aligned, expected, t)
 }
 
 func Test_Phrase_AlignOnLargerWidth(t *testing.T) {
@@ -217,7 +217,7 @@ func Test_Phrase_AlignOnLargerWidth(t *testing.T) {
 	m2 := tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0)
 	m3 := tiny.NewMeasurement([]byte{}, 1, 0, 0, 0, 0, 1)
 	expected := tiny.Phrase{m1, m2, m3}
-	test.ComparePhrases(aligned, expected, t)
+	ComparePhrases(aligned, expected, t)
 }
 
 func Test_Phrase_Align_Simple(t *testing.T) {
@@ -227,7 +227,7 @@ func Test_Phrase_Align_Simple(t *testing.T) {
 
 	aligned := phrase.Align()
 	expected := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}
-	test.ComparePhrases(aligned, expected, t)
+	ComparePhrases(aligned, expected, t)
 }
 
 func Test_Phrase_Align_PanicIfZeroWidth(t *testing.T) {
@@ -258,10 +258,10 @@ func Test_Phrase_Read(t *testing.T) {
 	read, remainder := phrase.Read(4)
 
 	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
-	test.ComparePhrases(read, tiny.Phrase{left}, t)
+	ComparePhrases(read, tiny.Phrase{left}, t)
 
 	right := tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)
-	test.ComparePhrases(remainder, tiny.Phrase{right}, t)
+	ComparePhrases(remainder, tiny.Phrase{right}, t)
 }
 
 func Test_Phrase_Read_Zero(t *testing.T) {
@@ -269,8 +269,8 @@ func Test_Phrase_Read_Zero(t *testing.T) {
 
 	read, remainder := phrase.Read(0)
 
-	test.ComparePhrases(read, tiny.Phrase{}, t)
-	test.ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
+	ComparePhrases(read, tiny.Phrase{}, t)
+	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
 }
 
 func Test_Phrase_Read_Negative(t *testing.T) {
@@ -278,8 +278,8 @@ func Test_Phrase_Read_Negative(t *testing.T) {
 
 	read, remainder := phrase.Read(-5)
 
-	test.ComparePhrases(read, tiny.Phrase{}, t)
-	test.ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
+	ComparePhrases(read, tiny.Phrase{}, t)
+	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
 }
 
 func Test_Phrase_Read_AcrossMeasurements(t *testing.T) {
@@ -289,10 +289,10 @@ func Test_Phrase_Read_AcrossMeasurements(t *testing.T) {
 
 	left1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)
 	left2 := tiny.NewMeasurement([]byte{}, 0, 0)
-	test.ComparePhrases(read, tiny.Phrase{left1, left2}, t)
+	ComparePhrases(read, tiny.Phrase{left1, left2}, t)
 
 	right := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 1, 0)
-	test.ComparePhrases(remainder, tiny.Phrase{right}, t)
+	ComparePhrases(remainder, tiny.Phrase{right}, t)
 }
 
 /**
@@ -305,10 +305,10 @@ func Test_Phrase_ReadMeasurement(t *testing.T) {
 	read, remainder := phrase.ReadMeasurement(4)
 
 	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
-	test.CompareMeasurements(read, left, t)
+	CompareMeasurements(read, left, t)
 
 	right := tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)
-	test.ComparePhrases(remainder, tiny.Phrase{right}, t)
+	ComparePhrases(remainder, tiny.Phrase{right}, t)
 }
 
 func Test_Phrase_ReadMeasurement_Zero(t *testing.T) {
@@ -316,8 +316,8 @@ func Test_Phrase_ReadMeasurement_Zero(t *testing.T) {
 
 	read, remainder := phrase.ReadMeasurement(0)
 
-	test.CompareMeasurements(read, tiny.NewMeasurement([]byte{}), t)
-	test.ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
+	CompareMeasurements(read, tiny.NewMeasurement([]byte{}), t)
+	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
 }
 
 func Test_Phrase_ReadMeasurement_Negative(t *testing.T) {
@@ -325,8 +325,8 @@ func Test_Phrase_ReadMeasurement_Negative(t *testing.T) {
 
 	read, remainder := phrase.ReadMeasurement(-5)
 
-	test.CompareMeasurements(read, tiny.NewMeasurement([]byte{}), t)
-	test.ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
+	CompareMeasurements(read, tiny.NewMeasurement([]byte{}), t)
+	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
 }
 
 func Test_Phrase_ReadMeasurement_OverByte(t *testing.T) {
@@ -335,11 +335,11 @@ func Test_Phrase_ReadMeasurement_OverByte(t *testing.T) {
 	read, remainder := phrase.ReadMeasurement(10)
 
 	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0)
-	test.CompareMeasurements(read, left, t)
+	CompareMeasurements(read, left, t)
 
 	right1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 1, 0)
 	right2 := tiny.NewMeasurement([]byte{33})
-	test.ComparePhrases(remainder, tiny.Phrase{right1, right2}, t)
+	ComparePhrases(remainder, tiny.Phrase{right1, right2}, t)
 }
 
 func Test_Phrase_ReadMeasurement_ShouldPanicIfOver32(t *testing.T) {
@@ -365,9 +365,9 @@ func Test_Phrase_Trifurcate(t *testing.T) {
 	phrase := tiny.NewPhrase(77, 22, 33)
 
 	s, m, e := phrase.Trifurcate(8, 8)
-	test.ComparePhrases(s, tiny.NewPhrase(77), t)
-	test.ComparePhrases(m, tiny.NewPhrase(22), t)
-	test.ComparePhrases(e, tiny.NewPhrase(33), t)
+	ComparePhrases(s, tiny.NewPhrase(77), t)
+	ComparePhrases(m, tiny.NewPhrase(22), t)
+	ComparePhrases(e, tiny.NewPhrase(33), t)
 }
 
 func Test_Phrase_Trifurcate_OddSize(t *testing.T) {
@@ -394,9 +394,9 @@ func Test_Phrase_Trifurcate_OddSize(t *testing.T) {
 
 	eEnd := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 0, 1)}
 
-	test.ComparePhrases(s, eStart, t)
-	test.ComparePhrases(m, eMiddle, t)
-	test.ComparePhrases(e, eEnd, t)
+	ComparePhrases(s, eStart, t)
+	ComparePhrases(m, eMiddle, t)
+	ComparePhrases(e, eEnd, t)
 }
 
 func Test_Phrase_Trifurcate_ExcessiveMiddleLength(t *testing.T) {
@@ -416,9 +416,9 @@ func Test_Phrase_Trifurcate_ExcessiveMiddleLength(t *testing.T) {
 	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1)}
 	eEnd := tiny.Phrase{}
 
-	test.ComparePhrases(s, eStart, t)
-	test.ComparePhrases(m, eMiddle, t)
-	test.ComparePhrases(e, eEnd, t)
+	ComparePhrases(s, eStart, t)
+	ComparePhrases(m, eMiddle, t)
+	ComparePhrases(e, eEnd, t)
 }
 
 func Test_Phrase_Trifurcate_ExcessiveStartLength(t *testing.T) {
@@ -438,9 +438,9 @@ func Test_Phrase_Trifurcate_ExcessiveStartLength(t *testing.T) {
 	eMiddle := tiny.Phrase{}
 	eEnd := tiny.Phrase{}
 
-	test.ComparePhrases(s, eStart, t)
-	test.ComparePhrases(m, eMiddle, t)
-	test.ComparePhrases(e, eEnd, t)
+	ComparePhrases(s, eStart, t)
+	ComparePhrases(m, eMiddle, t)
+	ComparePhrases(e, eEnd, t)
 }
 
 func Test_Phrase_Trifurcate_ZeroStartLength(t *testing.T) {
@@ -460,9 +460,9 @@ func Test_Phrase_Trifurcate_ZeroStartLength(t *testing.T) {
 	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)}
 	eEnd := tiny.Phrase{tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)}
 
-	test.ComparePhrases(s, eStart, t)
-	test.ComparePhrases(m, eMiddle, t)
-	test.ComparePhrases(e, eEnd, t)
+	ComparePhrases(s, eStart, t)
+	ComparePhrases(m, eMiddle, t)
+	ComparePhrases(e, eEnd, t)
 }
 
 func Test_Phrase_Trifurcate_ZeroStartLengthAndNoEnd(t *testing.T) {
@@ -482,7 +482,11 @@ func Test_Phrase_Trifurcate_ZeroStartLengthAndNoEnd(t *testing.T) {
 	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}
 	eEnd := tiny.Phrase{}
 
-	test.ComparePhrases(s, eStart, t)
-	test.ComparePhrases(m, eMiddle, t)
-	test.ComparePhrases(e, eEnd, t)
+	ComparePhrases(s, eStart, t)
+	ComparePhrases(m, eMiddle, t)
+	ComparePhrases(e, eEnd, t)
 }
+
+/**
+NOTE: FuzzyRead tests are located in fuzzy_test.go
+*/
