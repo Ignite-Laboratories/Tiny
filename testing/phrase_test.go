@@ -210,17 +210,23 @@ func Test_Phrase_AlignOnLargerWidth(t *testing.T) {
 	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
 	//  |        333          |        88           |     33         <- "Aligned"
 
-	// Build the phrase
 	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
-
-	// Align it
 	aligned := phrase.Align(10)
 
-	// Test the result
-	threeHundredThirtyThree := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1)
-	eightyEight := tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0)
-	thirtyThree := tiny.NewMeasurement([]byte{}, 1, 0, 0, 0, 0, 1)
-	expected := tiny.Phrase{threeHundredThirtyThree, eightyEight, thirtyThree}
+	m1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1)
+	m2 := tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0)
+	m3 := tiny.NewMeasurement([]byte{}, 1, 0, 0, 0, 0, 1)
+	expected := tiny.Phrase{m1, m2, m3}
+	test.ComparePhrases(aligned, expected, t)
+}
+
+func Test_Phrase_Align_Simple(t *testing.T) {
+	m1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
+	m2 := tiny.NewMeasurement([]byte{}, 1, 1, 0, 1)
+	phrase := tiny.Phrase{m1, m2}
+
+	aligned := phrase.Align()
+	expected := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}
 	test.ComparePhrases(aligned, expected, t)
 }
 

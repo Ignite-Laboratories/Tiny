@@ -239,18 +239,23 @@ func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Ph
 //
 // For example:
 //
-//	tiny.Phrase{ 77, 22, 33 }
+//		tiny.Phrase{ 77, 22, 33 }
 //
-//	|        77       |        22       |        33       |  <- Bytes
-//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
-//	|  Measurement 1  |  Measurement 2  |  Measurement 3  |  <- Source Phrase
+//		|        77       |        22       |        33       |  <- Bytes
+//		| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
+//		|  Measurement 1  |  Measurement 2  |  Measurement 3  |  <- Source Phrase
 //
-//	Trifurcate(4,16)
+//		Trifurcate(4,16)
 //
-//	|    4    |                  16                 |           <- Trifurcation lengths
-//	| 0 1 0 0 | 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 | 0 0 0 1 | <- Raw Bits
-//	|  Start  |               Middle                |   End   | <- Trifurcated Phrases
-//	|  Start  | Middle1 |     Middle2     | Middle3 |   End   | <- Phrase Measurements
+//		|    4    |                  16                 |           <- Trifurcation lengths
+//		| 0 1 0 0 | 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 | 0 0 0 1 | <- Raw Bits
+//		|  Start  |               Middle                |   End   | <- Trifurcated Phrases
+//		|  Start  | Middle1 |     Middle2     | Middle3 |   End   | <- Phrase Measurements
+//
+//	 (Optional) Align()
+//
+//		| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | <- Raw Bits
+//		|      Start      |     Middle      |       End       | <- Aligned Phrases
 func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
 	start, end = phrase.Read(startLen)
 	middle, end = end.Read(middleLen)
