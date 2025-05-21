@@ -164,7 +164,7 @@ func (phrase Phrase) Align(width ...int) Phrase {
 		panic(errorMeasureLimit)
 	}
 	if w <= 0 {
-		panic(fmt.Sprintf("cannot read at a %d bit width", width))
+		panic(fmt.Sprintf("cannot align at a %d bit width", width))
 	}
 
 	src := phrase
