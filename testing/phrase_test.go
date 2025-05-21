@@ -497,3 +497,134 @@ func Test_Phrase_Trifurcate_ZeroStartLengthAndNoEnd(t *testing.T) {
 /**
 NOTE: FuzzyRead tests are located in fuzzy_test.go
 */
+
+/*
+*
+Focus
+*/
+
+func Test_Phrase_Focus(t *testing.T) {
+	phrase := tiny.Synthesize.RandomPhrase(1024, 32)
+	length := phrase.BitLength()
+	l, r := phrase.Focus()
+	lb := l.BitLength()
+	rb := r.BitLength()
+
+	elb := length / 2
+	erb := length - elb
+
+	if lb != elb {
+		t.Errorf("Expected length of left focus to be %d, got %d", elb, lb)
+	}
+	if rb != erb {
+		t.Errorf("Expected length of right focus to be %d, got %d", erb, rb)
+	}
+}
+
+func Test_Phrase_Focus_UnevenLength(t *testing.T) {
+	phrase := tiny.Synthesize.RandomPhrase(1024, 32)
+	phrase = append(tiny.NewPhraseFromBits(1), phrase...)
+	length := phrase.BitLength()
+	l, r := phrase.Focus()
+	lb := l.BitLength()
+	rb := r.BitLength()
+
+	elb := length / 2
+	erb := length - elb
+
+	if lb != elb {
+		t.Errorf("Expected length of left focus to be %d, got %d", elb, lb)
+	}
+	if rb != erb {
+		t.Errorf("Expected length of right focus to be %d, got %d", erb, rb)
+	}
+}
+
+func Test_Phrase_Focus_Recursion(t *testing.T) {
+	phrase := tiny.Synthesize.RandomPhrase(1024, 32)
+	length := phrase.BitLength()
+	l, r := phrase.Focus(5)
+	lb := l.BitLength()
+	rb := r.BitLength()
+
+	elb := length / 2 / 2 / 2 / 2 / 2
+	erb := length - elb
+
+	if lb != elb {
+		t.Errorf("Expected length of left focus to be %d, got %d", elb, lb)
+	}
+	if rb != erb {
+		t.Errorf("Expected length of right focus to be %d, got %d", erb, rb)
+	}
+}
+
+func Test_Phrase_Focus_RecursionUnevenLength(t *testing.T) {
+	phrase := tiny.Synthesize.RandomPhrase(1024, 32)
+	phrase = append(tiny.NewPhraseFromBits(1), phrase...)
+	length := phrase.BitLength()
+	l, r := phrase.Focus(5)
+	lb := l.BitLength()
+	rb := r.BitLength()
+
+	elb := length / 2 / 2 / 2 / 2 / 2
+	erb := length - elb
+
+	if lb != elb {
+		t.Errorf("Expected length of left focus to be %d, got %d", elb, lb)
+	}
+	if rb != erb {
+		t.Errorf("Expected length of right focus to be %d, got %d", erb, rb)
+	}
+}
+
+/**
+WalkBits
+*/
+
+func Test_Synthesize_WalkBits(t *testing.T) {
+	remainder := tiny.Synthesize.RandomPhrase(4, 32)
+	bits := remainder.Bits()
+
+	remainder.WalkBits(1, func(i int, m tiny.Measurement) {
+		if bits[i] != m.GetAllBits()[0] {
+			t.Errorf("Expected bit %d to be %d, got %d", i, bits[i], m.GetAllBits()[0])
+		}
+	})
+}
+
+func Test_Synthesize_WalkBits_AtStride(t *testing.T) {
+	remainder := tiny.Synthesize.RandomPhrase(4, 32)
+	bits := remainder.Bits()
+	i := 0
+
+	remainder.WalkBits(3, func(_ int, m tiny.Measurement) {
+		m.ForEachBit(func(_ int, b tiny.Bit) tiny.Bit {
+			if bits[i] != b {
+				t.Errorf("Expected bit %d to be %d, got %d", i, bits[i], b)
+			}
+			i++
+			return b
+		})
+	})
+}
+
+func Test_Synthesize_WalkBits_ShouldPanicIfStrideTooLarge(t *testing.T) {
+	defer test.ShouldPanic(t)
+
+	remainder := tiny.Synthesize.RandomPhrase(4, 8)
+	remainder.WalkBits(tiny.MaxMeasurementBitLength+1, func(i int, m tiny.Measurement) {})
+}
+
+func Test_Synthesize_WalkBits_ShouldPanicIfStrideIsNegative(t *testing.T) {
+	defer test.ShouldPanic(t)
+
+	remainder := tiny.Synthesize.RandomPhrase(4, 8)
+	remainder.WalkBits(-1, func(i int, m tiny.Measurement) {})
+}
+
+func Test_Synthesize_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
+	defer test.ShouldPanic(t)
+
+	remainder := tiny.Synthesize.RandomPhrase(4, 8)
+	remainder.WalkBits(0, func(i int, m tiny.Measurement) {})
+}

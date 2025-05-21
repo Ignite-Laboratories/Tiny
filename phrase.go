@@ -205,7 +205,7 @@ func (phrase Phrase) Align(width ...int) Phrase {
 	if len(width) > 0 {
 		w = width[0]
 	}
-	if w > 32 {
+	if w > MaxMeasurementBitLength {
 		panic(errorMeasurementLimit)
 	}
 	if w <= 0 {
@@ -303,7 +303,7 @@ func (phrase Phrase) FuzzyRead(length int, fuzzyProjection func(Measurement) int
 // measurement.
 // If you wish to read more than 32 bits, please use Read.
 func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
-	if length > 32 {
+	if length > MaxMeasurementBitLength {
 		panic(errorMeasurementLimit)
 	}
 
@@ -371,4 +371,28 @@ func (phrase Phrase) Focus(times ...int) (left Phrase, right Phrase) {
 	}
 
 	return left, right
+}
+
+// WalkBits walks the bits of the source phrase at the provided stride and calls the
+// provided function for each measurement step.
+func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
+	if stride > MaxMeasurementBitLength {
+		panic(errorMeasurementLimit)
+	}
+	if stride <= 0 {
+		panic("cannot walk at a stride of 0 or less")
+	}
+
+	remainder := phrase
+	var bitM Measurement
+	i := 0
+	for bitM, remainder = remainder.ReadMeasurement(stride); len(remainder) > 0; bitM, remainder = remainder.ReadMeasurement(stride) {
+		if bitM.BitLength() > 0 {
+			fn(i, bitM)
+			i++
+		}
+	}
+	if bitM.BitLength() > 0 {
+		fn(i, bitM)
+	}
 }

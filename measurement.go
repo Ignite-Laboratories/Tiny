@@ -72,7 +72,7 @@ func (m *Measurement) ByteBitLength() int { return len(m.Bytes) * 8 }
 // Value gets the integer value of the measure using its current bit representation.
 // NOTE: Measures are limited to 32 bits wide - intentionally limiting them to an int.
 func (m *Measurement) Value() int {
-	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, 32)
+	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, MaxMeasurementBitLength)
 	return int(v)
 }
 
@@ -120,7 +120,7 @@ func (m *Measurement) Read(low int, high int) []Bit {
 // AppendBits places the provided bits at the end of the source Measurement.
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBits(bits ...Bit) {
-	if m.BitLength()+len(bits) > 32 {
+	if m.BitLength()+len(bits) > MaxMeasurementBitLength {
 		panic(errorMeasurementLimit)
 	}
 	m.Bits = append(m.Bits, bits...)          // Add the bits to the last remainder
@@ -132,7 +132,7 @@ func (m *Measurement) AppendBits(bits ...Bit) {
 // AppendBytes places the provided bytes at the end of the source Measurement.
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBytes(bytes ...byte) {
-	if m.BitLength()+len(bytes)*8 > 32 {
+	if m.BitLength()+len(bytes)*8 > MaxMeasurementBitLength {
 		panic(errorMeasurementLimit)
 	}
 	lastBits := m.Bits
@@ -156,7 +156,7 @@ func (m *Measurement) Append(measure Measurement) {
 // PrependBits places the provided bits at the beginning of the source Measurement.
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBits(bits ...Bit) {
-	if m.BitLength()+len(bits) > 32 {
+	if m.BitLength()+len(bits) > MaxMeasurementBitLength {
 		panic(errorMeasurementLimit)
 	}
 	oldBits := m.Bits
@@ -171,7 +171,7 @@ func (m *Measurement) PrependBits(bits ...Bit) {
 // PrependBytes places the provided bytes at the beginning of the source Measurement.
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBytes(bytes ...byte) {
-	if m.BitLength()+len(bytes)*8 > 32 {
+	if m.BitLength()+len(bytes)*8 > MaxMeasurementBitLength {
 		panic(errorMeasurementLimit)
 	}
 	m.Bytes = append(bytes, m.Bytes...)
@@ -264,5 +264,5 @@ func (m *Measurement) BreakApart(index int) (Measurement, Measurement) {
 }
 
 func (m *Measurement) String() string {
-	return strconv.Itoa(To.Number(32, m.GetAllBits()...))
+	return strconv.Itoa(To.Number(MaxMeasurementBitLength, m.GetAllBits()...))
 }

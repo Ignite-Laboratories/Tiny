@@ -18,6 +18,9 @@ const OneZero Crumb = 2
 // OneOne is an implicit Crumb{11}.
 const OneOne Crumb = 3
 
+// MaxMeasurementBitLength is the maximum number of bits a Measurement can hold.
+const MaxMeasurementBitLength = 32
+
 // MaxCrumb is the maximum value a Crumb can hold.
 const MaxCrumb = 3
 

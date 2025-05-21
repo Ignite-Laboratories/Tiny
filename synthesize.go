@@ -7,7 +7,7 @@ type _synthesize struct{}
 // ForEach calls the provided function the desired number of times and then builds
 // a Measurement from the collected results of all invocations.
 // For example, to synthesize a string of 5 ones:
-// Synthesize.ForEach(5, func(i int) Bit { return 1 })
+// Synthesize.WalkBits(5, func(i int) Bit { return 1 })
 func (_ _synthesize) ForEach(count int, f func(int) Bit) Measurement {
 	var bytes []byte
 	var bits []Bit
@@ -70,6 +70,9 @@ func (s _synthesize) Random(length int) Measurement {
 	if length == 0 {
 		return NewMeasurement([]byte{})
 	}
+	if length > MaxMeasurementBitLength {
+		panic(errorMeasurementLimit)
+	}
 	for {
 		result := s.ForEach(length, func(_ int) Bit {
 			var b [1]byte
@@ -91,4 +94,32 @@ func (s _synthesize) Random(length int) Measurement {
 			return result
 		}
 	}
+}
+
+// RandomPhrase creates a random phrase containing the provided number of measurements, each initialized
+// with 8 random bits.
+//
+// If you would prefer different sized measurements, you may optionally provide the measurement width.
+//
+// NOTE: This will panic if you provide a measurement width of 0 or less, or greater than the maximum
+// allowed measurement bit length.
+func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) Phrase {
+	var phrase Phrase
+	if length == 0 {
+		return phrase
+	}
+	width := 8
+	if len(measurementWidth) > 0 {
+		width = measurementWidth[0]
+		if width > MaxMeasurementBitLength {
+			panic(errorMeasurementLimit)
+		}
+		if width <= 0 {
+			panic("cannot synthesize measurements of 0 or negative bit lengths")
+		}
+	}
+	for i := 0; i < length; i++ {
+		phrase = append(phrase, s.Random(width))
+	}
+	return phrase
 }

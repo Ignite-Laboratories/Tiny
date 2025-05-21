@@ -83,6 +83,24 @@ func Test_Synthesize_Pattern(t *testing.T) {
 	}
 }
 
+func Test_Synthesize_RandomPhrase_ShouldPanicWithLargeMeasurementWidth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	remainder := tiny.Synthesize.RandomPhrase(1, tiny.MaxMeasurementBitLength+1)
+	remainder.WalkBits(3, func(i int, m tiny.Measurement) {})
+}
+
+func Test_Synthesize_RandomPhrase_ShouldPanicWithNegativeMeasurementWidth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	remainder := tiny.Synthesize.RandomPhrase(1, -1)
+	remainder.WalkBits(3, func(i int, m tiny.Measurement) {})
+}
+
+func Test_Synthesize_RandomPhrase_ShouldPanicWith0MeasurementWidth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	remainder := tiny.Synthesize.RandomPhrase(1, 0)
+	remainder.WalkBits(3, func(i int, m tiny.Measurement) {})
+}
+
 func Test_Synthesize_Random_StressTest(t *testing.T) {
 	for i := 0; i < 10000; i++ {
 		Test_Synthesize_Random(t)
