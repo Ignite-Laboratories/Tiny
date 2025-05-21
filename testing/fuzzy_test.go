@@ -158,10 +158,10 @@ func Test_Phrase_FuzzyRead_PowerWindow(t *testing.T) {
 		ComparePhrases(r, remainder, t)
 	}
 
-	tester(tiny.NewPhrase(13, 22, 33, 55), []tiny.Bit{0, 0}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1)}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 1, 0, 1), tiny.NewMeasurement([]byte{22}), tiny.NewMeasurement([]byte{33}), tiny.NewMeasurement([]byte{55})})
-	tester(tiny.NewPhrase(77, 22, 33, 55), []tiny.Bit{0, 1}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1)}, tiny.Phrase{tiny.NewMeasurement([]byte{22}), tiny.NewMeasurement([]byte{33}), tiny.NewMeasurement([]byte{55})})
-	tester(tiny.NewPhrase(141, 22, 33, 55), []tiny.Bit{1, 0}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1), tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1)}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 1, 0), tiny.NewMeasurement([]byte{33}), tiny.NewMeasurement([]byte{55})})
-	tester(tiny.NewPhrase(205, 22, 33, 55), []tiny.Bit{1, 1}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1), tiny.NewMeasurement([]byte{22}), tiny.NewMeasurement([]byte{33}), tiny.NewMeasurement([]byte{}, 0, 0)}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 1, 1, 0, 1, 1, 1)})
+	tester(tiny.NewPhrase(13, 22, 33, 55), []tiny.Bit{0, 0}, tiny.NewPhraseFromBits(0, 0, 1), tiny.NewPhraseFromBitsAndBytes([]tiny.Bit{1, 0, 1}, 22, 33, 55))
+	tester(tiny.NewPhrase(77, 22, 33, 55), []tiny.Bit{0, 1}, tiny.NewPhraseFromBits(0, 0, 1, 1, 0, 1), tiny.NewPhrase(22, 33, 55))
+	tester(tiny.NewPhrase(141, 22, 33, 55), []tiny.Bit{1, 0}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1), tiny.NewMeasurement([]byte{}, 0, 0, 0, 1, 0, 1)}, tiny.NewPhraseFromBitsAndBytes([]tiny.Bit{1, 0}, 33, 55))
+	tester(tiny.NewPhrase(205, 22, 33, 55), []tiny.Bit{1, 1}, tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1), tiny.NewMeasurement([]byte{22}), tiny.NewMeasurement([]byte{33}), tiny.NewMeasurement([]byte{}, 0, 0)}, tiny.NewPhraseFromBits(1, 1, 0, 1, 1, 1))
 }
 
 func Test_Phrase_FuzzyRead_PowerWindow_ZeroWidth(t *testing.T) {

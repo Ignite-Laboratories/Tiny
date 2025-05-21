@@ -14,6 +14,42 @@ func NewPhrase(data ...byte) Phrase {
 	return out
 }
 
+// NewPhraseFromBits creates a phrase of the provided bits at a standard 8-bits-per-byte measurement interval.
+func NewPhraseFromBits(data ...Bit) Phrase {
+	out := make(Phrase, 0)
+	current := make([]Bit, 0, 8)
+	ii := 0
+
+	for _, d := range data {
+
+		if ii > 7 {
+			ii = 0
+			out = append(out, NewMeasurement([]byte{}, current...))
+			current = make([]Bit, 0, 8)
+		}
+		current = append(current, d)
+		ii++
+	}
+	if len(current) > 0 {
+		out = append(out, NewMeasurement([]byte{}, current...))
+	}
+	return out
+}
+
+// NewPhraseFromBitsAndBytes creates a phrase by combining NewPhraseFromBits(bits) and then NewPhrase(bytes).
+func NewPhraseFromBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
+	p := NewPhraseFromBits(bits...)
+	p = append(p, NewPhrase(bytes...)...)
+	return p
+}
+
+// NewPhraseFromBytesAndBits creates a phrase by combining NewPhrase(bytes) and then NewPhraseFromBits(bits).
+func NewPhraseFromBytesAndBits(bytes []byte, bits ...Bit) Phrase {
+	p := NewPhrase(bytes...)
+	p = append(p, NewPhraseFromBits(bits...)...)
+	return p
+}
+
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
 func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 	out := make([]byte, 0, len(phrase))
@@ -133,6 +169,15 @@ func (phrase Phrase) AsBytes() []byte {
 	out := make([]byte, len(phrase))
 	for i, m := range phrase {
 		out[i] = byte(m.Value())
+	}
+	return out
+}
+
+// Bits returns a slice of the phrase's underlying bits.
+func (phrase Phrase) Bits() []Bit {
+	out := make([]Bit, 0, phrase.BitLength())
+	for _, m := range phrase {
+		out = append(out, m.GetAllBits()...)
 	}
 	return out
 }

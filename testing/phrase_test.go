@@ -7,6 +7,13 @@ import (
 	"testing"
 )
 
+func Test_Phrase_NewPhraseFromBits(t *testing.T) {
+	bits := []tiny.Bit{0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1}
+	p := tiny.NewPhraseFromBits(bits...)
+	r, _ := p.Read(p.BitLength())
+	test.CompareSlices(bits, r.Bits(), t)
+}
+
 func Test_Phrase_ToBytesAndBits(t *testing.T) {
 	// Test logic:
 	//

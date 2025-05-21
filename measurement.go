@@ -28,9 +28,28 @@ type Measurement struct {
 
 // NewMeasurement constructs a Measurement, which represents a variable slice of bits.
 func NewMeasurement(bytes []byte, bits ...Bit) Measurement {
+	b := bytes
+	ii := 0
+	currentBits := make([]Bit, 0, 8)
+
+	for _, bit := range bits {
+		if ii > 7 {
+			b = append(b, To.Byte(currentBits...))
+			currentBits = make([]Bit, 0, 8)
+			ii = 0
+		}
+		currentBits = append(currentBits, bit)
+		ii++
+	}
+
+	if len(currentBits) == 8 {
+		b = append(b, To.Byte(currentBits...))
+		currentBits = make([]Bit, 0, 8)
+	}
+
 	return Measurement{
-		Bytes: bytes,
-		Bits:  bits,
+		Bytes: b,
+		Bits:  currentBits,
 	}
 }
 
