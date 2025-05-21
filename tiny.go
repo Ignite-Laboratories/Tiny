@@ -10,8 +10,8 @@ var Analyze _analyze
 //	tiny.From [byte/number/etc...]
 var From _from
 
-// Fuzzy provides convenience methods for fuzzy read operations.
-var Fuzzy _fuzzy
+// Fuzzy is the global instance of FuzzyReader
+var Fuzzy FuzzyReader
 
 // Modify is a way to alter existing binary information.
 var Modify _modify

@@ -4,10 +4,11 @@ import (
 	"strconv"
 )
 
-// Measurement is, effectively, a variable-width slice of bits.  It's used to
-// efficiently store bits in operating memory.  As most languages inherently
-// require at least 8 bits to store custom types, storing each bit individually
-// would need 8 times the size of every bit - thus, the measurement was born.
+// Measurement is a variable-width slice of bits and is used to efficiently
+// store them in operating memory.
+// As most languages inherently require at least 8 bits to store custom types,
+// storing each bit individually would need 8 times the size of every bit -
+// thus, the measurement was born.
 //
 // TL;DR: This holds bits in byte form, leaving anything less than a byte
 // at the end of the binary information as a remainder of bits.
@@ -101,7 +102,7 @@ func (m *Measurement) Read(low int, high int) []Bit {
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
-		panic(errorMeasureLimit)
+		panic(errorMeasurementLimit)
 	}
 	m.Bits = append(m.Bits, bits...)          // Add the bits to the last remainder
 	toAdd := To.Measure(m.Bits...)            // Convert that to byte form
@@ -113,7 +114,7 @@ func (m *Measurement) AppendBits(bits ...Bit) {
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
-		panic(errorMeasureLimit)
+		panic(errorMeasurementLimit)
 	}
 	lastBits := m.Bits
 	for _, b := range bytes {
@@ -137,7 +138,7 @@ func (m *Measurement) Append(measure Measurement) {
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > 32 {
-		panic(errorMeasureLimit)
+		panic(errorMeasurementLimit)
 	}
 	oldBits := m.Bits
 	oldBytes := m.Bytes
@@ -152,7 +153,7 @@ func (m *Measurement) PrependBits(bits ...Bit) {
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) PrependBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > 32 {
-		panic(errorMeasureLimit)
+		panic(errorMeasurementLimit)
 	}
 	m.Bytes = append(bytes, m.Bytes...)
 }

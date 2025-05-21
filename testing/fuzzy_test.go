@@ -20,7 +20,7 @@ func Test_Phrase_FuzzyRead_SixtyFour(t *testing.T) {
 	//     33 -> 0 0 1 0 0 0 0 1
 	//
 	// Example Output:
-	//  |         77          |        22       |         33      |
+	//  |        Input        |        22       |         33      |
 	//  | 0 1 | 0 0 | 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1 |  <- Raw Bits
 	//  | Key |  C  |                 Remainder                   | <- Fuzzy Read
 
@@ -74,19 +74,19 @@ func Test_Phrase_FuzzyRead_Window(t *testing.T) {
 	//
 	//		 FuzzyRead(2, tiny.Fuzzy.Window(3))
 	//
-	//       |         77          |        22       |         33      | <- Raw Values
+	//       |        Input        |        22       |         33      | <- Raw Values
 	//       | 0 0 | 0 0 1 | 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1 | <- Raw bits
 	//       | Key | Cont  |              Remainder                    | <- Fuzzy read
 	//
-	//       |         77        |        22       |         33      | <- Raw Values
+	//       |        Input      |        22       |         33      | <- Raw Values
 	//       | 0 1 | 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1 | <- Raw bits
 	//       | Key |     Cont    |          Remainder                | <- Fuzzy read
 	//
-	//       |         77        |         22        |         33      | <- Raw Values
+	//       |        Input      |         22        |         33      | <- Raw Values
 	//       | 1 0 | 0 0 1 1 0 1 - 0 0 0 | 1 0 1 1 0 - 0 0 1 0 0 0 0 1 | <- Raw bits
 	//       | Key |    Continuation     |         Remainder           | <- Fuzzy read
 	//
-	//       |         77        |         22        |         33      | <- Raw Values
+	//       |        Input      |         22        |         33      | <- Raw Values
 	//       | 1 1 | 0 0 1 1 0 1 - 0 0 0 1 0 1 | 1 0 - 0 0 1 0 0 0 0 1 | <- Raw bits
 	//       | Key |        Continuation       |       Remainder       | <- Fuzzy read
 
@@ -134,19 +134,19 @@ func Test_Phrase_FuzzyRead_PowerWindow(t *testing.T) {
 	//
 	//		 FuzzyRead(2, tiny.Fuzzy.Window(3))
 	//
-	//       |         77          |        22       |         33      |         55      | <- Raw Values
+	//       |        Input        |        22       |         33      |         55      | <- Raw Values
 	//       | 0 0 | 0 0 1 | 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1 - 0 0 1 1 0 1 1 1 | <- Raw bits
 	//       | Key | Cont  |                        Remainder                            | <- Fuzzy read
 	//
-	//       |        77         |        22       |         33      |         55      | <- Raw Values
+	//       |       Input       |        22       |         33      |         55      | <- Raw Values
 	//       | 0 1 | 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1 - 0 0 1 1 0 1 1 1 | <- Raw bits
 	//       | Key |    Cont     |                    Remainder                        | <- Fuzzy read
 	//
-	//       |        77         |         22        |         33      |         55      | <- Raw Values
+	//       |       Input       |         22        |         33      |         55      | <- Raw Values
 	//       | 1 0 | 0 0 1 1 0 1 - 0 0 0 1 0 1 | 1 0 - 0 0 1 0 0 0 0 1 - 0 0 1 1 0 1 1 1 | <- Raw bits
 	//       | Key |       Continuation        |                Remainder                | <- Fuzzy read
 	//
-	//       |        77         |        22       |         33      |         55        | <- Raw Values
+	//       |       Input       |        22       |         33      |         55        | <- Raw Values
 	//       | 1 1 | 0 0 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1 - 0 0 | 1 1 0 1 1 1 | <- Raw bits
 	//       | Key |                      Continuation                     | Remainder   | <- Fuzzy read
 

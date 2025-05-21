@@ -2,7 +2,7 @@ package tiny
 
 import "fmt"
 
-// Phrase represents a Measurement slice
+// Phrase represents a Measurement slice and provides easy clustered measurement functionality.
 type Phrase []Measurement
 
 // NewPhrase calls NewMeasurement for each input byte and returns a Phrase of the results.
@@ -148,7 +148,7 @@ func (phrase Phrase) AsBytes() []byte {
 //		0 1 | 0 1 0 | 0 1 1 0 1 0 0 0 | 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
 //		 M1 |  M2   |  Measurement 3  |     M4    |  Measurement 5  |  <- "Unaligned" Phrase
 //
-//	 Align(8)
+//	 Align()
 //
 //		0 1 0 1 0 0 1 1 | 0 1 0 0 0 1 0 1 | 1 0 0 0 1 0 0 0 | 0 1 |  <- Raw Bits
 //		 Measurement1   |  Measurement 2  |  Measurement 3  | M4  |  <- "Aligned" Phrase
@@ -161,7 +161,7 @@ func (phrase Phrase) Align(width ...int) Phrase {
 		w = width[0]
 	}
 	if w > 32 {
-		panic(errorMeasureLimit)
+		panic(errorMeasurementLimit)
 	}
 	if w <= 0 {
 		panic(fmt.Sprintf("cannot align at a %d bit width", width))
@@ -187,10 +187,11 @@ func (phrase Phrase) Align(width ...int) Phrase {
 
 // Read reads the provided number of bits from the source phrase, plus the remainder, as phrases.
 //
-// NOTE: If you provide a length in excess of the phrase bit-length only available bits will be read.
+// NOTE: If you provide a length in excess of the phrase bit-length, only the available bits will be read
+// and the remainder will be empty.
 //
 // NOTE: This is intended for reading long stretches of bits.
-// If you wish to read less than 32 bits from the first measurement, using Phrase.ReadMeasurement is a
+// If you wish to read less than 32 bits from the first measurement, using ReadMeasurement is a
 // little easier to work with.
 func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	read = make(Phrase, 0, len(phrase))
@@ -223,36 +224,42 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 //
 // Finally, the key Measurement, continuation Phrase, and remainder Phrase are returned.
 //
+// NOTE: The most common fuzzy projection functions are accessible from the tiny.Fuzzy instance of tiny.FuzzyReader.
+//
 // For example:
 //
-//	 FuzzyRead(2, tiny.Fuzzy.SixtyFour)
+//		 FuzzyRead(2, tiny.Fuzzy.SixtyFour)
 //
-//		  0 0 - - 0 0 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//		| Key |C|                Remainder                    | <- Fuzzy read
+//	 value-> 0    𝧘 Resulting Continuation Size
+//	      | 0 0 | | 0 0 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//	      | Key |C|                Remainder                    | <- Fuzzy read
 //
-//		  0 1 - 0 0 - 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//		| Key |  C  |               Remainder                 | <- Fuzzy read
+//	 value-> 1      𝧘 Resulting Continuation Size
+//	      | 0 1 | 0 0 | 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//	      | Key |  C  |               Remainder                 | <- Fuzzy read
 //
-//		  1 0 - 0 0 1 1 - 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//		| Key |  Cont   |             Remainder               | <- Fuzzy read
+//	 value-> 2        𝧘 Resulting Continuation Size
+//	      | 1 0 | 0 0 1 1 | 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//	      | Key |  Cont   |             Remainder               | <- Fuzzy read
 //
-//		  1 1 - 0 0 1 1 0 1 - 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//		| Key |   Continue  |            Remainder            | <- Fuzzy read
+//	 value-> 3          𝧘 Resulting Continuation Size
+//	      | 1 1 | 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
+//	      | Key |   Continue  |            Remainder            | <- Fuzzy read
 func (phrase Phrase) FuzzyRead(length int, fuzzyProjection func(Measurement) int) (key Measurement, continuation Phrase, remainder Phrase) {
 	key, remainder = phrase.ReadMeasurement(length)
 	continuation, remainder = remainder.Read(fuzzyProjection(key))
 	return key, continuation, remainder
 }
 
-// ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and the
-// remainder as a phrase.
+// ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and provides the
+// remainder as a Phrase.
 //
-// This will panic if you attempt to read more than 32 bits as it cannot contain the result in a single
+// NOTE: This will panic if you attempt to read more than 32 bits as it cannot contain the result in a single
 // measurement.
-// If you wish to read more than 32 bits, please use Phrase.Read.
+// If you wish to read more than 32 bits, please use Read.
 func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
 	if length > 32 {
-		panic(errorMeasureLimit)
+		panic(errorMeasurementLimit)
 	}
 
 	read = NewMeasurement([]byte{})
@@ -281,7 +288,7 @@ func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Ph
 //		|  Start  |               Middle                |   End   | <- Trifurcated Phrases
 //		|  Start  | Middle1 |     Middle2     | Middle3 |   End   | <- Phrase Measurements
 //
-//	 (Optional) Start.Align(), Middle.Align(), End.Align()
+//	 (Optional) Align() each phrase
 //
 //		| 0 1 0 0 | 1 1 0 1 0 0 0 1 - 0 1 1 0 0 0 1 0 | 0 0 0 1 | <- Raw Bits
 //		|  Start  |     Middle1     |     Middle2     |   End   | <- Aligned Phrase Measurements
@@ -289,4 +296,34 @@ func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, midd
 	start, end = phrase.Read(startLen)
 	middle, end = end.Read(middleLen)
 	return start, middle, end
+}
+
+// Focus is used to limit the width of eminently relevant measurements.
+// It finds the midpoint of the phrase (using flooring) to split it in twain.
+// Because of the floored split point, the right phrase will be larger if the data is odd in length.
+//
+// You may optionally provide a 'times' parameter that indicates how many times to "focus" into the
+// eminent measurements of the phrase recursively.
+// This will continue to bisect the left phrase and grow the right by prepending it with the remainder.
+func (phrase Phrase) Focus(times ...int) (left Phrase, right Phrase) {
+	t := 1
+	if len(times) > 0 {
+		t = times[0]
+		if t < 1 {
+			// If provided a negative or zero value, just bisect once
+			t = 1
+		}
+	}
+
+	length := phrase.BitLength()
+	midpoint := length / 2
+	left, right = phrase.Read(midpoint)
+
+	if t > 1 {
+		ll, rr := left.Focus(t - 1)
+		left = ll
+		right = append(rr, right...)
+	}
+
+	return left, right
 }

@@ -2,7 +2,8 @@ package tiny
 
 import "math"
 
-type _fuzzy int
+// FuzzyReader is a factory for creating or referencing fuzzy projection functions.
+type FuzzyReader int
 
 // SixtyFour uses the key Measurement value to calculate a bit range of up to six bits, yielding 64 unique values.
 //
@@ -13,7 +14,7 @@ type _fuzzy int
 //	  1 | 2
 //	  2 | 4
 //	  3 | 6
-func (_ _fuzzy) SixtyFour(key Measurement) int {
+func (_ FuzzyReader) SixtyFour(key Measurement) int {
 	switch v := key.Value(); v {
 	case 0:
 		return 0
@@ -53,7 +54,7 @@ func (_ _fuzzy) SixtyFour(key Measurement) int {
 //	Value-> 4  |   1       2       3       4                           <- Window Occurances
 //	     | 1 1 | 0 0 1 - 1 0 1 - 0 0 0 - 1 0 1 | 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
 //	     | Key |          Continuation         |      Remainder      | <- Fuzzy read
-func (_ _fuzzy) Window(windowWidth int) func(Measurement) int {
+func (_ FuzzyReader) Window(windowWidth int) func(Measurement) int {
 	if windowWidth <= 0 {
 		panic("fuzzy.Window: window width must be greater than zero")
 	}
@@ -73,7 +74,7 @@ func (_ _fuzzy) Window(windowWidth int) func(Measurement) int {
 //
 // For example:
 //
-//		 FuzzyRead(2, tiny.Fuzzy.Window(2))
+//		 FuzzyRead(2, tiny.Fuzzy.PowerWindow(2))
 //
 //	Value-> 1  |  1                                              <- Window Occurances
 //	     | 0 0 | 0 0 | 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
@@ -91,9 +92,9 @@ func (_ _fuzzy) Window(windowWidth int) func(Measurement) int {
 //	     | 1 1 | 0 0 - 1 1 - 0 1 - 0 0 - 0 1 - 0 1 - 1 0 - 0 0 | 1 0 0 0 0 1 | <- Raw bits
 //	     | Key |                  Continuation                 |  Remainder  | <- Fuzzy read
 //
-// NOTE: The output phrases will be aligned to their source form, but a call to phrase.Align(windowWidth)
+// NOTE: The output continuation phrase will be aligned to its source form, but a call to Phrase.Align(windowWidth)
 // will yield even measurements as demonstrated above.
-func (_ _fuzzy) PowerWindow(windowWidth int) func(Measurement) int {
+func (_ FuzzyReader) PowerWindow(windowWidth int) func(Measurement) int {
 	if windowWidth <= 0 {
 		panic("fuzzy.Window: window width must be greater than zero")
 	}
