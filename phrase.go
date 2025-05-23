@@ -396,3 +396,12 @@ func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 		fn(i, bitM)
 	}
 }
+
+// StringBinary returns the phrase's bits as a binary string of 1s and 0s.
+func (phrase Phrase) StringBinary() string {
+	out := ""
+	for _, m := range phrase {
+		out += m.StringBinary()
+	}
+	return out
+}

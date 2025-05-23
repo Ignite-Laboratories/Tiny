@@ -263,6 +263,11 @@ func (m *Measurement) BreakApart(index int) (Measurement, Measurement) {
 	return left, right
 }
 
+// StringBinary returns the measurement's bits as a binary string of 1s and 0s.
+func (m *Measurement) StringBinary() string {
+	return To.String(m.GetAllBits()...)
+}
+
 func (m *Measurement) String() string {
 	return strconv.Itoa(To.Number(MaxMeasurementBitLength, m.GetAllBits()...))
 }

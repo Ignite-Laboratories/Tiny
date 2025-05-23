@@ -1,6 +1,8 @@
 package testing
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
@@ -107,11 +109,23 @@ func Test_Synthesize_Random_StressTest(t *testing.T) {
 	}
 }
 
+func Test_Synthesize_Random_CustomGenerator(t *testing.T) {
+	synthesize_random(t, func(i int) tiny.Bit {
+		var v uint64
+		binary.Read(rand.Reader, binary.BigEndian, &v)
+		return tiny.Bit(v % 2)
+	})
+}
+
 func Test_Synthesize_Random(t *testing.T) {
+	synthesize_random(t, nil)
+}
+
+func synthesize_random(t *testing.T, g func(int) tiny.Bit) {
 	// There is no way to "test" that 1 or 2 digit binary sets are "random"...it's only four possible values =)
 	for lengthI := 3; lengthI < 10; lengthI++ {
 		for testI := 0; testI < 10; testI++ {
-			measure := tiny.Synthesize.Random(lengthI)
+			measure := tiny.Synthesize.Random(lengthI, g)
 			bits := measure.GetAllBits()
 
 			allZero := true

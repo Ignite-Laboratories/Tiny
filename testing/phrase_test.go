@@ -581,7 +581,7 @@ func Test_Phrase_Focus_RecursionUnevenLength(t *testing.T) {
 WalkBits
 */
 
-func Test_Synthesize_WalkBits(t *testing.T) {
+func Test_Phrase_WalkBits(t *testing.T) {
 	remainder := tiny.Synthesize.RandomPhrase(4, 32)
 	bits := remainder.Bits()
 
@@ -592,7 +592,7 @@ func Test_Synthesize_WalkBits(t *testing.T) {
 	})
 }
 
-func Test_Synthesize_WalkBits_AtStride(t *testing.T) {
+func Test_Phrase_WalkBits_AtStride(t *testing.T) {
 	remainder := tiny.Synthesize.RandomPhrase(4, 32)
 	bits := remainder.Bits()
 	i := 0
@@ -608,21 +608,21 @@ func Test_Synthesize_WalkBits_AtStride(t *testing.T) {
 	})
 }
 
-func Test_Synthesize_WalkBits_ShouldPanicIfStrideTooLarge(t *testing.T) {
+func Test_Phrase_WalkBits_ShouldPanicIfStrideTooLarge(t *testing.T) {
 	defer test.ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(tiny.MaxMeasurementBitLength+1, func(i int, m tiny.Measurement) {})
 }
 
-func Test_Synthesize_WalkBits_ShouldPanicIfStrideIsNegative(t *testing.T) {
+func Test_Phrase_WalkBits_ShouldPanicIfStrideIsNegative(t *testing.T) {
 	defer test.ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(-1, func(i int, m tiny.Measurement) {})
 }
 
-func Test_Synthesize_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
+func Test_Phrase_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
 	defer test.ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)

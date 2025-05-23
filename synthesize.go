@@ -66,7 +66,19 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Measurement {
 }
 
 // Random creates a random sequence of 1s and 0s.
-func (s _synthesize) Random(length int) Measurement {
+//
+// If you would prefer to implement your own bit-for-bit randomness, you may optionally provide
+// a function that dynamically generates each Bit.
+func (s _synthesize) Random(length int, generator ...func(int) Bit) Measurement {
+	g := func(_ int) Bit {
+		var b [1]byte
+		_, _ = rand.Read(b[:])
+		return Bit(b[0] % 2)
+	}
+	if len(generator) > 0 && generator[0] != nil {
+		g = generator[0]
+	}
+
 	if length == 0 {
 		return NewMeasurement([]byte{})
 	}
@@ -74,11 +86,7 @@ func (s _synthesize) Random(length int) Measurement {
 		panic(errorMeasurementLimit)
 	}
 	for {
-		result := s.ForEach(length, func(_ int) Bit {
-			var b [1]byte
-			_, _ = rand.Read(b[:])
-			return Bit(b[0] % 2)
-		})
+		result := s.ForEach(length, g)
 		bits := result.GetAllBits()
 		if len(bits) > 2 {
 			ones := Analyze.Repetition(bits, 1)
