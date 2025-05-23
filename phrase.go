@@ -50,6 +50,15 @@ func NewPhraseFromBytesAndBits(bytes []byte, bits ...Bit) Phrase {
 	return p
 }
 
+// NewPhraseFromString creates a new phrase from a binary string input.
+func NewPhraseFromString(s string) Phrase {
+	bits := make([]Bit, len(s))
+	for i := 0; i < len(bits); i++ {
+		bits[i] = Bit(s[i] & 1)
+	}
+	return NewPhraseFromBits(bits...)
+}
+
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
 func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 	out := make([]byte, 0, len(phrase))
