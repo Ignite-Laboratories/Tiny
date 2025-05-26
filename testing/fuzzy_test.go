@@ -22,7 +22,7 @@ func Test_Phrase_FuzzyRead_ZLEKeyReading(t *testing.T) {
 	tester(tiny.NewMeasurement([]byte{}, 0, 0, 0, 1))
 }
 
-func Test_Phrase_FuzzyRead_ZLE(t *testing.T) {
+func Test_Phrase_FuzzyRead_64BitZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
 	tester := func(length int, eK ...tiny.Bit) {
@@ -30,7 +30,7 @@ func Test_Phrase_FuzzyRead_ZLE(t *testing.T) {
 		bits := data.Bits()
 		newBits := append(eK, bits...)
 		phrase := tiny.NewPhraseFromBits(newBits...)
-		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), tiny.Fuzzy.ParseZLE)
+		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), tiny.Fuzzy.ParseZLE64)
 
 		test.CompareSlices(eK, k.Bits, t)
 		test.CompareSlices(eP.Bits(), p.Bits(), t)
@@ -44,7 +44,7 @@ func Test_Phrase_FuzzyRead_ZLE(t *testing.T) {
 	tester(64, 0, 0, 0, 1)
 }
 
-func Test_Phrase_FuzzyRead_MicroZLE(t *testing.T) {
+func Test_Phrase_FuzzyRead_5BitZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
 	tester := func(length int, eK ...tiny.Bit) {
@@ -52,7 +52,7 @@ func Test_Phrase_FuzzyRead_MicroZLE(t *testing.T) {
 		bits := data.Bits()
 		newBits := append(eK, bits...)
 		phrase := tiny.NewPhraseFromBits(newBits...)
-		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), tiny.Fuzzy.ParseMicroZLE)
+		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), tiny.Fuzzy.ParseZLE5)
 
 		test.CompareSlices(eK, k.Bits, t)
 		test.CompareSlices(eP.Bits(), p.Bits(), t)
@@ -66,7 +66,7 @@ func Test_Phrase_FuzzyRead_MicroZLE(t *testing.T) {
 	tester(5, 0, 0, 0, 1)
 }
 
-func Test_Phrase_FuzzyRead_MacroZLE(t *testing.T) {
+func Test_Phrase_FuzzyRead_ZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
 	tester := func(length int, eK ...tiny.Bit) {
@@ -74,7 +74,7 @@ func Test_Phrase_FuzzyRead_MacroZLE(t *testing.T) {
 		bits := data.Bits()
 		newBits := append(eK, bits...)
 		phrase := tiny.NewPhraseFromBits(newBits...)
-		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(-1), tiny.Fuzzy.ParseMacroZLE)
+		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(-1), tiny.Fuzzy.ParseZLE)
 
 		test.CompareSlices(eK, k.Bits, t)
 		test.CompareSlices(eP.Bits(), p.Bits(), t)

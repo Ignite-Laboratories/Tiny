@@ -630,18 +630,19 @@ func Test_Phrase_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
 }
 
 /**
-ReadZLE
+Read ZLE Tests
 
-NOTE: This is nearly identical to Test_Phrase_FuzzyRead_ZLE - it just uses the convenience method
+NOTE: These are nearly identical to their fuzzy_test.go counterpart functions,
+      These just test the convenience method on Phrase
 */
 
-func Test_Phrase_ReadZLE(t *testing.T) {
+func Test_Phrase_Read64BitZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
 	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
 		eProjection, eRemainder := data.Read(length)
 		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadZLE()
+		key, projection, remainder := phrase.ReadZLE64()
 		CompareMeasurements(key, eKey, t)
 		ComparePhrases(projection, eProjection, t)
 		ComparePhrases(remainder, eRemainder, t)
@@ -654,13 +655,13 @@ func Test_Phrase_ReadZLE(t *testing.T) {
 	tester(64, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
 }
 
-func Test_Phrase_ReadMicroZLE(t *testing.T) {
+func Test_Phrase_Read5BitZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
 	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
 		eProjection, eRemainder := data.Read(length)
 		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadMicroZLE()
+		key, projection, remainder := phrase.ReadZLE5()
 		CompareMeasurements(key, eKey, t)
 		ComparePhrases(projection, eProjection, t)
 		ComparePhrases(remainder, eRemainder, t)
@@ -673,13 +674,13 @@ func Test_Phrase_ReadMicroZLE(t *testing.T) {
 	tester(5, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
 }
 
-func Test_Phrase_ReadMacroZLE(t *testing.T) {
+func Test_Phrase_ReadZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
 	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
 		eProjection, eRemainder := data.Read(length)
 		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadMacroZLE(-1)
+		key, projection, remainder := phrase.ReadZLE(-1)
 		CompareMeasurements(key, eKey, t)
 		ComparePhrases(projection, eProjection, t)
 		ComparePhrases(remainder, eRemainder, t)

@@ -28,7 +28,7 @@ func (_ FuzzyReader) WhileOne(b Bit) bool {
 }
 
 // ZLEKey reads up to four bits or until a value of 1 is reached.
-// This will yield a Zero Length Encoding key that can be parsed using FuzzyReader.ParseZLE
+// This will yield a Zero Length Encoding key that can be parsed using FuzzyReader.ParseZLE64
 //
 // If you would like to read a ZLE key longer than 4 bits, you may provide an upper limit.
 //
@@ -49,7 +49,36 @@ func (_ FuzzyReader) ZLEKey(upperLimit ...int) func(Bit) bool {
 	}
 }
 
-// ParseMicroZLE uses the provided Zero Length Encoding key to calculate how many more bits to read.
+// ParseZLE64 uses the provided Zero Length Encoding key to calculate how many more bits to read.
+//
+// This particular flavor of ZLE will yield an addressable range up to 64 bits wide.
+//
+//	ZLE Key | Bit Range
+//	      1 | 4
+//	    0 1 | 8
+//	  0 0 1 | 16
+//	0 0 0 0 | 32
+//	0 0 0 1 | 64
+func (_ FuzzyReader) ParseZLE64(key Measurement) int {
+	switch bits := key.Bits; {
+	case len(bits) == 1 && key.Value() == 1:
+		return 4
+	case len(bits) == 2 && key.Value() == 1:
+		return 8
+	case len(bits) == 3 && key.Value() == 1:
+		return 16
+	case len(bits) == 4 && key.Value() == 0:
+		return 32
+	case len(bits) == 4 && key.Value() == 1:
+		return 64
+	default:
+		panic(fmt.Sprintf("invalid ZLE key: %v", key.Bits))
+	}
+}
+
+// ParseZLE5 uses the provided Zero Length Encoding key to calculate how many more bits to read.
+//
+// This particular flavor of ZLE will yield an addressable range up to 5 bits wide.
 //
 //	ZLE Key | Bit Range
 //	      1 | 1
@@ -57,7 +86,7 @@ func (_ FuzzyReader) ZLEKey(upperLimit ...int) func(Bit) bool {
 //	  0 0 1 | 3
 //	0 0 0 0 | 4
 //	0 0 0 1 | 5
-func (_ FuzzyReader) ParseMicroZLE(key Measurement) int {
+func (_ FuzzyReader) ParseZLE5(key Measurement) int {
 	switch bits := key.Bits; {
 	case len(bits) == 1 && key.Value() == 1:
 		return 1
@@ -76,31 +105,6 @@ func (_ FuzzyReader) ParseMicroZLE(key Measurement) int {
 
 // ParseZLE uses the provided Zero Length Encoding key to calculate how many more bits to read.
 //
-//	ZLE Key | Bit Range
-//	      1 | 4
-//	    0 1 | 8
-//	  0 0 1 | 16
-//	0 0 0 0 | 32
-//	0 0 0 1 | 64
-func (_ FuzzyReader) ParseZLE(key Measurement) int {
-	switch bits := key.Bits; {
-	case len(bits) == 1 && key.Value() == 1:
-		return 4
-	case len(bits) == 2 && key.Value() == 1:
-		return 8
-	case len(bits) == 3 && key.Value() == 1:
-		return 16
-	case len(bits) == 4 && key.Value() == 0:
-		return 32
-	case len(bits) == 4 && key.Value() == 1:
-		return 64
-	default:
-		panic(fmt.Sprintf("invalid ZLE key: %v", key.Bits))
-	}
-}
-
-// ParseMacroZLE uses the provided Zero Length Encoding key to calculate how many more bits to read.
-//
 // This returns back 2ⁿ - where 𝑛 is the number of zeros found.
 //
 // NOTE: This will overflow if you let it read too far =)
@@ -110,7 +114,7 @@ func (_ FuzzyReader) ParseZLE(key Measurement) int {
 //	    0 1 | 2
 //	  0 0 1 | 4
 //	0 0 0 1 | 8
-func (_ FuzzyReader) ParseMacroZLE(key Measurement) int {
+func (_ FuzzyReader) ParseZLE(key Measurement) int {
 	count := 0
 	for _, b := range key.Bits {
 		if b == Zero {
