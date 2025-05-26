@@ -109,8 +109,7 @@ func (s _synthesize) Random(length int, generator ...func(int) Bit) Measurement 
 //
 // If you would prefer different sized measurements, you may optionally provide the measurement width.
 //
-// NOTE: This will panic if you provide a measurement width of 0 or less, or greater than the maximum
-// allowed measurement bit length.
+// NOTE: This will panic if you provide a measurement width of 0 or less, or greater than MaxMeasurementBitLength.
 func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) Phrase {
 	var phrase Phrase
 	if length == 0 {

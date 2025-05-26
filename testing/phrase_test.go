@@ -628,3 +628,67 @@ func Test_Phrase_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(0, func(i int, m tiny.Measurement) {})
 }
+
+/**
+ReadZLE
+
+NOTE: This is nearly identical to Test_Phrase_FuzzyRead_ZLE - it just uses the convenience method
+*/
+
+func Test_Phrase_ReadZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
+		eProjection, eRemainder := data.Read(length)
+		phrase := append(tiny.Phrase{eKey}, data...)
+		key, projection, remainder := phrase.ReadZLE()
+		CompareMeasurements(key, eKey, t)
+		ComparePhrases(projection, eProjection, t)
+		ComparePhrases(remainder, eRemainder, t)
+	}
+
+	tester(4, tiny.NewMeasurement([]byte{}, 1), data)
+	tester(8, tiny.NewMeasurement([]byte{}, 0, 1), data)
+	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
+	tester(32, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0), data)
+	tester(64, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
+}
+
+func Test_Phrase_ReadMicroZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
+		eProjection, eRemainder := data.Read(length)
+		phrase := append(tiny.Phrase{eKey}, data...)
+		key, projection, remainder := phrase.ReadMicroZLE()
+		CompareMeasurements(key, eKey, t)
+		ComparePhrases(projection, eProjection, t)
+		ComparePhrases(remainder, eRemainder, t)
+	}
+
+	tester(1, tiny.NewMeasurement([]byte{}, 1), data)
+	tester(2, tiny.NewMeasurement([]byte{}, 0, 1), data)
+	tester(3, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
+	tester(4, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0), data)
+	tester(5, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
+}
+
+func Test_Phrase_ReadMacroZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
+		eProjection, eRemainder := data.Read(length)
+		phrase := append(tiny.Phrase{eKey}, data...)
+		key, projection, remainder := phrase.ReadMacroZLE(-1)
+		CompareMeasurements(key, eKey, t)
+		ComparePhrases(projection, eProjection, t)
+		ComparePhrases(remainder, eRemainder, t)
+	}
+
+	tester(0, tiny.NewMeasurement([]byte{}, 1), data)
+	tester(2, tiny.NewMeasurement([]byte{}, 0, 1), data)
+	tester(4, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
+	tester(8, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
+	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0, 1), data)
+	tester(32, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0, 0, 1), data)
+}

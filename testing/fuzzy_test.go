@@ -6,6 +6,89 @@ import (
 	"testing"
 )
 
+func Test_Phrase_FuzzyRead_ZLEKeyReading(t *testing.T) {
+	tester := func(expected tiny.Measurement) {
+		phrase := tiny.NewPhraseFromBitsAndBytes(expected.Bits, 77, 22, 33)
+		phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), func(key tiny.Measurement) int {
+			CompareMeasurements(expected, key, t)
+			return 0
+		})
+	}
+
+	tester(tiny.NewMeasurement([]byte{}, 1))
+	tester(tiny.NewMeasurement([]byte{}, 0, 1))
+	tester(tiny.NewMeasurement([]byte{}, 0, 0, 1))
+	tester(tiny.NewMeasurement([]byte{}, 0, 0, 0, 0))
+	tester(tiny.NewMeasurement([]byte{}, 0, 0, 0, 1))
+}
+
+func Test_Phrase_FuzzyRead_ZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eK ...tiny.Bit) {
+		eP, eR := data.Read(length)
+		bits := data.Bits()
+		newBits := append(eK, bits...)
+		phrase := tiny.NewPhraseFromBits(newBits...)
+		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), tiny.Fuzzy.ParseZLE)
+
+		test.CompareSlices(eK, k.Bits, t)
+		test.CompareSlices(eP.Bits(), p.Bits(), t)
+		test.CompareSlices(eR.Bits(), r.Bits(), t)
+	}
+
+	tester(4, 1)
+	tester(8, 0, 1)
+	tester(16, 0, 0, 1)
+	tester(32, 0, 0, 0, 0)
+	tester(64, 0, 0, 0, 1)
+}
+
+func Test_Phrase_FuzzyRead_MicroZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eK ...tiny.Bit) {
+		eP, eR := data.Read(length)
+		bits := data.Bits()
+		newBits := append(eK, bits...)
+		phrase := tiny.NewPhraseFromBits(newBits...)
+		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(), tiny.Fuzzy.ParseMicroZLE)
+
+		test.CompareSlices(eK, k.Bits, t)
+		test.CompareSlices(eP.Bits(), p.Bits(), t)
+		test.CompareSlices(eR.Bits(), r.Bits(), t)
+	}
+
+	tester(1, 1)
+	tester(2, 0, 1)
+	tester(3, 0, 0, 1)
+	tester(4, 0, 0, 0, 0)
+	tester(5, 0, 0, 0, 1)
+}
+
+func Test_Phrase_FuzzyRead_MacroZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eK ...tiny.Bit) {
+		eP, eR := data.Read(length)
+		bits := data.Bits()
+		newBits := append(eK, bits...)
+		phrase := tiny.NewPhraseFromBits(newBits...)
+		k, p, r := phrase.FuzzyRead(tiny.Fuzzy.ZLEKey(-1), tiny.Fuzzy.ParseMacroZLE)
+
+		test.CompareSlices(eK, k.Bits, t)
+		test.CompareSlices(eP.Bits(), p.Bits(), t)
+		test.CompareSlices(eR.Bits(), r.Bits(), t)
+	}
+
+	tester(0, 1)
+	tester(2, 0, 1)
+	tester(4, 0, 0, 1)
+	tester(8, 0, 0, 0, 1)
+	tester(16, 0, 0, 0, 0, 1)
+	tester(32, 0, 0, 0, 0, 0, 1)
+}
+
 func Test_Phrase_FuzzyRead_SixtyFour(t *testing.T) {
 	// Test logic:
 	//
@@ -25,7 +108,7 @@ func Test_Phrase_FuzzyRead_SixtyFour(t *testing.T) {
 	//  | Key |  C  |                 Remainder                   | <- Fuzzy Read
 
 	tester := func(phrase tiny.Phrase, keyBits []tiny.Bit, continuationBits []tiny.Bit, remainderBits []tiny.Bit) {
-		k, c, r := phrase.FuzzyRead(2, tiny.Fuzzy.SixtyFour)
+		k, c, r := phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.SixtyFour)
 
 		eKey := tiny.NewMeasurement([]byte{}, keyBits...)
 		eContinuation := tiny.Phrase{}
@@ -51,7 +134,7 @@ func Test_Phrase_FuzzyRead_SixtyFour(t *testing.T) {
 
 func Test_Phrase_FuzzyRead_SixtyFour_MaxSixBits(t *testing.T) {
 	phrase := tiny.NewPhrase(13, 22, 33)
-	_, c, _ := phrase.FuzzyRead(12, tiny.Fuzzy.SixtyFour)
+	_, c, _ := phrase.FuzzyRead(tiny.Fuzzy.Count(12), tiny.Fuzzy.SixtyFour)
 	if c.BitLength() != 6 {
 		t.Errorf("Expected 6 bits, got %d", c.BitLength())
 	}
@@ -91,7 +174,7 @@ func Test_Phrase_FuzzyRead_Window(t *testing.T) {
 	//       | Key |        Continuation       |       Remainder       | <- Fuzzy read
 
 	tester := func(phrase tiny.Phrase, keyBits []tiny.Bit, continuationBits tiny.Phrase, remainder tiny.Phrase) {
-		k, c, r := phrase.FuzzyRead(2, tiny.Fuzzy.Window(3))
+		k, c, r := phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.Window(3))
 		eKey := tiny.NewMeasurement([]byte{}, keyBits...)
 		CompareMeasurements(k, eKey, t)
 		ComparePhrases(c, continuationBits, t)
@@ -107,13 +190,13 @@ func Test_Phrase_FuzzyRead_Window(t *testing.T) {
 func Test_Phrase_FuzzyRead_Window_ZeroWidth(t *testing.T) {
 	defer test.ShouldPanic(t)
 	phrase := tiny.NewPhrase(13, 22, 33)
-	phrase.FuzzyRead(2, tiny.Fuzzy.Window(0))
+	phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.Window(0))
 }
 
 func Test_Phrase_FuzzyRead_Window_NegativeWidth(t *testing.T) {
 	defer test.ShouldPanic(t)
 	phrase := tiny.NewPhrase(13, 22, 33)
-	phrase.FuzzyRead(2, tiny.Fuzzy.Window(-1))
+	phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.Window(-1))
 }
 
 func Test_Phrase_FuzzyRead_PowerWindow(t *testing.T) {
@@ -151,7 +234,7 @@ func Test_Phrase_FuzzyRead_PowerWindow(t *testing.T) {
 	//       | Key |                      Continuation                     | Remainder   | <- Fuzzy read
 
 	tester := func(phrase tiny.Phrase, keyBits []tiny.Bit, continuationBits tiny.Phrase, remainder tiny.Phrase) {
-		k, c, r := phrase.FuzzyRead(2, tiny.Fuzzy.PowerWindow(3))
+		k, c, r := phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.PowerWindow(3))
 		eKey := tiny.NewMeasurement([]byte{}, keyBits...)
 		CompareMeasurements(k, eKey, t)
 		ComparePhrases(c, continuationBits, t)
@@ -167,11 +250,11 @@ func Test_Phrase_FuzzyRead_PowerWindow(t *testing.T) {
 func Test_Phrase_FuzzyRead_PowerWindow_ZeroWidth(t *testing.T) {
 	defer test.ShouldPanic(t)
 	phrase := tiny.NewPhrase(13, 22, 33)
-	phrase.FuzzyRead(2, tiny.Fuzzy.PowerWindow(0))
+	phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.PowerWindow(0))
 }
 
 func Test_Phrase_FuzzyRead_PowerWindow_NegativeWidth(t *testing.T) {
 	defer test.ShouldPanic(t)
 	phrase := tiny.NewPhrase(13, 22, 33)
-	phrase.FuzzyRead(2, tiny.Fuzzy.PowerWindow(-1))
+	phrase.FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.PowerWindow(-1))
 }

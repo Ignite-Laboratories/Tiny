@@ -118,6 +118,7 @@ func (m *Measurement) Read(low int, high int) []Bit {
 }
 
 // AppendBits places the provided bits at the end of the source Measurement.
+//
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBits(bits ...Bit) {
 	if m.BitLength()+len(bits) > MaxMeasurementBitLength {
@@ -130,6 +131,7 @@ func (m *Measurement) AppendBits(bits ...Bit) {
 }
 
 // AppendBytes places the provided bytes at the end of the source Measurement.
+//
 // NOTE: A measurement can only hold up to 32 bits!
 func (m *Measurement) AppendBytes(bytes ...byte) {
 	if m.BitLength()+len(bytes)*8 > MaxMeasurementBitLength {
