@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"math/big"
 	"strconv"
 )
 
@@ -51,6 +52,37 @@ func NewMeasurement(bytes []byte, bits ...Bit) Measurement {
 		Bytes: b,
 		Bits:  currentBits,
 	}
+}
+
+// NewMeasurementFromBits creates a new Measurement from the provided input bits.
+//
+// NOTE: This will panic if provided more bits than MaxMeasurementBitLength allows.
+func NewMeasurementFromBits(bits ...Bit) Measurement {
+	if len(bits) > MaxMeasurementBitLength {
+		panic(errorMeasurementLimit)
+	}
+	return NewMeasurement([]byte{}, bits...)
+}
+
+// NewMeasurementFromString creates a new Measurement from a binary string input.
+//
+// NOTE: This will panic if provided a string longer than MaxMeasurementBitLength.
+func NewMeasurementFromString(s string) Measurement {
+	if len(s) > MaxMeasurementBitLength {
+		panic(errorMeasurementLimit)
+	}
+	bits := make([]Bit, len(s))
+	for i := 0; i < len(bits); i++ {
+		bits[i] = Bit(s[i] & 1)
+	}
+	return NewMeasurement([]byte{}, bits...)
+}
+
+// NewMeasurementFromBigInt creates a new Measurement from a big.Int.
+//
+// NOTE: This will panic if provided a integer represented in base-2 longer than MaxMeasurementBitLength.
+func NewMeasurementFromBigInt(b *big.Int) Measurement {
+	return NewMeasurementFromString(b.Text(2))
 }
 
 // GetAllBits returns the measure in the form of a fully expanded Bit slice.

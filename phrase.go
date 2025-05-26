@@ -2,6 +2,7 @@ package tiny
 
 import (
 	"fmt"
+	"math/big"
 )
 
 // Phrase represents a Measurement slice and provides easy clustered measurement functionality.
@@ -52,13 +53,30 @@ func NewPhraseFromBytesAndBits(bytes []byte, bits ...Bit) Phrase {
 	return p
 }
 
-// NewPhraseFromString creates a new phrase from a binary string input.
+// NewPhraseFromString creates a new Phrase from a binary string input.
 func NewPhraseFromString(s string) Phrase {
 	bits := make([]Bit, len(s))
 	for i := 0; i < len(bits); i++ {
 		bits[i] = Bit(s[i] & 1)
 	}
 	return NewPhraseFromBits(bits...)
+}
+
+// NewPhraseFromBigInt creates a new Phrase from a big.Int.
+func NewPhraseFromBigInt(b *big.Int) Phrase {
+	return NewPhraseFromString(b.Text(2))
+}
+
+// AsBigInt converts the tiny.Phrase into a big.Int.
+func (phrase Phrase) AsBigInt() *big.Int {
+	out := new(big.Int)
+	out.SetString(phrase.StringBinary(), 2)
+	return out
+}
+
+// AppendBigInt appends the provided big.Int to the phrase in base-2 form.
+func (phrase Phrase) AppendBigInt(x *big.Int) Phrase {
+	return append(phrase, NewMeasurementFromBigInt(x))
 }
 
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
@@ -106,6 +124,11 @@ func (phrase Phrase) BitLength() int {
 		total += m.BitLength()
 	}
 	return total
+}
+
+// BitLengthAsBigInt returns the total length of all bits in each Measurement of the Phrase as a big.Int.
+func (phrase Phrase) BitLengthAsBigInt() *big.Int {
+	return big.NewInt(int64(phrase.BitLength()))
 }
 
 // CountBelowThreshold counts any Measurement of the Phrase that's below the provided threshold value.
