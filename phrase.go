@@ -17,6 +17,11 @@ func NewPhrase(data ...byte) Phrase {
 	return out
 }
 
+// NewPhraseFromMeasurement creates a phrase from a single measurement.
+func NewPhraseFromMeasurement(m Measurement) Phrase {
+	return Phrase{m}
+}
+
 // NewPhraseFromBits creates a phrase of the provided bits at a standard 8-bits-per-byte measurement interval.
 func NewPhraseFromBits(data ...Bit) Phrase {
 	out := make(Phrase, 0)
@@ -74,9 +79,68 @@ func (phrase Phrase) AsBigInt() *big.Int {
 	return out
 }
 
+/**
+Append/Prepend
+*/
+
 // AppendBigInt appends the provided big.Int to the phrase in base-2 form.
 func (phrase Phrase) AppendBigInt(x *big.Int) Phrase {
 	return append(phrase, NewMeasurementFromBigInt(x))
+}
+
+// PrependBigInt prepends the provided big.Int to the phrase in base-2 form.
+func (phrase Phrase) PrependBigInt(x *big.Int) Phrase {
+	return append(Phrase{NewMeasurementFromBigInt(x)}, phrase...)
+}
+
+// AppendMeasurement appends the provided measurement to the phrase.
+func (phrase Phrase) AppendMeasurement(m Measurement) Phrase {
+	return append(phrase, m)
+}
+
+// PrependMeasurement prepends the provided measurement to the phrase.
+func (phrase Phrase) PrependMeasurement(m Measurement) Phrase {
+	return append(Phrase{m}, phrase...)
+}
+
+// AppendBits appends the provided bits to the end of the phrase.
+func (phrase Phrase) AppendBits(bits ...Bit) Phrase {
+	return append(phrase, NewPhraseFromBits(bits...)...)
+}
+
+// PrependBits prepends the provided bits to the beginning of the phrase.
+func (phrase Phrase) PrependBits(bits ...Bit) Phrase {
+	return append(NewPhraseFromBits(bits...), phrase...)
+}
+
+// AppendBytes appends the provided bytes to the end of the phrase.
+func (phrase Phrase) AppendBytes(bytes ...byte) Phrase {
+	return append(phrase, NewPhraseFromBytesAndBits(bytes)...)
+}
+
+// PrependBytes prepends the provided bytes to the beginning of the phrase.
+func (phrase Phrase) PrependBytes(bytes ...byte) Phrase {
+	return append(NewPhraseFromBytesAndBits(bytes), phrase...)
+}
+
+// AppendBitsAndBytes appends the provided bits, and then bytes, to the end of the phrase.
+func (phrase Phrase) AppendBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
+	return append(phrase, NewPhraseFromBitsAndBytes(bits, bytes...)...)
+}
+
+// PrependBitsAndBytes prepends the provided bits, and then bytes, to the beginning of the phrase.
+func (phrase Phrase) PrependBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
+	return append(NewPhraseFromBitsAndBytes(bits, bytes...), phrase...)
+}
+
+// AppendBytesAndBits appends the provided bytes, and then bits, to the end of the phrase.
+func (phrase Phrase) AppendBytesAndBits(bytes []byte, bits ...Bit) Phrase {
+	return append(phrase, NewPhraseFromBytesAndBits(bytes, bits...)...)
+}
+
+// PrependBytesAndBits prepends the provided bytes, and then bits, to the beginning of the phrase.
+func (phrase Phrase) PrependBytesAndBits(bytes []byte, bits ...Bit) Phrase {
+	return append(NewPhraseFromBytesAndBits(bytes, bits...), phrase...)
 }
 
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
@@ -305,7 +369,7 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 //
 // Finally, the found key Measurement, projection Phrase, and remainder Phrase are returned.
 //
-// NOTE: The most common fuzzy projection functions are accessible from the tiny.Fuzzy instance of tiny.FuzzyReader.
+// NOTE: The most common fuzzy projection functions are accessible from the tiny.Fuzzy instance of tiny.FuzzyHandler.
 //
 // For example:
 //
@@ -344,6 +408,23 @@ func (phrase Phrase) FuzzyRead(keyFn func(Bit) bool, projectionFn func(Measureme
 
 	projection, remainder = remainder.Read(projectionFn(key))
 	return key, projection, remainder
+}
+
+// ReadZLEScaled reads the next bits as if they are a Zero Length Encoded value.
+// It returns the key (all bits until the first One is found), the projection bit range, and the remainder phrase.
+//
+// NOTE: The values encoded by a scaled ZLE projection phrase are meant to be -interpreted- as defined below!
+//
+// This particular flavor of ZLE will return and addressable bit range up to 64 bits wide.
+//
+//	ZLE Key | Bit Range | Value Range
+//	      1 |     2     |   0-3
+//	    0 1 |     3     |   0-2³ + 3 (4-11)
+//	  0 0 1 |     8     |   0-2⁸ + 11 (12-267)
+//	0 0 0 0 |    16     |   0-2¹⁶
+//	0 0 0 1 |    64     |   0-2⁶⁴
+func (phrase Phrase) ReadZLEScaled() (key Measurement, projection Phrase, remainder Phrase) {
+	return phrase.FuzzyRead(Fuzzy.ZLEKey(), Fuzzy.ParseZLEScaled)
 }
 
 // ReadZLE64 reads the next bits as if they are a Zero Length Encoded value.
@@ -489,6 +570,18 @@ func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 	if bitM.BitLength() > 0 {
 		fn(i, bitM)
 	}
+}
+
+// Invert XORs every bit of every measurement against 1.
+//
+// NOTE: This does so iteratively, bit-by-bit.
+func (phrase Phrase) Invert() Phrase {
+	out := make(Phrase, len(phrase))
+	for i, m := range phrase {
+		m.Invert()
+		out[i] = m
+	}
+	return out
 }
 
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.

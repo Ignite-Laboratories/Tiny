@@ -314,3 +314,18 @@ func Test_Measurement_BreakApart_BeyondBounds(t *testing.T) {
 	m := tiny.NewMeasurement([]byte{}, 0, 1, 1, 0, 1, 1, 0)
 	m.BreakApart(42)
 }
+
+/**
+Invert
+*/
+
+func Test_Measurement_Invert(t *testing.T) {
+	expected := tiny.NewMeasurement([]byte{178, 233, 222}, 0, 1, 1, 0)
+	m := tiny.NewMeasurement([]byte{77, 22, 33}, 1, 0, 0, 1)
+	// |        77       |         22      |        33       |    9    | <- Input Values
+	// | 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 1 | <- Input
+	// | 1 0 1 1 0 0 1 0 | 1 1 1 0 1 0 0 1 | 1 1 0 1 1 1 1 0 | 0 1 1 0 | <- Inverted
+	// |       178       |        233      |       222       |    6    | <- Inverted Values
+	m.Invert()
+	CompareMeasurements(m, expected, t)
+}

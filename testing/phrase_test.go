@@ -636,6 +636,42 @@ NOTE: These are nearly identical to their fuzzy_test.go counterpart functions,
       These just test the convenience method on Phrase
 */
 
+func Test_Phrase_InterpretScaledZLE(t *testing.T) {
+	tester := func(input int) {
+		passage := tiny.NewZLEScaledPassage(input)
+		result := tiny.Fuzzy.InterpretZLEScaled(passage)
+		if input != result {
+			t.Errorf("Expected %d, got %d", input, result)
+		}
+	}
+
+	tester(0)
+	tester(2)
+	tester(5)
+	tester(77)
+	tester(333)
+	tester(65536)
+}
+
+func Test_Phrase_ReadScaledZLE(t *testing.T) {
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
+
+	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
+		eProjection, eRemainder := data.Read(length)
+		phrase := append(tiny.Phrase{eKey}, data...)
+		key, projection, remainder := phrase.ReadZLEScaled()
+		CompareMeasurements(key, eKey, t)
+		ComparePhrases(projection, eProjection, t)
+		ComparePhrases(remainder, eRemainder, t)
+	}
+
+	tester(2, tiny.NewMeasurement([]byte{}, 1), data)
+	tester(3, tiny.NewMeasurement([]byte{}, 0, 1), data)
+	tester(8, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
+	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0), data)
+	tester(64, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
+}
+
 func Test_Phrase_Read64BitZLE(t *testing.T) {
 	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
 
@@ -692,4 +728,19 @@ func Test_Phrase_ReadZLE(t *testing.T) {
 	tester(8, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
 	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0, 1), data)
 	tester(32, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0, 0, 1), data)
+}
+
+/**
+Invert
+*/
+
+func Test_Phrase_Invert(t *testing.T) {
+	expected := tiny.NewPhraseFromBytesAndBits([]byte{178, 233, 222}, 0, 1, 1, 0)
+	phrase := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33}, 1, 0, 0, 1)
+	// |        77       |         22      |        33       |    9    | <- Input Values
+	// | 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 1 | <- Input
+	// | 1 0 1 1 0 0 1 0 | 1 1 1 0 1 0 0 1 | 1 1 0 1 1 1 1 0 | 0 1 1 0 | <- Inverted
+	// |       178       |        233      |       222       |    6    | <- Inverted Values
+	phrase = phrase.Invert()
+	ComparePhrases(phrase, expected, t)
 }

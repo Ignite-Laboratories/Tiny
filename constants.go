@@ -71,3 +71,16 @@ const WidthByte = 8
 Error Messages
 */
 const errorMeasurementLimit = "measurements are limited to a maximum of 32 bits wide"
+
+/**
+Movements
+*/
+
+// MovementStart identifies the start region of a DNA file.
+const MovementStart = "start"
+
+// MovementPathway identifies the pathway region of a DNA file.
+const MovementPathway = "pathway"
+
+// MovementSeed identifies the seed region of a DNA file.
+const MovementSeed = "seed"
