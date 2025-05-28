@@ -16,56 +16,83 @@ import (
 //
 // Measurement - A measurement is a variable width slice of bits up to MaxMeasurementBitLength.
 type Composition struct {
-	Movements map[string]Passage
+	Movements           map[string][]Passage
+	Subdivisions        int
+	SubdivisionBitWidth int
+	Target              Phrase
+	StartBitLength      int
 }
 
-func Distill(phrase Phrase) *Composition {
+func Distill(phrase Phrase, subdivisions int, subdivisionBitWidth int) *Composition {
 	c := &Composition{
-		Movements: make(map[string]Passage),
+		Movements:           make(map[string][]Passage),
+		Subdivisions:        subdivisions,
+		SubdivisionBitWidth: subdivisionBitWidth,
 	}
-	c.Movements[MovementStart] = make(Passage, 0)
-	c.Movements[MovementPathway] = make(Passage, 0)
-	c.Movements[MovementSeed] = make(Passage, 0)
-	startLen := phrase.BitLength()
-	target := phrase.AsBigInt()
-	endLen := target.BitLen()
-	c.shrink(target, startLen-endLen)
+	c.Movements[MovementStart] = make([]Passage, 0)
+	c.Movements[MovementPathway] = make([]Passage, 0)
+	c.Movements[MovementSeed] = make([]Passage, 0)
+	c.StartBitLength = phrase.AsBigInt().BitLen()
+	c.Target = phrase
+	c.distill(c.Target.AsBigInt())
 	return c
 }
 
+// AddPassageToStart appends the provided passage to the end of the start movement.
 func (c *Composition) AddPassageToStart(passage Passage) {
-	c.Movements[MovementStart] = append(c.Movements[MovementStart], passage...)
+	c.Movements[MovementStart] = append(c.Movements[MovementStart], passage)
 }
 
+// AddPassageToPathway appends the provided passage to the end of the pathway movement.
 func (c *Composition) AddPassageToPathway(passage Passage) {
-	c.Movements[MovementPathway] = append(c.Movements[MovementPathway], passage...)
+	c.Movements[MovementPathway] = append(c.Movements[MovementPathway], passage)
 }
 
+// AddPassageToSeed appends the provided passage to the end of the seed movement.
 func (c *Composition) AddPassageToSeed(passage Passage) {
-	c.Movements[MovementSeed] = append(c.Movements[MovementSeed], passage...)
+	c.Movements[MovementSeed] = append(c.Movements[MovementSeed], passage)
 }
 
-func (c *Composition) shrink(target *big.Int, delta int) {
-	// 0 - Encode the bit length delta as a new passage
-	passage := NewZLE64PassageInt(delta)
-	bitLength := big.NewInt(int64(target.BitLen()))
+func (c *Composition) distill(target *big.Int, height ...*big.Int) {
+	passage := Passage{}
+	if target.BitLen() <= 64 {
+		return
+	}
 
-	// 1 - Calculate the subdivision height and index
-	upperBound := new(big.Int).Exp(big.NewInt(2), bitLength, nil)
-	height := upperBound.Div(upperBound, big.NewInt(8))
-	index := new(big.Int).Div(target, height)
+	var h *big.Int
+	if len(height) > 0 {
+		h = height[0]
+	} else {
+		upperBound := new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(c.StartBitLength)), nil)
+		h = new(big.Int).Div(upperBound, big.NewInt(int64(c.Subdivisions)))
+	}
+	nextH := new(big.Int).Div(h, big.NewInt(int64(c.Subdivisions)))
 
-	// 2 - Encode the index onto the current passage
-	passage = append(passage, NewPhraseFromBigInt(index))
+	multiplier := new(big.Int).Div(target, h)
 
-	// 3 - Calculate the difference from the target to the closest index
-	difference := new(big.Int).Sub(target, index.Mul(index, height))
+	// "Box" in the target value
+	low := new(big.Int).Mul(h, multiplier)
+	high := new(big.Int).Add(low, h)
 
-	// 4 - Add the current passage to the pathway
-	c.AddPassageToPathway(passage)
+	// Get the deltas
+	deltaLow := new(big.Int).Sub(target, low)
+	deltaHigh := new(big.Int).Sub(high, target)
 
-	// 5 - Recurse on the difference if longer than 64 bits
-	if difference.BitLen() > 64 {
-		c.shrink(difference, target.BitLen()-difference.BitLen())
+	// Find which is smaller
+	switch deltaLow.Cmp(deltaHigh) {
+	case -1:
+		fallthrough
+	case 0:
+		// Low or equal condition
+		passage = passage.Append(NewPhraseFromBits(0)) // Undershoot
+		passage = passage.Append(NewPhraseFromBits(From.Number(int(multiplier.Int64()), c.SubdivisionBitWidth)...))
+		c.AddPassageToPathway(passage)
+		c.distill(deltaLow, nextH)
+	case 1:
+		// High condition
+		passage = passage.Append(NewPhraseFromBits(1)) // Overshoot
+		passage = passage.Append(NewPhraseFromBits(From.Number(int(multiplier.Int64()), c.SubdivisionBitWidth)...))
+		c.AddPassageToPathway(passage)
+		c.distill(deltaHigh, nextH)
 	}
 }
