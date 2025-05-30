@@ -291,3 +291,43 @@ func (_ FuzzyHandler) PowerWindow(windowWidth int) func(Measurement) int {
 		return int(math.Pow(2, float64(v))) * windowWidth
 	}
 }
+
+// EncodeZLE64Value stores the provided integer value using the below ZLE scheme.
+//
+//	ZLE Key | Bit Range To Store
+//	      1 | 4
+//	    0 1 | 8
+//	  0 0 1 | 16
+//	0 0 0 0 | 32
+//	0 0 0 1 | 64
+func (_ FuzzyHandler) EncodeZLE64Value(x int) (key Phrase, projection Phrase) {
+	input := NewPhraseFromBits(From.Number(x)...)
+	bitLen := input.BitLength()
+
+	if bitLen <= 4 {
+		value := make([]Bit, 4-bitLen)
+		value = append(value, input.Bits()...)
+		return NewPhraseFromBits(1), NewPhraseFromBits(value...)
+	}
+	if bitLen <= 8 {
+		value := make([]Bit, 8-bitLen)
+		value = append(value, input.Bits()...)
+		return NewPhraseFromBits(0, 1), NewPhraseFromBits(value...)
+	}
+	if bitLen <= 16 {
+		value := make([]Bit, 16-bitLen)
+		value = append(value, input.Bits()...)
+		return NewPhraseFromBits(0, 0, 1), NewPhraseFromBits(value...)
+	}
+	if bitLen <= 32 {
+		value := make([]Bit, 32-bitLen)
+		value = append(value, input.Bits()...)
+		return NewPhraseFromBits(0, 0, 0, 0), NewPhraseFromBits(value...)
+	}
+	if bitLen <= 64 {
+		value := make([]Bit, 64-bitLen)
+		value = append(value, input.Bits()...)
+		return NewPhraseFromBits(0, 0, 0, 1), NewPhraseFromBits(value...)
+	}
+	panic(fmt.Sprintf("invalid 64-bit ZLE key: %v", input.Bits))
+}

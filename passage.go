@@ -13,6 +13,11 @@ func NewPassage(phrases ...Phrase) Passage {
 	return phrases
 }
 
+// AppendBitsAsPhrase appends the provided bits to the end of the passage as a new phrase.
+func (p Passage) AppendBitsAsPhrase(bits ...Bit) Passage {
+	return append(p, NewPhraseFromBits(bits...))
+}
+
 // Append appends the provided phrases to the end of the passage.
 func (p Passage) Append(phrase ...Phrase) Passage {
 	return append(p, phrase...)

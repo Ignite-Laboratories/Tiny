@@ -84,3 +84,54 @@ const MovementPathway = "pathway"
 
 // MovementSeed identifies the seed region of a DNA file.
 const MovementSeed = "seed"
+
+/**
+Primitives
+*/
+
+// Primitive represents the primitive patterns, encoded as a note.
+//
+// See:
+//
+// 000 | 0000 0000  0000 0000 <- Pattern_Zero
+//
+// 001 | 1000 0000  0000 0000 <- Pattern_Light
+//
+// 010 | 1000 0000  1000 0000 <- Pattern_SemiLight
+//
+// 011 | 1001 0010  0100 1001 <- Pattern_100
+//
+// 100 | 1010 1010  1010 1010 <- Pattern_10
+//
+// 101 | 1101 1011  0110 1101 <- Pattern_110
+//
+// 110 | 1111 1111  0111 1111 <- Pattern_SemiDark
+//
+// 111 | 1111 1111  1111 1111 <- Pattern_Dark
+type Primitive Note
+
+const (
+	// Pattern_Zero is all zeros -> 0000 0000  0000 0000
+	Pattern_Zero Primitive = iota
+
+	// Pattern_Light is all zeros except the first position -> 1000 0000  0000 0000
+	Pattern_Light
+
+	// Pattern_SemiLight is all zeros except the first index of each half -> 1000 0000  1000 0000
+	Pattern_SemiLight
+
+	// Pattern_100 is a repeated pattern of 100 -> 1001 0010  0100 1001
+	Pattern_100
+
+	// Pattern_100 is a repeated pattern of 10 -> 1010 1010  1010 1010
+	Pattern_10
+
+	// Pattern_110 is a repeated pattern of 110 -> 1101 1011  0110 1101
+	Pattern_110
+
+	// Pattern_SemiDark is all ones except the first index of the second half -> 1111 1111  0111 1111
+	Pattern_SemiDark
+
+	// Pattern_Dark is all ones -> 1111 1111  1111 1111
+	Pattern_Dark
+)
