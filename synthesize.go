@@ -182,8 +182,8 @@ func (s _synthesize) Approximate(target *big.Int, resolution int, width ...int) 
 // The approximation itself is a Scale (12 bits) of four indices, each representing the subdivision index
 // of that particular index's region.
 //
-// NOTE: Standard resolution is a Note (3 bits) but you may provide an optional resolution, if desired.
-// The resolution is how many bits each index occupies.
+// NOTE: The standard resolution bit width is a Note (3 bits) but you may provide your own resolution
+// bit width, if desired - indicating how many bits the indices require.
 //
 //	Index 0 represents the first ⅛th of the target bits
 //	Index 1 represents the second ⅛th
@@ -215,11 +215,16 @@ func (s _synthesize) Approximate(target *big.Int, resolution int, width ...int) 
 //
 // Above, 68/8 = 8.5 so the ⅛ indices are still 8 bits while 68/4 = 17 so the ¼ index grows to 17 bits.
 // Finally, the ½ index picks up whatever remaining bits are leftover.
-func (s _synthesize) FuzzyApproximation(target *big.Int, resolution ...int) (indices Phrase, approximation *big.Int, delta *big.Int, comparison RelativeSize) {
-	r := 3
-	if len(resolution) > 0 {
-		r = resolution[0]
+func (s _synthesize) FuzzyApproximation(target *big.Int, bitWidth ...int) (indices Phrase, approximation *big.Int, delta *big.Int, comparison RelativeSize) {
+	bw := 3
+	if len(bitWidth) > 0 {
+		bw = bitWidth[0]
 	}
+
+	// We subdivide at twice the resolution, then ignore the lower half of the returned indices.
+	// This is because the data always exists in the upper half of 2ⁿ, where 𝑛 is the bit length of the data.
+	resolution := To.Number(bw, Synthesize.Ones(bw).Bits()...)
+	doubleResolution := To.Number(bw+1, Synthesize.Ones(bw+1).Bits()...)
 
 	eighth := target.BitLen() / 8
 	quarter := target.BitLen() / 4
@@ -230,15 +235,20 @@ func (s _synthesize) FuzzyApproximation(target *big.Int, resolution ...int) (ind
 	region2, phrase := phrase.Read(quarter)
 	region3 := phrase
 
-	fuzzy0, index0 := Synthesize.Approximate(region0.AsBigInt(), r)
-	fuzzy1, index1 := Synthesize.Approximate(region1.AsBigInt(), r)
-	fuzzy2, index2 := Synthesize.Approximate(region2.AsBigInt(), r)
-	fuzzy3, index3 := Synthesize.Approximate(region3.AsBigInt(), r)
+	fuzzy0, index0 := Synthesize.Approximate(region0.AsBigInt(), doubleResolution)
+	fuzzy1, index1 := Synthesize.Approximate(region1.AsBigInt(), doubleResolution)
+	fuzzy2, index2 := Synthesize.Approximate(region2.AsBigInt(), doubleResolution)
+	fuzzy3, index3 := Synthesize.Approximate(region3.AsBigInt(), doubleResolution)
 
-	indexBits0 := From.Number(index0, r)
-	indexBits1 := From.Number(index1, r)
-	indexBits2 := From.Number(index2, r)
-	indexBits3 := From.Number(index3, r)
+	index0 -= resolution
+	index1 -= resolution
+	index2 -= resolution
+	index3 -= resolution
+
+	indexBits0 := From.Number(index0, resolution)
+	indexBits1 := From.Number(index1, resolution)
+	indexBits2 := From.Number(index2, resolution)
+	indexBits3 := From.Number(index3, resolution)
 
 	approximation = NewPhraseFromBits(fuzzy0...).AppendBits(fuzzy1...).AppendBits(fuzzy2...).AppendBits(fuzzy3...).AsBigInt()
 	indices = NewPhraseFromBits(indexBits0...).AppendBits(indexBits1...).AppendBits(indexBits2...).AppendBits(indexBits3...)
