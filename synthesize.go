@@ -201,9 +201,9 @@ func (s _synthesize) Approximate(target *big.Int, width int, resolution int) ([]
 //
 // Whereas, with a 68 bit input:
 //
-//	 	|                              64 Bit Melody                             |    |
-//			 10110100 10101101 00100110 10010101 0 0101110 10100101 10100100 00111011 1101
-//			| Note 0 | Note 1 |       Note 2      |                Note 3                 |
+//	|                              64 Bit Melody                             |    |
+//	 10110100 10101101 00100110 10010101 0 0101110 10100101 10100100 00111011 1101
+//	| Note 0 | Note 1 |       Note 2      |                Note 3                 |
 //
 // Above, 68/8 = 8.5 so the ⅛ notes are still 8 bits while 68/4 = 17 so the ¼ note grows to 17 bits.
 // Finally, the ½ note picks up whatever remaining bits are leftover.
