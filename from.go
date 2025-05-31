@@ -1,5 +1,7 @@
 package tiny
 
+import "math/big"
+
 type _from int
 
 // Bits uses the provided ones and zeros to build a Bit slice.
@@ -49,6 +51,28 @@ func (f _from) Bytes(bytes ...byte) []Bit {
 		output = append(output, f.Number(int(v), 8)...)
 	}
 	return output
+}
+
+// BigInt returns the bits of the provided big.Int padded to the specified width.
+//
+// If no width is provided, the result is given in its smallest possible width.
+func (_ _from) BigInt(value *big.Int, width ...int) []Bit {
+	str := value.Text(2)
+	out := make([]Bit, len(str))
+
+	for i := 0; i < len(str); i++ {
+		if str[i] == '1' {
+			out[i] = One
+		} else {
+			out[i] = Zero
+		}
+	}
+
+	if len(width) > 0 {
+		pad := make([]Bit, width[0]-len(out))
+		out = append(pad, out...)
+	}
+	return out
 }
 
 // Number uses the provided int to build a tiny.Bit slice. If no width is provided, the result is

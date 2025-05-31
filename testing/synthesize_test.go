@@ -5,22 +5,23 @@ import (
 	"encoding/binary"
 	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
+	"math/big"
 	"testing"
 )
 
 func Test_Synthesize_ForEach(t *testing.T) {
 	script := tiny.From.Bytes(170, 85)
 	script = append(script, tiny.From.Bits(0, 1, 1, 0, 1, 0)...)
-	measure := tiny.Synthesize.ForEach(22, func(i int) tiny.Bit {
+	phrase := tiny.Synthesize.ForEach(22, func(i int) tiny.Bit {
 		return script[i]
 	})
-	test.CompareSlices(measure.GetAllBits(), script, t)
+	test.CompareSlices(phrase.Bits(), script, t)
 }
 
 func Test_Synthesize_Ones(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		measure := tiny.Synthesize.Ones(i)
-		bits := measure.GetAllBits()
+		phrase := tiny.Synthesize.Ones(i)
+		bits := phrase.Bits()
 		for ii := 0; ii < i; ii++ {
 			if bits[ii] != 1 {
 				t.Error("Expected all ones")
@@ -31,8 +32,8 @@ func Test_Synthesize_Ones(t *testing.T) {
 
 func Test_Synthesize_Zeros(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		measure := tiny.Synthesize.Zeros(i)
-		bits := measure.GetAllBits()
+		phrase := tiny.Synthesize.Zeros(i)
+		bits := phrase.Bits()
 		for ii := 0; ii < i; ii++ {
 			if bits[ii] != 0 {
 				t.Error("Expected all zeros")
@@ -44,8 +45,8 @@ func Test_Synthesize_Zeros(t *testing.T) {
 func Test_Synthesize_Repeating(t *testing.T) {
 	patternTester := func(t *testing.T, pattern ...tiny.Bit) {
 		for count := 0; count < 8; count++ {
-			measure := tiny.Synthesize.Repeating(count, pattern...)
-			bits := measure.GetAllBits()
+			phrase := tiny.Synthesize.Repeating(count, pattern...)
+			bits := phrase.Bits()
 			for i := 0; i < count; i++ {
 				offset := i * len(pattern)
 				for patternI := 0; patternI < len(pattern); patternI++ {
@@ -66,11 +67,11 @@ func Test_Synthesize_Repeating(t *testing.T) {
 }
 
 func Test_Synthesize_Pattern(t *testing.T) {
-	unevenM := tiny.Synthesize.Pattern(8, tiny.From.Bits(0, 1, 1)...)
-	uneven := unevenM.GetAllBits()
+	unevenP := tiny.Synthesize.Pattern(8, tiny.From.Bits(0, 1, 1)...)
+	uneven := unevenP.Bits()
 	expectedUneven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1)
-	evenM := tiny.Synthesize.Pattern(9, tiny.From.Bits(0, 1, 1)...)
-	even := evenM.GetAllBits()
+	evenP := tiny.Synthesize.Pattern(9, tiny.From.Bits(0, 1, 1)...)
+	even := evenP.Bits()
 	expectedEven := tiny.From.Bits(0, 1, 1, 0, 1, 1, 0, 1, 1)
 
 	for i, bit := range uneven {
@@ -125,8 +126,8 @@ func synthesize_random(t *testing.T, g func(int) tiny.Bit) {
 	// There is no way to "test" that 1 or 2 digit binary sets are "random"...it's only four possible values =)
 	for lengthI := 3; lengthI < 10; lengthI++ {
 		for testI := 0; testI < 10; testI++ {
-			measure := tiny.Synthesize.Random(lengthI, g)
-			bits := measure.GetAllBits()
+			phrase := tiny.Synthesize.Random(lengthI, g)
+			bits := phrase.Bits()
 
 			allZero := true
 			allOne := true
@@ -169,5 +170,97 @@ func synthesize_random(t *testing.T, g func(int) tiny.Bit) {
 				t.FailNow()
 			}
 		}
+	}
+}
+
+func Test_Synthesize_Subdivided_ShouldAcceptNegativeIndex(t *testing.T) {
+	result := tiny.Synthesize.Subdivided(8, -1, 7)
+	test.CompareSlices(result, tiny.From.Number(0, 8), t)
+}
+
+func Test_Synthesize_Subdivided_ShouldAcceptOversizedIndex(t *testing.T) {
+	result := tiny.Synthesize.Subdivided(8, 8, 7)
+	test.CompareSlices(result, tiny.From.Number(255, 8), t)
+}
+
+func Test_Synthesize_Subdivided_Byte(t *testing.T) {
+	expected := [][]tiny.Bit{
+		tiny.From.Number(0, 8),
+		tiny.From.Number(36, 8),
+		tiny.From.Number(72, 8),
+		tiny.From.Number(109, 8),
+		tiny.From.Number(145, 8),
+		tiny.From.Number(182, 8),
+		tiny.From.Number(218, 8),
+		tiny.From.Number(255, 8),
+	}
+
+	for i := 0; i < 8; i++ {
+		result := tiny.Synthesize.Subdivided(8, i, 7)
+		test.CompareSlices(result, expected[i], t)
+	}
+}
+
+func Test_Synthesize_Subdivided_Int16(t *testing.T) {
+	expected := [][]tiny.Bit{
+		tiny.From.Number(0, 16),
+		tiny.From.Number(9362, 16),
+		tiny.From.Number(18724, 16),
+		tiny.From.Number(28086, 16),
+		tiny.From.Number(37448, 16),
+		tiny.From.Number(46810, 16),
+		tiny.From.Number(56172, 16),
+		tiny.From.Number(65535, 16),
+	}
+
+	for i := 0; i < 8; i++ {
+		result := tiny.Synthesize.Subdivided(16, i, 7)
+		test.CompareSlices(result, expected[i], t)
+	}
+}
+
+func Test_Synthesize_Approximate(t *testing.T) {
+	expected := [][]tiny.Bit{
+		tiny.From.Number(0, 8),
+		tiny.From.Number(36, 8),
+		tiny.From.Number(72, 8),
+		tiny.From.Number(109, 8),
+		tiny.From.Number(145, 8),
+		tiny.From.Number(182, 8),
+		tiny.From.Number(218, 8),
+		tiny.From.Number(255, 8),
+	}
+
+	for i := int64(0); i < 256; i++ {
+		expectedIndex := 0
+		switch {
+		case i == 255:
+			expectedIndex = 7
+			break
+		case i > 218:
+			expectedIndex = 6
+			fallthrough
+		case i > 182:
+			expectedIndex = 5
+			fallthrough
+		case i > 145:
+			expectedIndex = 4
+			fallthrough
+		case i > 109:
+			expectedIndex = 3
+			fallthrough
+		case i > 72:
+			expectedIndex = 2
+			fallthrough
+		case i > 36:
+			expectedIndex = 1
+		}
+
+		result, index := tiny.Synthesize.Approximate(big.NewInt(i), 8, 7)
+
+		if index != expectedIndex {
+			t.Fatalf("Expected index %d, got %d", expectedIndex, index)
+		}
+		test.CompareSlices(result, expected[index], t)
 	}
 }

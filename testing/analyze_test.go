@@ -269,16 +269,16 @@ func Test_Analyze_Repetition(t *testing.T) {
 	zeroOnes := tiny.Synthesize.Repeating(7, 0, 1)
 	nonPattern := tiny.From.Byte(77)
 
-	if !tiny.Analyze.Repetition(ones.GetAllBits(), 1) {
+	if !tiny.Analyze.Repetition(ones.Bits(), 1) {
 		t.Errorf("Data did not have a repetition of 1")
 	}
-	if !tiny.Analyze.Repetition(zeros.GetAllBits(), 0) {
+	if !tiny.Analyze.Repetition(zeros.Bits(), 0) {
 		t.Errorf("Data did not have a repetition of 0")
 	}
-	if !tiny.Analyze.Repetition(oneZeros.GetAllBits(), 1, 0) {
+	if !tiny.Analyze.Repetition(oneZeros.Bits(), 1, 0) {
 		t.Errorf("Data did not have a repetition of 10")
 	}
-	if !tiny.Analyze.Repetition(zeroOnes.GetAllBits(), 0, 1) {
+	if !tiny.Analyze.Repetition(zeroOnes.Bits(), 0, 1) {
 		t.Errorf("Data did not have a repetition of 01")
 	}
 	if tiny.Analyze.Repetition(nonPattern, 1) {
@@ -314,7 +314,7 @@ func Test_Analyze_HasPrefix_Static(t *testing.T) {
 
 func Test_Analyze_HasPrefix_Random(t *testing.T) {
 	random := tiny.Synthesize.Random(8)
-	bits := random.GetAllBits()
+	bits := random.Bits()
 	prefix := bits[:5]
 	if !tiny.Analyze.HasPrefix(bits, prefix...) {
 		t.Errorf("Data did not have the prefix %v", tiny.To.String(prefix...))
@@ -331,7 +331,7 @@ func Test_Analyze_HasPrefix_Synthesized(t *testing.T) {
 
 	for _, prefix := range prefixes {
 		repeating := tiny.Synthesize.Repeating(4, prefix...)
-		bits := repeating.GetAllBits()
+		bits := repeating.Bits()
 		if !tiny.Analyze.HasPrefix(bits, prefix...) {
 			t.Errorf("Data did not have the prefix %v", tiny.To.String(prefix...))
 		}

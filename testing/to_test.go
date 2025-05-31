@@ -36,7 +36,7 @@ func Test_To_Number_LargeNumber(t *testing.T) {
 
 func Test_To_String(t *testing.T) {
 	random := tiny.Synthesize.Random(22)
-	bits := random.GetAllBits()
+	bits := random.Bits()
 	str := tiny.To.String(bits...)
 	for i := 0; i < len(str); i++ {
 		stringValue := str[i] - '0'

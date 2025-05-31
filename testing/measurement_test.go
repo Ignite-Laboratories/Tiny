@@ -70,7 +70,7 @@ func Test_Measurement_Toggle(t *testing.T) {
 }
 
 func Test_Measurement_ForEachBit(t *testing.T) {
-	random := tiny.Synthesize.Random(22)
+	random := tiny.Synthesize.Random(22)[0]
 	bits := random.GetAllBits()
 	count := 0
 	random.ForEachBit(func(i int, bit tiny.Bit) tiny.Bit {
