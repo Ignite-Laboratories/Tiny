@@ -95,6 +95,27 @@ type Morsel byte
 // Shred represents seven binary values. [0-127]
 type Shred byte
 
+// Scale represents twelve binary values - See MaxScale.
+type Scale int16
+
+// Motif represents sixteen binary values - See MaxMotif.
+type Motif int16
+
+// Riff represents twenty-four binary values - See MaxRiff.
+type Riff int32
+
+// Cadence represents thirty-two binary values - See MaxCadence.
+type Cadence int32
+
+// Hook represents forty-eight binary values - See MaxHook.
+type Hook int64
+
+// Melody represents sixty-four binary values - See MaxMelody.
+type Melody int64
+
+// Verse represents one-hundred & twenty-eight binary values - See MaxVerse.
+type Verse [2]int64
+
 /**
 Bits()
 */
@@ -134,6 +155,41 @@ func (v Shred) Bits() []Bit {
 	return From.Shred(v)
 }
 
+// Bits uses the provided value to build a 12 Bit slice.
+func (v Scale) Bits() []Bit {
+	return From.Scale(v)
+}
+
+// Bits uses the provided value to build a 16 Bit slice.
+func (v Motif) Bits() []Bit {
+	return From.Motif(v)
+}
+
+// Bits uses the provided value to build a 24 Bit slice.
+func (v Riff) Bits() []Bit {
+	return From.Riff(v)
+}
+
+// Bits uses the provided value to build a 32 Bit slice.
+func (v Cadence) Bits() []Bit {
+	return From.Cadence(v)
+}
+
+// Bits uses the provided value to build a 48 Bit slice.
+func (v Hook) Bits() []Bit {
+	return From.Hook(v)
+}
+
+// Bits uses the provided value to build a 64 Bit slice.
+func (v Melody) Bits() []Bit {
+	return From.Melody(v)
+}
+
+// Bits uses the provided value to build a 128 Bit slice.
+func (v Verse) Bits() []Bit {
+	return From.Verse(v)
+}
+
 /**
 String()
 */
@@ -170,5 +226,40 @@ func (v Morsel) String() string {
 
 // String converts a Shred to a 7-bit string.
 func (v Shred) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Scale to a 12-bit string.
+func (v Scale) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Motif to a 16-bit string.
+func (v Motif) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Riff to a 24-bit string.
+func (v Riff) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Cadence to a 32-bit string.
+func (v Cadence) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Hook to a 48-bit string.
+func (v Hook) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Melody to a 64-bit string.
+func (v Melody) String() string {
+	return To.String(v.Bits()...)
+}
+
+// String converts a Verse to a 128-bit string.
+func (v Verse) String() string {
 	return To.String(v.Bits()...)
 }

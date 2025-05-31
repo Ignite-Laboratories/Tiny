@@ -42,7 +42,7 @@ in the gaps with as apt of terminology as I could imagine:
 |     8     |        256        |  Byte   |
 |    12     |       4,096       |  Scale  |
 |    16     |      65,536       |  Motif  |
-|    24     |        2³²        |  Riff   |
+|    24     |        2²⁴        |  Riff   |
 |    32     |        2³²        | Cadence |
 |    48     |        2⁴⁸        |  Hook   |
 |    64     |        2⁶⁴        | Melody  |

@@ -157,44 +157,49 @@ func (s _synthesize) Subdivided(width int, index int, resolution int) []Bit {
 
 // Approximate subdivides the target's bit-width range and then finds the closest index to the provided target.
 //
+// If no approximation with is provided, the bit length of the target is used.
+//
 // The result is a slice of bits and the index of the closest match.
-func (s _synthesize) Approximate(target *big.Int, width int, resolution int) ([]Bit, int) {
+func (s _synthesize) Approximate(target *big.Int, resolution int, width ...int) ([]Bit, int) {
+	w := target.BitLen()
+	if len(width) > 0 {
+		w = width[0]
+	}
 	targetFloat := new(big.Float).SetInt(target)
-	upper, _ := new(big.Int).SetString(Synthesize.Ones(width).StringBinary(), 2)
+	upper, _ := new(big.Int).SetString(Synthesize.Ones(w).StringBinary(), 2)
 	step := new(big.Float).Quo(new(big.Float).SetInt(upper), big.NewFloat(float64(resolution)))
 	index, _ := new(big.Float).Quo(targetFloat, step).Int(nil)
 	indexInt := int(index.Int64())
-	return Synthesize.Subdivided(width, indexInt, resolution), indexInt
+	return Synthesize.Subdivided(w, indexInt, resolution), indexInt
 }
 
-// ApproximateAtScale performs a fuzzy approximation on the target at four different scales and returns
-// the approximation phrase, remainder, and result of remainder.Cmp(target).
+// FuzzyApproximation calls Approximate on the target's bits at four different scales and returns
+// the approximation phrase, delta, and whether the approximation is larger or smaller than the target.
 //
-// The approximation itself is a Scale (12 bits) of four Notes (3 bits), each representing the subdivision index
-// of that particular note's region.
+// The approximation itself is a Scale (12 bits) of four indices, each representing the subdivision index
+// of that particular index's region.
 //
-// NOTE: Standard resolution is a note (3 bits) but you may provide an optional resolution, if desired.
-// Just bear in mind that it'll directly affect the bit width of each output note in the approximation phrase,
-// as the bit width is a function of the subdivision index bit width.
+// NOTE: Standard resolution is a Note (3 bits) but you may provide an optional resolution, if desired.
+// The resolution is how many bits each index occupies.
 //
-//	Note 0 represents the first ⅛th of the target bits
-//	Note 1 represents the second ⅛th
-//	Note 2 represents the second ¼
-//	Note 3 represents the final ½
+//	Index 0 represents the first ⅛th of the target bits
+//	Index 1 represents the second ⅛th
+//	Index 2 represents the second ¼
+//	Index 3 represents the final ½
 //
 // This yields the following breakdown for a 64-bit melody:
 //
 //	|                             64 Bit Melody                             |
 //	 10110100 10101101 00100110 10010101 00101110 10100101 10100100 00111011
-//	| Note 0 | Note 1 |     Note 2      |              Note 3               |
+//	|Index 0 | Index 1|    Index 2      |             Index 3               |
 //
-// NOTE: The regions are subdivided using flooring, meaning the last region holds the excess bits from truncating.
+// NOTE: The indices bit-widths are subdivided using flooring, meaning the last index always holds the excess bits.
 //
 // For example, with a 67 bit input:
 //
 //	|                             64 Bit Melody                             |   |
 //	 10110100 10101101 00100110 10010101 00101110 10100101 10100100 00111011 110
-//	| Note 0 | Note 1 |     Note 2      |                Note 3                 |
+//	|Index 0 | Index 1|    Index 2      |               Index 3                 |
 //
 // Above, 67/8 = 8.375 so the ⅛ notes are 8 bits while 67/4 = 16.75 so the ¼ note is 16 bits.
 // Finally, the ½ note picks up whatever remaining bits are leftover.
@@ -203,15 +208,51 @@ func (s _synthesize) Approximate(target *big.Int, width int, resolution int) ([]
 //
 //	|                              64 Bit Melody                             |    |
 //	 10110100 10101101 00100110 10010101 0 0101110 10100101 10100100 00111011 1101
-//	| Note 0 | Note 1 |       Note 2      |                Note 3                 |
+//	|Index 0 | Index 1|     Index 2       |               Index 3                 |
 //
 // Above, 68/8 = 8.5 so the ⅛ notes are still 8 bits while 68/4 = 17 so the ¼ note grows to 17 bits.
 // Finally, the ½ note picks up whatever remaining bits are leftover.
-func (s _synthesize) ApproximateAtScale(target *big.Int, resolution ...int) (approximation Phrase, remainder *big.Int, comparison Order) {
+func (s _synthesize) FuzzyApproximation(target *big.Int, resolution ...int) (indices Phrase, approximation *big.Int, delta *big.Int, comparison RelativeSize) {
+	r := 3
+	if len(resolution) > 0 {
+		r = resolution[0]
+	}
 
+	eighth := target.BitLen() / 8
+	quarter := target.BitLen() / 4
+	phrase := NewPhraseFromBigInt(target)
+
+	region0, phrase := phrase.Read(eighth)
+	region1, phrase := phrase.Read(eighth)
+	region2, phrase := phrase.Read(quarter)
+	region3 := phrase
+
+	fuzzy0, index0 := Synthesize.Approximate(region0.AsBigInt(), r)
+	fuzzy1, index1 := Synthesize.Approximate(region1.AsBigInt(), r)
+	fuzzy2, index2 := Synthesize.Approximate(region2.AsBigInt(), r)
+	fuzzy3, index3 := Synthesize.Approximate(region3.AsBigInt(), r)
+
+	indexBits0 := From.Number(index0, r)
+	indexBits1 := From.Number(index1, r)
+	indexBits2 := From.Number(index2, r)
+	indexBits3 := From.Number(index3, r)
+
+	approximation = NewPhraseFromBits(fuzzy0...).AppendBits(fuzzy1...).AppendBits(fuzzy2...).AppendBits(fuzzy3...).AsBigInt()
+	indices = NewPhraseFromBits(indexBits0...).AppendBits(indexBits1...).AppendBits(indexBits2...).AppendBits(indexBits3...)
+	comparison = NewRelativeSize(approximation.Cmp(target))
+
+	if comparison == 0 {
+		delta = new(big.Int)
+	} else if comparison < 0 {
+		delta = new(big.Int).Sub(target, approximation)
+	} else {
+		delta = new(big.Int).Sub(approximation, target)
+	}
+
+	return indices, approximation, delta, comparison
 }
 
 // Approximation synthesizes the input approximation phrase at the provided bit width.
 func (s _synthesize) Approximation(approximation Phrase, width int) Phrase {
-
+	return nil
 }

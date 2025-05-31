@@ -57,7 +57,7 @@ func (c *Composition) AddPassageToSeed(passage Passage) {
 }
 
 func (c *Composition) synthesizeFuzzy() {
-	// TODO: Create a better synthetic fuzzy approximation
+	// TODO: Create a better synthetic fuzzy approx
 	c.Fuzzy = new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(c.Target.BitLen()-1)), nil)
 	c.AddPassageToPathway(NewPassage())
 }
@@ -141,7 +141,7 @@ func (c *Composition) distill1(target *big.Int) {
 	//c.distill(corrected)
 }
 
-type approximation struct {
+type approx struct {
 	Base       int
 	Exponent   int
 	Target     *big.Int
@@ -151,7 +151,7 @@ type approximation struct {
 	Correction float32
 }
 
-func (approx *approximation) Correct() {
+func (approx *approx) Correct() {
 	fuzzyFloat := new(big.Float).SetInt(approx.Fuzzy)
 	targetFloat := new(big.Float).SetInt(approx.Target)
 
@@ -197,7 +197,7 @@ func logBaseN(x *big.Int, base int) *big.Float {
 	return new(big.Float).Quo(lnX, lnBase)
 }
 
-func findSmallest(input ...approximation) approximation {
+func findSmallest(input ...approx) approx {
 	if len(input) == 0 {
 		panic("need at least one value")
 	}

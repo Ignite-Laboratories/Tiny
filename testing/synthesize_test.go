@@ -219,7 +219,17 @@ func Test_Synthesize_Subdivided_Int16(t *testing.T) {
 	}
 }
 
-func Test_Synthesize_Approximate(t *testing.T) {
+func Test_Synthesize_Approximate_42(t *testing.T) {
+	expectedBits := tiny.Synthesize.Pattern(42, 1, 0, 0)
+	expectedIndex := 4
+	result, index := tiny.Synthesize.Approximate(tiny.Synthesize.Pattern(42, 1, 0).AsBigInt(), 7)
+	test.CompareSlices(result, expectedBits.Bits(), t)
+	if index != expectedIndex {
+		t.Fatalf("Expected index %d, got %d", expectedIndex, index)
+	}
+}
+
+func Test_Synthesize_Approximate_Byte(t *testing.T) {
 	expected := [][]tiny.Bit{
 		tiny.From.Number(0, 8),
 		tiny.From.Number(36, 8),
@@ -231,32 +241,32 @@ func Test_Synthesize_Approximate(t *testing.T) {
 		tiny.From.Number(255, 8),
 	}
 
+	expectedIndex := -1
 	for i := int64(0); i < 256; i++ {
-		expectedIndex := 0
-		switch {
-		case i == 255:
-			expectedIndex = 7
-			break
-		case i > 218:
-			expectedIndex = 6
-			fallthrough
-		case i > 182:
-			expectedIndex = 5
-			fallthrough
-		case i > 145:
-			expectedIndex = 4
-			fallthrough
-		case i > 109:
-			expectedIndex = 3
-			fallthrough
-		case i > 72:
-			expectedIndex = 2
-			fallthrough
-		case i > 36:
+		expectedIndex = 0
+		if i > 36 {
 			expectedIndex = 1
 		}
+		if i > 72 {
+			expectedIndex = 2
+		}
+		if i > 109 {
+			expectedIndex = 3
+		}
+		if i > 145 {
+			expectedIndex = 4
+		}
+		if i > 182 {
+			expectedIndex = 5
+		}
+		if i > 218 {
+			expectedIndex = 6
+		}
+		if i == 255 {
+			expectedIndex = 7
+		}
 
-		result, index := tiny.Synthesize.Approximate(big.NewInt(i), 8, 7)
+		result, index := tiny.Synthesize.Approximate(big.NewInt(i), 7, 8)
 
 		if index != expectedIndex {
 			t.Fatalf("Expected index %d, got %d", expectedIndex, index)

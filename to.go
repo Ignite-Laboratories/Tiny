@@ -8,11 +8,16 @@ type _to int
 
 // Number takes in a set of bits and converts it to an numeric value up to the
 // specified width.  If the number of provided bits exceeds that width, the excess
-// bits are dropped entirely.  If the width exceeds 32 (a maximum for an int), they
+// bits are dropped entirely.  If the width exceeds the architecture's bit width, they
 // are also dropped.  These operations start from the MSB towards the LSB.
 // For example: If 4 is provided, a Nibble value of [0-15] is returned even if 8 bits are provided.
 func (_ _to) Number(width int, bits ...Bit) int {
-	if width > 31 {
+	bitWidth, err := GetArchitectureBitWidth()
+	if err != nil {
+		panic(err)
+	}
+
+	if width > bitWidth {
 		l := min(MaxMeasurementBitLength, len(bits))
 		bits = bits[:l]
 	}
@@ -63,6 +68,36 @@ func (t _to) Shred(bits ...Bit) Shred {
 // Byte converts the first 8 bits of the Bit slice to a byte and ignores the rest.
 func (t _to) Byte(bits ...Bit) byte {
 	return byte(t.Number(8, bits...))
+}
+
+// Scale converts the first 12 bits of the Bit slice to a Scale and ignores the rest.
+func (t _to) Scale(bits ...Bit) Scale {
+	return Scale(t.Number(12, bits...))
+}
+
+// Motif converts the first 16 bits of the Bit slice to a Motif and ignores the rest.
+func (t _to) Motif(bits ...Bit) Motif {
+	return Motif(t.Number(16, bits...))
+}
+
+// Riff converts the first 24 bits of the Bit slice to a Riff and ignores the rest.
+func (t _to) Riff(bits ...Bit) Riff {
+	return Riff(t.Number(24, bits...))
+}
+
+// Cadence converts the first 32 bits of the Bit slice to a Cadence and ignores the rest.
+func (t _to) Cadence(bits ...Bit) Cadence {
+	return Cadence(t.Number(32, bits...))
+}
+
+// Hook converts the first 48 bits of the Bit slice to a Hook and ignores the rest.
+func (t _to) Hook(bits ...Bit) Hook {
+	return Hook(t.Number(48, bits...))
+}
+
+// Melody converts the first 64 bits of the Bit slice to a Melody and ignores the rest.
+func (t _to) Melody(bits ...Bit) Melody {
+	return Melody(t.Number(64, bits...))
 }
 
 // Measure converts a Bit slice to a Measurement.

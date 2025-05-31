@@ -40,7 +40,28 @@ const MaxMorsel = 63
 const MaxShred = 127
 
 // MaxByte is the maximum value a byte can hold.
-const MaxByte = 255
+const MaxByte = (1 << 8) - 1
+
+// MaxScale is the maximum value a Scale can hold.
+const MaxScale = (1 << 12) - 1
+
+// MaxMotif is the maximum value a Motif can hold.
+const MaxMotif = (1 << 16) - 1
+
+// MaxRiff is the maximum value a Riff can hold.
+const MaxRiff = (1 << 24) - 1
+
+// MaxCadence is the maximum value a Cadence can hold.
+const MaxCadence = (1 << 32) - 1
+
+// MaxHook is the maximum value a Hook can hold.
+const MaxHook = (1 << 48) - 1
+
+// MaxMelody is the maximum value a Melody can hold.
+const MaxMelody = (1 << 64) - 1
+
+// MaxVerse is the maximum value a Verse can hold.
+const MaxVerse = (1 << 128) - 1
 
 // WidthBit is the number of binary positions a Bit represents.
 const WidthBit = 1
@@ -66,6 +87,27 @@ const WidthShred = 7
 // WidthByte is the number of binary positions a Byte represents.
 const WidthByte = 8
 
+// WidthScale is the number of binary positions a Scale represents.
+const WidthScale = 12
+
+// WidthMotif is the number of binary positions a Motif represents.
+const WidthMotif = 16
+
+// WidthRiff is the number of binary positions a Riff represents.
+const WidthRiff = 24
+
+// WidthCadence is the number of binary positions a Cadence represents.
+const WidthCadence = 32
+
+// WidthHook is the number of binary positions a Hook represents.
+const WidthHook = 48
+
+// WidthMelody is the number of binary positions a Melody represents.
+const WidthMelody = 64
+
+// WidthVerse is the number of binary positions a Verse represents.
+const WidthVerse = 128
+
 /*
 *
 Error Messages
@@ -86,22 +128,35 @@ const MovementPathway = "pathway"
 const MovementSeed = "seed"
 
 /**
-Order
+RelativeSize
 */
 
-// Order represents the relationship of two values (A and B).
+// RelativeSize represents the relationship of two values (A and B).
 //
-// If this is provided contextually with a value, it should be implied that the provided value
-// represents A and B represents the value being compared against.
-//
-// See Before, Same, After
-type Order int
+// See Smaller, Equal, Larger
+type RelativeSize int
 
 const (
-	// Before indicates that A comes before B.
-	Before Order = -1
-	// Same indicates that A and B share the same position.
-	Same = 0
-	// After indicates that A comes after B.
-	After Order = 1
+	// Smaller indicates that A is smaller than B.
+	Smaller RelativeSize = -1
+	// Equal indicates that A and B are equal.
+	Equal = 0
+	// Larger indicates that A is larger than B.
+	Larger RelativeSize = 1
 )
+
+// NewRelativeSize creates a new RelativeSize structure.
+//
+// If the value is 0, Equal is returned.
+// If the value is positive, Larger is returned.
+// If the value is negative, Smaller is returned.
+func NewRelativeSize(value int) RelativeSize {
+	switch {
+	case value > 0:
+		return Larger
+	case value < 0:
+		return Smaller
+	default:
+		return Equal
+	}
+}
