@@ -1,23 +1,22 @@
 package tiny
 
 import (
-	"fmt"
 	"math"
 )
 
+var _bitWidth = -1
+
 // GetArchitectureBitWidth queries the maximum uint value at runtime to determine the architecture's bit width.
-//
-// NOTE: I don't expect us to jump to other size architectures any time soon, but this errors to ensure we don't
-// mask that condition in the future without realizing it.
-func GetArchitectureBitWidth() (int, error) {
-	switch {
-	case math.MaxUint == (1<<64)-1:
-		return 64, nil
-	case math.MaxUint == (1<<32)-1:
-		return 32, nil
-	case math.MaxUint == (1<<16)-1:
-		return 16, nil
-	default:
-		return -1, fmt.Errorf("unknown architecture width")
+func GetArchitectureBitWidth() int {
+	if _bitWidth > 0 {
+		return _bitWidth
 	}
+
+	// NOTE: I know there's no reason to check this to 2¹² - but for future proofing, I'm gonna do it anyway.
+	for i := 2; i <= MaxScale; i++ {
+		if math.MaxUint == (uint(1)<<i)-1 {
+			return i
+		}
+	}
+	panic("what be you, beast!?  over 2¹² bits of computation!??")
 }

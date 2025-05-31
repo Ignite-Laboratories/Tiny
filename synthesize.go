@@ -72,6 +72,8 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Phrase {
 //
 // If you would prefer to implement your own bit-for-bit randomness, you may optionally provide
 // a function that dynamically generates each Bit.
+//
+// NOTE: This will panic if given a length greater than your architecture's bit width.
 func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 	g := func(_ int) Bit {
 		var b [1]byte
@@ -85,7 +87,7 @@ func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 	if length == 0 {
 		return NewPhrase()
 	}
-	if length > MaxMeasurementBitLength {
+	if length > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	for {
@@ -112,7 +114,8 @@ func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 //
 // If you would prefer different sized measurements, you may optionally provide the measurement width.
 //
-// NOTE: This will panic if you provide a measurement width of 0 or less, or greater than MaxMeasurementBitLength.
+// NOTE: This will panic if you provide a measurement width of 0 or less, or greater
+// than your architecture's bit width.
 func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) Phrase {
 	var phrase Phrase
 	if length == 0 {
@@ -121,7 +124,7 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) Phrase {
 	width := 8
 	if len(measurementWidth) > 0 {
 		width = measurementWidth[0]
-		if width > MaxMeasurementBitLength {
+		if width > GetArchitectureBitWidth() {
 			panic(errorMeasurementLimit)
 		}
 		if width <= 0 {
@@ -201,8 +204,8 @@ func (s _synthesize) Approximate(target *big.Int, resolution int, width ...int) 
 //	 10110100 10101101 00100110 10010101 00101110 10100101 10100100 00111011 110
 //	|Index 0 | Index 1|    Index 2      |               Index 3                 |
 //
-// Above, 67/8 = 8.375 so the ⅛ notes are 8 bits while 67/4 = 16.75 so the ¼ note is 16 bits.
-// Finally, the ½ note picks up whatever remaining bits are leftover.
+// Above, 67/8 = 8.375 so the ⅛ indices are 8 bits while 67/4 = 16.75 so the ¼ index is 16 bits.
+// Finally, the ½ index picks up whatever remaining bits are leftover.
 //
 // Whereas, with a 68 bit input:
 //
@@ -210,8 +213,8 @@ func (s _synthesize) Approximate(target *big.Int, resolution int, width ...int) 
 //	 10110100 10101101 00100110 10010101 0 0101110 10100101 10100100 00111011 1101
 //	|Index 0 | Index 1|     Index 2       |               Index 3                 |
 //
-// Above, 68/8 = 8.5 so the ⅛ notes are still 8 bits while 68/4 = 17 so the ¼ note grows to 17 bits.
-// Finally, the ½ note picks up whatever remaining bits are leftover.
+// Above, 68/8 = 8.5 so the ⅛ indices are still 8 bits while 68/4 = 17 so the ¼ index grows to 17 bits.
+// Finally, the ½ index picks up whatever remaining bits are leftover.
 func (s _synthesize) FuzzyApproximation(target *big.Int, resolution ...int) (indices Phrase, approximation *big.Int, delta *big.Int, comparison RelativeSize) {
 	r := 3
 	if len(resolution) > 0 {
@@ -252,7 +255,7 @@ func (s _synthesize) FuzzyApproximation(target *big.Int, resolution ...int) (ind
 	return indices, approximation, delta, comparison
 }
 
-// Approximation synthesizes the input approximation phrase at the provided bit width.
-func (s _synthesize) Approximation(approximation Phrase, width int) Phrase {
+// Approximation synthesizes the input approximation phrase at the provided bit width resolution.
+func (s _synthesize) Approximation(indices Phrase, resolution int) Phrase {
 	return nil
 }

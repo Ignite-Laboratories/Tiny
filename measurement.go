@@ -14,8 +14,8 @@ import (
 // TL;DR: This holds bits in byte form, leaving anything less than a byte
 // at the end of the binary information as a remainder of bits.
 //
-// NOTE: A measurement is limited to 32 bits wide by design.  This allows you
-// to easily grow or shrink bytes at the bit level and then capture the
+// NOTE: A measurement is limited to your architecture's bit-width wide by design.
+// This allows you to easily grow or shrink bytes at the bit level and then capture the
 // new value of each measurement as a standard 'int'.
 //
 // For longer stretches of binary information, string together measurements
@@ -56,9 +56,9 @@ func NewMeasurement(bytes []byte, bits ...Bit) Measurement {
 
 // NewMeasurementFromBits creates a new Measurement from the provided input bits.
 //
-// NOTE: This will panic if provided more bits than MaxMeasurementBitLength allows.
+// NOTE: This will panic if provided more bits than your architecture's bit width.
 func NewMeasurementFromBits(bits ...Bit) Measurement {
-	if len(bits) > MaxMeasurementBitLength {
+	if len(bits) > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	return NewMeasurement([]byte{}, bits...)
@@ -66,9 +66,9 @@ func NewMeasurementFromBits(bits ...Bit) Measurement {
 
 // NewMeasurementFromString creates a new Measurement from a binary string input.
 //
-// NOTE: This will panic if provided a string longer than MaxMeasurementBitLength.
+// NOTE: This will panic if provided a string longer than your architecture's bit width.
 func NewMeasurementFromString(s string) Measurement {
-	if len(s) > MaxMeasurementBitLength {
+	if len(s) > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	bits := make([]Bit, len(s))
@@ -80,7 +80,7 @@ func NewMeasurementFromString(s string) Measurement {
 
 // NewMeasurementFromBigInt creates a new Measurement from a big.Int.
 //
-// NOTE: This will panic if provided a integer represented in base-2 longer than MaxMeasurementBitLength.
+// NOTE: This will panic if provided a integer represented in base-2 longer than your architecture's bit width.
 func NewMeasurementFromBigInt(b *big.Int) Measurement {
 	return NewMeasurementFromString(b.Text(2))
 }
@@ -102,9 +102,9 @@ func (m *Measurement) BitLength() int {
 func (m *Measurement) ByteBitLength() int { return len(m.Bytes) * 8 }
 
 // Value gets the integer value of the measure using its current bit representation.
-// NOTE: Measures are limited to 32 bits wide - intentionally limiting them to an int.
+// NOTE: Measures are limited to your architecture's bit width - intentionally limiting them to an int.
 func (m *Measurement) Value() int {
-	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, MaxMeasurementBitLength)
+	v, _ := strconv.ParseInt(To.String(m.GetAllBits()...), 2, GetArchitectureBitWidth())
 	return int(v)
 }
 
@@ -151,9 +151,9 @@ func (m *Measurement) Read(low int, high int) []Bit {
 
 // AppendBits places the provided bits at the end of the source Measurement.
 //
-// NOTE: A measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to your architecture's bit width!
 func (m *Measurement) AppendBits(bits ...Bit) {
-	if m.BitLength()+len(bits) > MaxMeasurementBitLength {
+	if m.BitLength()+len(bits) > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	m.Bits = append(m.Bits, bits...)          // Add the bits to the last remainder
@@ -164,9 +164,9 @@ func (m *Measurement) AppendBits(bits ...Bit) {
 
 // AppendBytes places the provided bytes at the end of the source Measurement.
 //
-// NOTE: A measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to your architecture's bit width!
 func (m *Measurement) AppendBytes(bytes ...byte) {
-	if m.BitLength()+len(bytes)*8 > MaxMeasurementBitLength {
+	if m.BitLength()+len(bytes)*8 > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	lastBits := m.Bits
@@ -181,16 +181,16 @@ func (m *Measurement) AppendBytes(bytes ...byte) {
 }
 
 // Append places the provided Measurement at the end of the source Measurement.
-// NOTE: A measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to your architecture's bit width!
 func (m *Measurement) Append(measure Measurement) {
 	m.AppendBytes(measure.Bytes...)
 	m.AppendBits(measure.Bits...)
 }
 
 // PrependBits places the provided bits at the beginning of the source Measurement.
-// NOTE: A measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to your architecture's bit width!
 func (m *Measurement) PrependBits(bits ...Bit) {
-	if m.BitLength()+len(bits) > MaxMeasurementBitLength {
+	if m.BitLength()+len(bits) > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	oldBits := m.Bits
@@ -203,16 +203,16 @@ func (m *Measurement) PrependBits(bits ...Bit) {
 }
 
 // PrependBytes places the provided bytes at the beginning of the source Measurement.
-// NOTE: A measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to your architecture's bit width!
 func (m *Measurement) PrependBytes(bytes ...byte) {
-	if m.BitLength()+len(bytes)*8 > MaxMeasurementBitLength {
+	if m.BitLength()+len(bytes)*8 > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	m.Bytes = append(bytes, m.Bytes...)
 }
 
 // Prepend places the provided Measurement at the beginning of the source Measurement.
-// NOTE: A measurement can only hold up to 32 bits!
+// NOTE: A measurement can only hold up to your architecture's bit width!
 func (m *Measurement) Prepend(measure Measurement) {
 	m.PrependBits(measure.Bits...)   // First the ending bits get prepended
 	m.PrependBytes(measure.Bytes...) // Then the starting bytes
@@ -309,5 +309,5 @@ func (m *Measurement) StringBinary() string {
 }
 
 func (m *Measurement) String() string {
-	return strconv.Itoa(To.Number(MaxMeasurementBitLength, m.GetAllBits()...))
+	return strconv.Itoa(To.Number(GetArchitectureBitWidth(), m.GetAllBits()...))
 }

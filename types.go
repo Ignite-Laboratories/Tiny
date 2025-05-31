@@ -95,6 +95,10 @@ type Morsel byte
 // Shred represents seven binary values. [0-127]
 type Shred byte
 
+/**
+Over Byte Types
+*/
+
 // Scale represents twelve binary values - See MaxScale.
 type Scale int16
 

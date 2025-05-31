@@ -296,14 +296,14 @@ func (phrase Phrase) Bits() []Bit {
 //		0 1 0 1 0 0 1 1 | 0 1 0 0 0 1 0 1 | 1 0 0 0 1 0 0 0 | 0 1 |  <- Raw Bits
 //		 Measurement1   |  Measurement 2  |  Measurement 3  | M4  |  <- "Aligned" Phrase
 //
-// NOTE: This will panic if you provide a width greater than the maximum width of a Measurement (32 bits),
-// or if you provide a width of <= 0.
+// NOTE: This will panic if you provide a width greater than your architecture's bit width, or if
+// given a width of <= 0.
 func (phrase Phrase) Align(width ...int) Phrase {
 	w := 8
 	if len(width) > 0 {
 		w = width[0]
 	}
-	if w > MaxMeasurementBitLength {
+	if w > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	if w <= 0 {
@@ -334,7 +334,7 @@ func (phrase Phrase) Align(width ...int) Phrase {
 // and the remainder will be empty.
 //
 // NOTE: This is intended for reading long stretches of bits.
-// If you wish to read less than 32 bits from the first measurement, using ReadMeasurement is a
+// If you wish to read less than your architecture's bit width from the first measurement, using ReadMeasurement is a
 // little easier to work with.
 func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	read = make(Phrase, 0, len(phrase))
@@ -361,7 +361,8 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	return read, remainder
 }
 
-// FuzzyRead reads up to 32 bits and passes each sequentially to the provided key function until it returns false.
+// FuzzyRead reads up to your architecture's bit width worth of bits and passes each sequentially to the provided
+// key function until it returns false.
 // The found measurement of bits is then passed to the projection function, which should parse the key determine
 // how many more bits to read.
 //
@@ -474,11 +475,10 @@ func (phrase Phrase) ReadZLE(upperLimit ...int) (key Measurement, projection Phr
 // ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and provides the
 // remainder as a Phrase.
 //
-// NOTE: This will panic if you attempt to read more than 32 bits as it cannot contain the result in a single
-// measurement.
-// If you wish to read more than 32 bits, please use Read.
+// NOTE: This will panic if you attempt to read more than your architecture's bit width.
+// If you wish to read more than your architecture's bit width, please use Read.
 func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
-	if length > MaxMeasurementBitLength {
+	if length > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 
@@ -550,8 +550,10 @@ func (phrase Phrase) Focus(times ...int) (left Phrase, right Phrase) {
 
 // WalkBits walks the bits of the source phrase at the provided stride and calls the
 // provided function for each measurement step.
+//
+// NOTE: This will panic if given a stride greater than your architecture's bit width.
 func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
-	if stride > MaxMeasurementBitLength {
+	if stride > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	if stride <= 0 {

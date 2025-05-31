@@ -16,7 +16,7 @@ import (
 // Phrase - A phrase is a way of grouping together longer runs of bits.
 // Since a measurement is limited in width, this allows any arbitrary length of bits to be grouped together.
 //
-// Measurement - A measurement is a variable width slice of bits up to MaxMeasurementBitLength.
+// Measurement - A measurement is a variable width slice of bits up to your architecture's bit width.
 type Composition struct {
 	Movements   map[string][]Passage
 	Target      *big.Int

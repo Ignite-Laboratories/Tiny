@@ -114,13 +114,13 @@ Append
 
 func Test_Measurement_ApppendBytesLengthLimit(t *testing.T) {
 	defer test.ShouldPanic(t)
-	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
+	measure := tiny.NewMeasurement([]byte{11, 33, 55, 99, 170, 22, 88}, 0, 1, 1)
 	measure.AppendBytes(255)
 }
 
 func Test_Measurement_ApppendBitsLengthLimit(t *testing.T) {
 	defer test.ShouldPanic(t)
-	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
+	measure := tiny.NewMeasurement([]byte{11, 33, 55, 99, 170, 22, 88}, 0, 1, 1)
 	measure.AppendBits(0, 1, 0, 1, 0, 1, 0, 1)
 }
 
@@ -164,13 +164,13 @@ Prepend
 
 func Test_Measurement_PrependBytesLengthLimit(t *testing.T) {
 	defer test.ShouldPanic(t)
-	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
+	measure := tiny.NewMeasurement([]byte{11, 33, 55, 99, 170, 22, 88}, 0, 1, 1)
 	measure.PrependBytes(255)
 }
 
 func Test_Measurement_PrependBitsLengthLimit(t *testing.T) {
 	defer test.ShouldPanic(t)
-	measure := tiny.NewMeasurement([]byte{170, 22, 88}, 0, 1, 1)
+	measure := tiny.NewMeasurement([]byte{11, 33, 55, 99, 170, 22, 88}, 0, 1, 1)
 	measure.PrependBits(0, 1, 0, 1, 0, 1, 0, 1)
 }
 

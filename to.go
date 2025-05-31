@@ -12,13 +12,10 @@ type _to int
 // are also dropped.  These operations start from the MSB towards the LSB.
 // For example: If 4 is provided, a Nibble value of [0-15] is returned even if 8 bits are provided.
 func (_ _to) Number(width int, bits ...Bit) int {
-	bitWidth, err := GetArchitectureBitWidth()
-	if err != nil {
-		panic(err)
-	}
+	bitWidth := GetArchitectureBitWidth()
 
 	if width > bitWidth {
-		l := min(MaxMeasurementBitLength, len(bits))
+		l := min(bitWidth, len(bits))
 		bits = bits[:l]
 	}
 

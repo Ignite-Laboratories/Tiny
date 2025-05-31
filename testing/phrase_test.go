@@ -251,8 +251,8 @@ func Test_Phrase_Align_PanicIfNegativeWidth(t *testing.T) {
 
 func Test_Phrase_Align_PanicIfWidthTooLarge(t *testing.T) {
 	defer test.ShouldPanic(t)
-	phrase := tiny.NewPhrase(77, 22, 33)
-	phrase.Align(33)
+	phrase := tiny.NewPhrase(11, 33, 55, 99, 77, 22, 33)
+	phrase.Align(tiny.GetArchitectureBitWidth() + 1)
 }
 
 /**
@@ -349,9 +349,9 @@ func Test_Phrase_ReadMeasurement_OverByte(t *testing.T) {
 	ComparePhrases(remainder, tiny.Phrase{right1, right2}, t)
 }
 
-func Test_Phrase_ReadMeasurement_ShouldPanicIfOver32(t *testing.T) {
+func Test_Phrase_ReadMeasurement_ShouldPanicIfOverArchitectureBitWidth(t *testing.T) {
 	defer test.ShouldPanic(t)
-	tiny.NewPhrase().ReadMeasurement(33)
+	tiny.NewPhrase().ReadMeasurement(tiny.GetArchitectureBitWidth() + 1)
 }
 
 /**
@@ -612,7 +612,7 @@ func Test_Phrase_WalkBits_ShouldPanicIfStrideTooLarge(t *testing.T) {
 	defer test.ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
-	remainder.WalkBits(tiny.MaxMeasurementBitLength+1, func(i int, m tiny.Measurement) {})
+	remainder.WalkBits(tiny.GetArchitectureBitWidth()+1, func(i int, m tiny.Measurement) {})
 }
 
 func Test_Phrase_WalkBits_ShouldPanicIfStrideIsNegative(t *testing.T) {
