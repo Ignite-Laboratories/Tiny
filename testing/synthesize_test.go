@@ -222,7 +222,7 @@ func Test_Synthesize_Subdivided_Int16(t *testing.T) {
 func Test_Synthesize_Approximate_42(t *testing.T) {
 	expectedBits := tiny.Synthesize.Pattern(42, 1, 0, 0)
 	expectedIndex := 4
-	result, index := tiny.Synthesize.Approximate(tiny.Synthesize.Pattern(42, 1, 0).AsBigInt(), 7)
+	result, index := tiny.Synthesize.Approximation(tiny.Synthesize.Pattern(42, 1, 0).AsBigInt(), 7)
 	test.CompareSlices(result, expectedBits.Bits(), t)
 	if index != expectedIndex {
 		t.Fatalf("Expected index %d, got %d", expectedIndex, index)
@@ -266,7 +266,7 @@ func Test_Synthesize_Approximate_Byte(t *testing.T) {
 			expectedIndex = 7
 		}
 
-		result, index := tiny.Synthesize.Approximate(big.NewInt(i), 7, 8)
+		result, index := tiny.Synthesize.Approximation(big.NewInt(i), 7, 8)
 
 		if index != expectedIndex {
 			t.Fatalf("Expected index %d, got %d", expectedIndex, index)

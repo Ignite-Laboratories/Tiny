@@ -88,7 +88,7 @@ func (f _from) Bytes(bytes ...byte) []Bit {
 	return output
 }
 
-// BigInt returns the bits of the provided big.Int padded to the specified width.
+// BigInt returns the bits of the provided big.Int padded to the specified width with zeros.
 //
 // If no width is provided, the result is given in its smallest possible width.
 func (_ _from) BigInt(value *big.Int, width ...int) []Bit {

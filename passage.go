@@ -14,18 +14,18 @@ func NewPassage(phrases ...Phrase) Passage {
 }
 
 // AppendBitsAsPhrase appends the provided bits to the end of the passage as a new phrase.
-func (p Passage) AppendBitsAsPhrase(bits ...Bit) Passage {
-	return append(p, NewPhraseFromBits(bits...))
+func (passage Passage) AppendBitsAsPhrase(bits ...Bit) Passage {
+	return append(passage, NewPhraseFromBits(bits...))
 }
 
 // Append appends the provided phrases to the end of the passage.
-func (p Passage) Append(phrase ...Phrase) Passage {
-	return append(p, phrase...)
+func (passage Passage) Append(phrase ...Phrase) Passage {
+	return append(passage, phrase...)
 }
 
 // Prepend prepends the provided phrases to the beginning of the passage.
-func (p Passage) Prepend(phrase ...Phrase) Passage {
-	return append(phrase, p...)
+func (passage Passage) Prepend(phrase ...Phrase) Passage {
+	return append(phrase, passage...)
 }
 
 // NewZLEPassageInt stores the provided number using the below ZLE scheme, where the number of leading zeros
@@ -239,4 +239,12 @@ func newZLEScaledPassage(input Phrase) Passage {
 	default:
 		panic(fmt.Sprintf("invalid scaled ZLE key: %v", input.Bits))
 	}
+}
+
+func (passage Passage) String() string {
+	out := make([]string, len(passage))
+	for i, p := range passage {
+		out[i] = p.String()
+	}
+	return fmt.Sprintf("%v", out)
 }

@@ -112,6 +112,15 @@ Error Messages
 const errorMeasurementLimit = "measurements are limited to the bit-width of your system's architecture"
 
 /**
+Passages
+*/
+
+// PassageMaxVerses defines the maximum number of Verses a Passage may hold.
+//
+// A Verse contains 16 bytes.
+const PassageMaxVerses = 64
+
+/**
 Movements
 */
 

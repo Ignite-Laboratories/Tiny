@@ -3,6 +3,7 @@ package tiny
 import (
 	"fmt"
 	"math"
+	"math/big"
 )
 
 // FuzzyHandler is a factory for creating or referencing fuzzy projection functions.
@@ -15,16 +16,6 @@ func (_ FuzzyHandler) Count(value int) func(Bit) bool {
 		i++
 		return i < value
 	}
-}
-
-// WhileZero returns true until the value of 1 is reached.
-func (_ FuzzyHandler) WhileZero(b Bit) bool {
-	return b == Zero
-}
-
-// WhileOne returns true until the value of 0 is reached.
-func (_ FuzzyHandler) WhileOne(b Bit) bool {
-	return b == Zero
 }
 
 // ZLEKey reads up to four bits or until a value of 1 is reached.
@@ -330,4 +321,92 @@ func (_ FuzzyHandler) EncodeZLE64Value(x int) (key Phrase, projection Phrase) {
 		return NewPhraseFromBits(0, 0, 0, 1), NewPhraseFromBits(value...)
 	}
 	panic(fmt.Sprintf("invalid 64-bit ZLE key: %v", input.Bits))
+}
+
+// Approximation creates a synthetic approximation of the target's bits at four different scales and returns
+// the approximation indices, approximation, delta, and whether the approximation is larger or smaller than the target.
+//
+// The approximation itself is a phrase of four indices, each representing the subdivision index of that
+// particular index's region.
+//
+// NOTE: The standard minimum resolution bit width is a Note (3 bits) but you may provide your own bit
+// width, if desired.
+// The resolution bit width defines the maximum value of the minimum resolution to subdivide at.
+//
+//	Index 0 represents the first ⅛th of the target bits and is approximated at 4x the resolution
+//	Index 1 represents the second ⅛th and is approximated at 4x the resolution
+//	Index 2 represents the second ¼ and is approximated at 2x the resolution
+//	Index 3 represents the final ½ and is approximated at the minimum bit width's resolution
+//
+// This yields the following breakdown for a 64-bit melody:
+//
+//	|                             64 Bit Melody                             |
+//	 10110100 10101101 00100110 10010101 00101110 10100101 10100100 00111011
+//	|Index 0 | Index 1|    Index 2      |             Index 3               |
+//
+// NOTE: The indices bit-widths are subdivided using flooring, meaning the last index always holds the excess bits.
+//
+// For example, with a 67 bit input:
+//
+//	|                             64 Bit Melody                             |   |
+//	 10110100 10101101 00100110 10010101 00101110 10100101 10100100 00111011 110
+//	|Index 0 | Index 1|    Index 2      |               Index 3                 |
+//
+// Above, 67/8 = 8.375 so the ⅛ indices are 8 bits while 67/4 = 16.75 so the ¼ index is 16 bits.
+// Finally, the ½ index picks up whatever remaining bits are leftover.
+//
+// Whereas, with a 68 bit input:
+//
+//	|                              64 Bit Melody                             |    |
+//	 10110100 10101101 00100110 10010101 0 0101110 10100101 10100100 00111011 1101
+//	|Index 0 | Index 1|     Index 2       |               Index 3                 |
+//
+// Above, 68/8 = 8.5 so the ⅛ indices are still 8 bits while 68/4 = 17 so the ¼ index grows to 17 bits.
+// Finally, the ½ index picks up whatever remaining bits are leftover.
+func (_ FuzzyHandler) Approximation(target *big.Int, minResolution ...int) (indices Passage, approximation *big.Int, delta *big.Int, comparison RelativeSize) {
+	bitWidth := 3
+	if len(minResolution) > 0 {
+		bitWidth = minResolution[0]
+	}
+
+	bitWidth2x := bitWidth + 1
+	bitWidth4x := bitWidth + 2
+
+	resolutionMax := To.Number(bitWidth, Synthesize.Ones(bitWidth).Bits()...)
+	resolutionMax2x := To.Number(bitWidth2x, Synthesize.Ones(bitWidth2x).Bits()...)
+	resolutionMax4x := To.Number(bitWidth4x, Synthesize.Ones(bitWidth4x).Bits()...)
+	bitLength := target.BitLen()
+
+	eighth := bitLength / 8
+	quarter := bitLength / 4
+	phrase := NewPhraseFromBigInt(target)
+
+	region0, phrase := phrase.Read(eighth)
+	region1, phrase := phrase.Read(eighth)
+	region2, phrase := phrase.Read(quarter)
+	region3 := phrase
+
+	fuzzy0, index0 := Synthesize.Approximation(region0.AsBigInt(), resolutionMax4x, eighth)
+	fuzzy1, index1 := Synthesize.Approximation(region1.AsBigInt(), resolutionMax4x, eighth)
+	fuzzy2, index2 := Synthesize.Approximation(region2.AsBigInt(), resolutionMax2x, quarter)
+	fuzzy3, index3 := Synthesize.Approximation(region3.AsBigInt(), resolutionMax, bitLength-quarter-quarter)
+
+	indexBits0 := From.Number(index0, bitWidth4x)
+	indexBits1 := From.Number(index1, bitWidth4x)
+	indexBits2 := From.Number(index2, bitWidth2x)
+	indexBits3 := From.Number(index3, bitWidth)
+
+	approximation = NewPhraseFromBits(fuzzy0...).AppendBits(fuzzy1...).AppendBits(fuzzy2...).AppendBits(fuzzy3...).AsBigInt()
+	indices = NewPassage(NewPhraseFromBits(indexBits0...), NewPhraseFromBits(indexBits1...), NewPhraseFromBits(indexBits2...), NewPhraseFromBits(indexBits3...))
+
+	comparison = NewRelativeSize(approximation.Cmp(target))
+	if comparison == 0 {
+		delta = new(big.Int)
+	} else if comparison < 0 {
+		delta = new(big.Int).Sub(target, approximation)
+	} else {
+		delta = new(big.Int).Sub(approximation, target)
+	}
+
+	return indices, approximation, delta, comparison
 }

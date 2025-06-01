@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"fmt"
 	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
@@ -352,4 +353,69 @@ func Test_Passage_FuzzyWrite_ZLEScaled(t *testing.T) {
 	tester(77, tiny.NewPhraseFromBits(0, 0, 1), tiny.NewPhrase(65))
 	tester(333, tiny.NewPhraseFromBits(0, 0, 0, 0), tiny.NewPhrase(1, 77))
 	tester(65536, tiny.NewPhraseFromBits(0, 0, 0, 1), tiny.NewPhrase(0, 0, 0, 0, 0, 1, 0, 0))
+}
+
+func Test_Synthesize_FuzzyApproximate(t *testing.T) {
+	data := tiny.Synthesize.RandomPhrase(32)
+	_, data, _ = data.ReadBit()
+	data = data.PrependBits(1)
+
+	target := data.AsBigInt()
+
+	indices, approximation, delta, comparison := tiny.Fuzzy.Approximation(target, 3)
+
+	fmt.Println(indices)
+	fmt.Println(target.Text(2))
+	fmt.Println(approximation.Text(2))
+	fmt.Println(delta.Text(2))
+
+	fmt.Println(target)
+	fmt.Println(approximation)
+	fmt.Println(delta)
+	fmt.Println(comparison)
+}
+
+func Test_Synthesize_FuzzyApproximate3(t *testing.T) {
+	counts := make([]int, 8)
+
+	for i := 0; i < 256; i++ {
+		results := approximate()
+
+		for ii := 0; ii < 8; ii++ {
+			counts[ii] += results[ii]
+		}
+	}
+
+	for ii := 0; ii < 8; ii++ {
+		counts[ii] /= 256
+		fmt.Printf("[%d] %d\n", ii, counts[ii])
+	}
+}
+
+func approximate() []int {
+	out := make([]int, 8)
+	data := tiny.Synthesize.RandomPhrase(32)
+	_, data, _ = data.ReadBit()
+	data = data.PrependBits(1)
+
+	target := data.AsBigInt()
+	bitLen := target.BitLen()
+
+	_, _, delta, _ := tiny.Fuzzy.Approximation(target, 1)
+	out[0] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 2)
+	out[1] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 3)
+	out[2] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 4)
+	out[3] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 5)
+	out[4] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 6)
+	out[5] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 7)
+	out[6] = bitLen - delta.BitLen()
+	_, _, delta, _ = tiny.Fuzzy.Approximation(target, 8)
+	out[7] = bitLen - delta.BitLen()
+	return out
 }

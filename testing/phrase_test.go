@@ -355,6 +355,64 @@ func Test_Phrase_ReadMeasurement_ShouldPanicIfOverArchitectureBitWidth(t *testin
 }
 
 /**
+ReadBit
+*/
+
+func Test_Phrase_ReadBit(t *testing.T) {
+	for x := 0; x < 256; x++ {
+		for y := 0; y < 256; y++ {
+			phrase := tiny.NewPhrase(byte(x), byte(y))
+			bit, remainder, err := phrase.ReadBit()
+			remainder = remainder.Align()
+
+			expected := tiny.From.Number(x, 8)
+			eBit := expected[0]
+			eRemainder := expected[1:]
+			eRemainder = append(eRemainder, tiny.From.Number(y, 8)...)
+
+			if err != nil {
+				t.Errorf("Expected no error, got %s", err)
+			}
+			if bit != eBit {
+				t.Errorf("Expected bit to be %d, got %d", eBit, bit)
+			}
+			ComparePhrases(remainder, tiny.NewPhraseFromBits(eRemainder...), t)
+		}
+	}
+}
+
+func Test_Phrase_ReadBit_ShouldErrorWhenEndOfPhrase(t *testing.T) {
+	phrase := tiny.NewPhrase(33, 22)
+
+	for i := 0; i <= phrase.BitLength(); i++ {
+		_, remainder, err := phrase.ReadBit()
+		phrase = remainder
+		if i == phrase.BitLength() && err == nil {
+			t.Fatalf("Expected an error when reading beyond the end of the phrase, got nil")
+		}
+	}
+}
+
+/**
+ReadUntilOne
+*/
+
+func Test_Phrase_ReadUntilOne(t *testing.T) {
+	for i := 0; i < 16; i++ {
+		input := tiny.Synthesize.Zeros(i)
+		data := tiny.Synthesize.RandomPhrase(8)
+		data = data.PrependBits(1) // Ensure the data starts with a 1
+
+		input = append(input, data...)
+		zeros, remainder := input.ReadUntilOne()
+		if zeros != i {
+			t.Errorf("Expected %d zeros, got %d", i, zeros)
+		}
+		CompareUnalignedPhrases(remainder, data, t)
+	}
+}
+
+/**
 Trifurcate
 */
 

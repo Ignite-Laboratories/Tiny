@@ -83,16 +83,6 @@ func (phrase Phrase) AsBigInt() *big.Int {
 Append/Prepend
 */
 
-// AppendBigInt appends the provided big.Int to the phrase in base-2 form.
-func (phrase Phrase) AppendBigInt(x *big.Int) Phrase {
-	return append(phrase, NewMeasurementFromBigInt(x))
-}
-
-// PrependBigInt prepends the provided big.Int to the phrase in base-2 form.
-func (phrase Phrase) PrependBigInt(x *big.Int) Phrase {
-	return append(Phrase{NewMeasurementFromBigInt(x)}, phrase...)
-}
-
 // AppendMeasurement appends the provided measurement to the phrase.
 func (phrase Phrase) AppendMeasurement(m Measurement) Phrase {
 	return append(phrase, m)
@@ -491,6 +481,28 @@ func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Ph
 	return read, remainder
 }
 
+// ReadBit reads a single bit from the source phrase and returns the remainder as a Phrase.
+func (phrase Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
+	measure, remainder := phrase.ReadMeasurement(1)
+	if measure.BitLength() == 0 {
+		return 0, nil, fmt.Errorf("no more bits to read")
+	}
+	return measure.GetAllBits()[0], remainder, nil
+}
+
+// ReadUntilOne reads the source phrase until it reaches the first 1, then returns the zero count and remainder.
+func (phrase Phrase) ReadUntilOne() (zeros int, remainder Phrase) {
+	remainder = phrase
+	for b, r, err := remainder.ReadBit(); err == nil; b, r, err = r.ReadBit() {
+		if b == 1 {
+			return zeros, remainder
+		}
+		zeros++
+		remainder = r
+	}
+	return zeros, remainder
+}
+
 // Trifurcate takes the source phrase and subdivides it in thrice - start, middle, and end.
 //
 // For example:
@@ -516,6 +528,34 @@ func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, midd
 	start, end = phrase.Read(startLen)
 	middle, end = end.Read(middleLen)
 	return start, middle, end
+}
+
+// Bifurcate takes the source phrase and subdivides it in twain - start and end.
+//
+// The ending bits will contain any odd bits from the splitting operation.
+//
+// For example:
+//
+//			tiny.Phrase{ 77, 22, 33 }
+//	     tiny.AppendBits(1, 0, 0)
+//
+//			|        77       |        22       |        33       |   5   |  <- Values
+//			| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
+//			|  Measurement 1  |  Measurement 2  |  Measurement 3  |   M4  |  <- Source Phrase Measurements
+//
+//			Bifurcate()
+//
+//			|        77       |         22        |        33       |   5   |  <- Values
+//			| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
+//			|             Start           |               End               |  <- Bifurcated Phrases
+//			|     Start 1     |  Start 2  | End 1 |      End 2      | End 3 |  <- Bifurcated Phrase Measurements
+//
+//		 (Optional) Align() each phrase
+//
+//			| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 - 0 0 1 | 1 0 0 |  <- Raw Bits
+//			|     Start 1     |  Start 2  |       End 1       |     End 2     |  <- Aligned Measurements
+func (phrase Phrase) Bifurcate() (start Phrase, end Phrase) {
+	return phrase.Read(phrase.BitLength() / 2)
 }
 
 // Focus is used to limit the width of eminently relevant measurements.
@@ -593,4 +633,12 @@ func (phrase Phrase) StringBinary() string {
 		out += m.StringBinary()
 	}
 	return out
+}
+
+func (phrase Phrase) String() string {
+	out := make([]string, len(phrase))
+	for i, m := range phrase {
+		out[i] = m.StringBinary()
+	}
+	return fmt.Sprintf("%v", out)
 }
