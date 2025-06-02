@@ -162,7 +162,7 @@ func (s _synthesize) Subdivided(width int, index int, resolution int) []Bit {
 //
 // If no approximation width is provided, the bit length of the target is used.
 //
-// The result is a slice of bits and the index of the closest match.
+// A binary representation of the closest value, plus its index, is returned.
 func (_ _synthesize) Approximation(target *big.Int, resolution int, width ...int) ([]Bit, int) {
 	w := target.BitLen()
 	if len(width) > 0 {

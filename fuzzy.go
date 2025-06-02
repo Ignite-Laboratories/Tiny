@@ -9,13 +9,77 @@ import (
 // _fuzzy is a factory for creating or referencing fuzzy projection functions.
 type _fuzzy int
 
-// Approximation represents an synthetic approximate value.
+// Approximation represents an synthetically generated approximate value.
+//
+// Indices - Provides the four index points to synthesize a known bit range with.
+//
+//	 Index 0 represents the first ⅛th of the target bits and is approximated at 4x the resolution
+//		Index 1 represents the second ⅛th and is approximated at 4x the resolution
+//		Index 2 represents the second ¼ and is approximated at 2x the resolution
+//		Index 3 represents the final ½ and is approximated at standard resolution
+//
+// Value - Provides the value of the synthesized binary data.
+//
+// Target - Gives the target value this approximation attempted to fuzzily replicate.
+//
+// Delta - Gives the absolute value of the difference between the Value and Target.
+//
+// Relativity - Dictates if the approximated value is relativistically smaller or larger than the target.
 type Approximation struct {
 	Indices    Passage
 	Value      *big.Int
 	Target     *big.Int
 	Delta      *big.Int
 	Relativity RelativeSize
+}
+
+// CorrectionFactor represents a synthetic value with three parts:
+//
+// Threshold - A threshold of '1' indicates that the correction factor
+// is above 1.0, while a threshold of '0' indicates it's below 1.0.
+//
+// Focus - This crumb indicates how this region should be "focused in" on.
+// This defines both the resolution bit width for the value as well as the
+// target factor range to subdivide a synthetic value from.
+// The focus crumb key can be decoded using the below table:
+//
+//	Focus | Bit Width | Index Value Ranges
+//	  00  |     4     |        0-1
+//	  01  |     3     |        0-3
+//	  10  |     2     |        0-7
+//	  11  |     1     |        0-15
+//
+// The above key also interprets the factor ranges, when combined with the threshold:
+//
+//	Threshold | Focus |   Factor Range
+//	        0 |   00  |     1.6 - 2.0
+//	        0 |   01  |   1.126 - 1.5
+//	        0 |   10  |  1.0625 - 1.125
+//	        0 |   11  |   1.001 | 1.03125
+//	----------------------------------
+//	        1 |   00  |     0.5 - 0.75
+//	        1 |   01  |    0.76 - 0.875
+//	        1 |   10  |   0.876 - 0.9375
+//	        1 |   11  | 0.96875 | 0.99
+//
+// Value - This is a variable width region of bits that indicates the
+// subdivision index to factor against the approximation.
+//
+// For example:
+//
+//	0 | 00 | 0000 -> Factor    1.6
+//	0 | 00 | 0001 -> Factor    1.6 + 1/15 th of a    0.4 Δ between   1.6 and    2.0
+//	0 | 01 | 101  -> Factor  1.126 + 5/7 ths of a  0.374 Δ between 1.126 and    1.5
+//	1 | 10 | 01   -> Factor  0.876 + 1/3  rd of a 0.0615 Δ between 0.876 and 0.9375
+//	0 | 11 | 1    -> Factor 1.03125
+//	1 | 11 | 0    -> Factor 0.96875
+//
+// As you likely noticed, the bit width -decreases- as the source accuracy goes up.
+// This is by design, as it promotes -good- approximations while bolstering less resolute "shots in the dark."
+type CorrectionFactor struct {
+	Threshold Bit
+	Focus     Crumb
+	Value     []Bit
 }
 
 // Count returns a function that will return true the requested number of times.
@@ -401,7 +465,7 @@ func (_ _fuzzy) Approximation(target *big.Int, minResolution ...int) Approximati
 	fuzzy0, index0 := Synthesize.Approximation(region0.AsBigInt(), resolutionMax4x, eighth)
 	fuzzy1, index1 := Synthesize.Approximation(region1.AsBigInt(), resolutionMax4x, eighth)
 	fuzzy2, index2 := Synthesize.Approximation(region2.AsBigInt(), resolutionMax2x, quarter)
-	fuzzy3, index3 := Synthesize.Approximation(region3.AsBigInt(), resolutionMax, bitLength-quarter-quarter)
+	fuzzy3, index3 := Synthesize.Approximation(region3.AsBigInt(), resolutionMax, bitLength-eighth-eighth-quarter)
 
 	indexBits0 := From.Number(index0, bitWidth4x)
 	indexBits1 := From.Number(index1, bitWidth4x)
@@ -412,9 +476,9 @@ func (_ _fuzzy) Approximation(target *big.Int, minResolution ...int) Approximati
 	approx.Indices = NewPassage(NewPhraseFromBits(indexBits0...), NewPhraseFromBits(indexBits1...), NewPhraseFromBits(indexBits2...), NewPhraseFromBits(indexBits3...))
 
 	approx.Relativity = NewRelativeSize(approx.Value.Cmp(target))
-	if approx.Relativity == 0 {
+	if approx.Relativity == Equal {
 		approx.Delta = new(big.Int)
-	} else if approx.Relativity < 0 {
+	} else if approx.Relativity == Smaller {
 		approx.Delta = new(big.Int).Sub(target, approx.Value)
 	} else {
 		approx.Delta = new(big.Int).Sub(approx.Value, target)
@@ -423,56 +487,8 @@ func (_ _fuzzy) Approximation(target *big.Int, minResolution ...int) Approximati
 	return approx
 }
 
-// CorrectionFactor represents a synthetic value with three parts:
-//
-// Threshold - A threshold of '1' indicates that the correction factor
-// is above 1.0, while a threshold of '0' indicates it's below 1.0.
-//
-// Focus - This crumb indicates how this region should be "focused in" on.
-// This defines both the resolution bit width for the value as well as the
-// target factor range to subdivide a synthetic value from.
-// The focus crumb key can be decoded using the below table:
-//
-//	Key | Bit Width | Index Range
-//	 00 |     4     | 0-1
-//	 01 |     3     | 0-3
-//	 10 |     2     | 0-7
-//	 11 |     1     | 0-15
-//
-// The above key also interprets the factor ranges, when combined with a threshold:
-//
-//	Threshold | Key |   Factor Range
-//	        0 |  00 |    1.5 - 2.0
-//	        0 |  01 |   1.25 - 1.5
-//	        0 |  10 |  1.125 - 1.0625
-//	        0 |  11 | 1.0625 - 1.001
-//	----------------------------------
-//	        1 |  00 |    0.5 - 0.75
-//	        1 |  01 |   0.75 - 0.875
-//	        1 |  10 |  0.875 - 0.9375
-//	        1 |  11 | 0.9375 - 1.0
-//
-// Value - This is a variable width region of bits that indicates the
-// subdivision index to factor against the approximation.
-//
-// For example:
-//
-//		0 | 00 | 0000 -> Factor 1.5
-//		0 | 00 | 0001 -> Factor 1.5 + 1/15th of a 0.5 Δ between 1.5 and 2.0
-//	 0 | 01 | 101  -> Factor 1.25 + 5/7ths of a 0.25 Δ between 1.25 and 1.5
-//	 0 | 11 | 1    -> Factor 1.001
-//	 1 | 11 | 1    -> Factor 1.0 -> This can also represent a 'terminus' conditional.
-//
-// As you likely noticed, the bit width -decreases- as the source accuracy goes up.
-// This is by design, as it promotes -good- approximations while supporting less resolute "shots in the dark."
-type CorrectionFactor struct {
-	Threshold Bit
-	Focus     Crumb
-	Value     []Bit
-}
-
-// Correct takes the provided approximation and generates a CorrectionFactor to apply against it,
+// Correct takes the provided value and generates a CorrectionFactor to bring it closer to the target,
 // then returns the resulting approximation with the correction factor applied.
-func (_ _fuzzy) Correct(approximation Approximation) (Approximation, CorrectionFactor) {
+func (_ _fuzzy) Correct(value *big.Int, target *big.Int) (Approximation, CorrectionFactor) {
 	return Approximation{}, CorrectionFactor{}
 }
