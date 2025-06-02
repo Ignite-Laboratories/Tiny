@@ -52,25 +52,26 @@ type Approximation struct {
 // The above key also interprets the factor ranges, when combined with the threshold:
 //
 //	Threshold | Focus |   Factor Range
-//	        0 |   00  |     1.6 - 2.0
-//	        0 |   01  |   1.126 - 1.5
+//	        0 |   00  |     1.5 - 2.0
+//	        0 |   01  |   1.125 - 1.5
 //	        0 |   10  |  1.0625 - 1.125
 //	        0 |   11  |   1.001 | 1.03125
 //	----------------------------------
 //	        1 |   00  |     0.5 - 0.75
-//	        1 |   01  |    0.76 - 0.875
-//	        1 |   10  |   0.876 - 0.9375
+//	        1 |   01  |    0.75 - 0.875
+//	        1 |   10  |   0.875 - 0.9375
 //	        1 |   11  | 0.96875 | 0.99
+//
 //
 // Value - This is a variable width region of bits that indicates the
 // subdivision index to factor against the approximation.
 //
 // For example:
 //
-//	0 | 00 | 0000 -> Factor    1.6
-//	0 | 00 | 0001 -> Factor    1.6 + 1/15 th of a    0.4 Δ between   1.6 and    2.0
-//	0 | 01 | 101  -> Factor  1.126 + 5/7 ths of a  0.374 Δ between 1.126 and    1.5
-//	1 | 10 | 01   -> Factor  0.876 + 1/3  rd of a 0.0615 Δ between 0.876 and 0.9375
+//	0 | 00 | 0000 -> Factor    1.5
+//	0 | 00 | 0001 -> Factor    1.5 + 1/15 th of a    0.5 Δ between   1.5 and    2.0
+//	0 | 01 | 101  -> Factor  1.125 + 5/7 ths of a  0.375 Δ between 1.125 and    1.5
+//	1 | 10 | 01   -> Factor  0.875 + 1/3  rd of a 0.0625 Δ between 0.875 and 0.9375
 //	0 | 11 | 1    -> Factor 1.03125
 //	1 | 11 | 0    -> Factor 0.96875
 //
@@ -80,6 +81,121 @@ type CorrectionFactor struct {
 	Threshold Bit
 	Focus     Crumb
 	Value     []Bit
+}
+
+// Correct takes the provided value and generates a CorrectionFactor to bring it closer to the target,
+// then returns the resulting approximation with the correction factor applied.
+func (_ _fuzzy) Correct(approximation Approximation, target *big.Int) (Approximation, CorrectionFactor) {
+	var out CorrectionFactor
+	valueF := new(big.Float).SetInt(approximation.Value)
+	targetF := new(big.Float).SetInt(target)
+
+	factor := new(big.Float).Quo(targetF, valueF)
+
+	var lower *big.Float
+	var upper *big.Float
+	var bitWidth int
+
+	if approximation.Value.Cmp(target) > 0 {
+		out.Threshold = One
+
+		switch {
+		case factor.Cmp(Factor0pt75) < 0:
+			out.Focus = ZeroZero
+			lower = Factor0pt5
+			upper = Factor0pt75
+			bitWidth = 4
+		case factor.Cmp(Factor0pt875) < 0:
+			out.Focus = ZeroOne
+			lower = Factor0pt75
+			upper = Factor0pt875
+			bitWidth = 3
+		case factor.Cmp(Factor0pt9375) <= 0:
+			out.Focus = OneZero
+			lower = Factor0pt875
+			upper = Factor0pt9375
+			bitWidth = 2
+		default:
+			out.Focus = OneOne
+			lower = Factor0pt96875
+			upper = Factor0pt99
+			bitWidth = 1
+		}
+	} else {
+		out.Threshold = Zero
+
+		switch {
+		case factor.Cmp(Factor1pt0625) < 0:
+			out.Focus = OneOne
+			lower = Factor1pt001
+			upper = Factor1pt03125
+			bitWidth = 1
+		case factor.Cmp(Factor1pt125) < 0:
+			out.Focus = OneZero
+			lower = Factor1pt0625
+			upper = Factor1pt125
+			bitWidth = 2
+		case factor.Cmp(Factor1pt5) < 0:
+			out.Focus = ZeroOne
+			lower = Factor1pt125
+			upper = Factor1pt5
+			bitWidth = 3
+		default:
+			out.Focus = ZeroZero
+			lower = Factor1pt5
+			upper = Factor2pt0
+			bitWidth = 4
+		}
+	}
+
+	if bitWidth == 1 {
+		// We have two hard-coded values for a single bit width
+		approxLower, _ := new(big.Float).Mul(lower, valueF).Int(nil)
+		deltaLower := new(big.Int).Sub(target, approxLower)
+
+		approxUpper, _ := new(big.Float).Mul(upper, valueF).Int(nil)
+		deltaUpper := new(big.Int).Sub(target, approxUpper)
+
+		if deltaLower.Cmp(deltaUpper) < 0 {
+			// Lower is closer
+			approximation.Value = approxLower
+			approximation.Delta = deltaLower
+			out.Value = From.Number(0, bitWidth)
+		} else {
+			// Upper is closer
+			approximation.Value = approxUpper
+			approximation.Delta = deltaUpper
+			out.Value = From.Number(1, bitWidth)
+		}
+	} else {
+		// We'll walk all of the resolution values and find the closest match
+		factorDelta := new(big.Float).Sub(upper, lower)
+		resolution := To.Number(bitWidth, Synthesize.Ones(bitWidth).Bits()...)
+		stride := new(big.Float).Quo(factorDelta, new(big.Float).SetInt(big.NewInt(int64(resolution))))
+
+		for i := 0; i <= resolution; i++ {
+			phaseOffset := new(big.Float).Mul(stride, new(big.Float).SetInt(big.NewInt(int64(i))))
+			phasedFactor := new(big.Float).Add(lower, phaseOffset)
+
+			approx, _ := new(big.Float).Mul(phasedFactor, valueF).Int(nil)
+			var delta *big.Int
+
+			if approx.Cmp(target) < 0 {
+				delta = new(big.Int).Sub(target, approx)
+			} else {
+				delta = new(big.Int).Sub(approx, target)
+			}
+
+			if delta.Cmp(approximation.Delta) < 0 {
+				approximation.Value = approx
+				approximation.Delta = delta
+				out.Value = From.Number(i, bitWidth)
+			}
+		}
+	}
+	
+	approximation.Relativity = NewRelativeSize(approximation.Value.Cmp(approximation.Target))
+	return approximation, out
 }
 
 // Count returns a function that will return true the requested number of times.
@@ -485,10 +601,4 @@ func (_ _fuzzy) Approximation(target *big.Int, minResolution ...int) Approximati
 	}
 
 	return approx
-}
-
-// Correct takes the provided value and generates a CorrectionFactor to bring it closer to the target,
-// then returns the resulting approximation with the correction factor applied.
-func (_ _fuzzy) Correct(value *big.Int, target *big.Int) (Approximation, CorrectionFactor) {
-	return Approximation{}, CorrectionFactor{}
 }
