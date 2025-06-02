@@ -360,7 +360,7 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 //
 // Finally, the found key Measurement, projection Phrase, and remainder Phrase are returned.
 //
-// NOTE: The most common fuzzy projection functions are accessible from the tiny.Fuzzy instance of tiny.FuzzyHandler.
+// NOTE: The most common fuzzy projection functions are accessible from tiny.Fuzzy.
 //
 // For example:
 //

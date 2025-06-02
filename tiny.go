@@ -10,8 +10,8 @@ var Analyze _analyze
 //	tiny.From [byte/number/etc...]
 var From _from
 
-// Fuzzy is the global instance of FuzzyHandler
-var Fuzzy FuzzyHandler
+// Fuzzy is the global instance of _fuzzy
+var Fuzzy _fuzzy
 
 // Modify is a way to alter existing binary information.
 var Modify _modify

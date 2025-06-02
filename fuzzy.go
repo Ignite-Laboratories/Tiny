@@ -6,11 +6,20 @@ import (
 	"math/big"
 )
 
-// FuzzyHandler is a factory for creating or referencing fuzzy projection functions.
-type FuzzyHandler int
+// _fuzzy is a factory for creating or referencing fuzzy projection functions.
+type _fuzzy int
+
+// Approximation represents an synthetic approximate value.
+type Approximation struct {
+	Indices    Passage
+	Value      *big.Int
+	Target     *big.Int
+	Delta      *big.Int
+	Relativity RelativeSize
+}
 
 // Count returns a function that will return true the requested number of times.
-func (_ FuzzyHandler) Count(value int) func(Bit) bool {
+func (_ _fuzzy) Count(value int) func(Bit) bool {
 	i := 0
 	return func(b Bit) bool {
 		i++
@@ -19,12 +28,12 @@ func (_ FuzzyHandler) Count(value int) func(Bit) bool {
 }
 
 // ZLEKey reads up to four bits or until a value of 1 is reached.
-// This will yield a Zero Length Encoding key that can be parsed using FuzzyHandler.ParseZLE64
+// This will yield a Zero Length Encoding key that can be parsed using tiny.Fuzzy.ParseZLE64
 //
 // If you would like to read a ZLE key longer than 4 bits, you may provide an upper limit.
 //
 // If you wish for no upper limit (just read until EOD or a 1) then provide <= 0 as the upper limit..
-func (_ FuzzyHandler) ZLEKey(upperLimit ...int) func(Bit) bool {
+func (_ _fuzzy) ZLEKey(upperLimit ...int) func(Bit) bool {
 	limit := 4
 	if len(upperLimit) > 0 {
 		limit = upperLimit[0]
@@ -53,7 +62,7 @@ func (_ FuzzyHandler) ZLEKey(upperLimit ...int) func(Bit) bool {
 //	  0 0 1 |     8     |   0-2⁸ + 12 (12-267)
 //	0 0 0 0 |    16     |   0-2¹⁶
 //	0 0 0 1 |    64     |   0-2⁶⁴
-func (_ FuzzyHandler) ParseZLEScaled(key Measurement) int {
+func (_ _fuzzy) ParseZLEScaled(key Measurement) int {
 	switch bits := key.Bits; {
 	case len(bits) == 1 && key.Value() == 1:
 		return 2
@@ -78,7 +87,7 @@ func (_ FuzzyHandler) ParseZLEScaled(key Measurement) int {
 //	  0 0 1 |     8     |   0-2⁸ + 12 (12-267)
 //	0 0 0 0 |    16     |   0-2¹⁶
 //	0 0 0 1 |    64     |   0-2⁶⁴
-func (_ FuzzyHandler) InterpretZLEScaled(passage Passage) int {
+func (_ _fuzzy) InterpretZLEScaled(passage Passage) int {
 	key := passage[0][0]
 	projection := passage[1]
 	switch bits := key.Bits; {
@@ -108,7 +117,7 @@ func (_ FuzzyHandler) InterpretZLEScaled(passage Passage) int {
 //	  0 0 1 | 16
 //	0 0 0 0 | 32
 //	0 0 0 1 | 64
-func (_ FuzzyHandler) ParseZLE64(key Measurement) int {
+func (_ _fuzzy) ParseZLE64(key Measurement) int {
 	switch bits := key.Bits; {
 	case len(bits) == 1 && key.Value() == 1:
 		return 4
@@ -135,7 +144,7 @@ func (_ FuzzyHandler) ParseZLE64(key Measurement) int {
 //	  0 0 1 | 3
 //	0 0 0 0 | 4
 //	0 0 0 1 | 5
-func (_ FuzzyHandler) ParseZLE5(key Measurement) int {
+func (_ _fuzzy) ParseZLE5(key Measurement) int {
 	switch bits := key.Bits; {
 	case len(bits) == 1 && key.Value() == 1:
 		return 1
@@ -165,7 +174,7 @@ func (_ FuzzyHandler) ParseZLE5(key Measurement) int {
 //		0 0 0 1 | 8
 //	           ...
 //	      𝑛   1 | 2ⁿ
-func (_ FuzzyHandler) ParseZLE(key Measurement) int {
+func (_ _fuzzy) ParseZLE(key Measurement) int {
 	count := 0
 	for _, b := range key.Bits {
 		if b == Zero {
@@ -189,7 +198,7 @@ func (_ FuzzyHandler) ParseZLE(key Measurement) int {
 //	  1 | 2
 //	  2 | 4
 //	  3 | 6
-func (_ FuzzyHandler) SixtyFour(key Measurement) int {
+func (_ _fuzzy) SixtyFour(key Measurement) int {
 	switch v := key.Value(); v {
 	case 0:
 		return 0
@@ -229,7 +238,7 @@ func (_ FuzzyHandler) SixtyFour(key Measurement) int {
 //	Value-> 4  |   1       2       3       4                           <- Window Occurances
 //	     | 1 1 | 0 0 1 - 1 0 1 - 0 0 0 - 1 0 1 | 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
 //	     | Key |          Continuation         |      Remainder      | <- Fuzzy read
-func (_ FuzzyHandler) Window(windowWidth int) func(Measurement) int {
+func (_ _fuzzy) Window(windowWidth int) func(Measurement) int {
 	if windowWidth <= 0 {
 		panic("fuzzy.Window: window width must be greater than zero")
 	}
@@ -269,7 +278,7 @@ func (_ FuzzyHandler) Window(windowWidth int) func(Measurement) int {
 //
 // NOTE: The output continuation phrase will be aligned to its source form, but a call to Phrase.Align(windowWidth)
 // will yield even measurements as demonstrated above.
-func (_ FuzzyHandler) PowerWindow(windowWidth int) func(Measurement) int {
+func (_ _fuzzy) PowerWindow(windowWidth int) func(Measurement) int {
 	if windowWidth <= 0 {
 		panic("fuzzy.Window: window width must be greater than zero")
 	}
@@ -291,7 +300,7 @@ func (_ FuzzyHandler) PowerWindow(windowWidth int) func(Measurement) int {
 //	  0 0 1 | 16
 //	0 0 0 0 | 32
 //	0 0 0 1 | 64
-func (_ FuzzyHandler) EncodeZLE64Value(x int) (key Phrase, projection Phrase) {
+func (_ _fuzzy) EncodeZLE64Value(x int) (key Phrase, projection Phrase) {
 	input := NewPhraseFromBits(From.Number(x)...)
 	bitLen := input.BitLength()
 
@@ -363,7 +372,10 @@ func (_ FuzzyHandler) EncodeZLE64Value(x int) (key Phrase, projection Phrase) {
 //
 // Above, 68/8 = 8.5 so the ⅛ indices are still 8 bits while 68/4 = 17 so the ¼ index grows to 17 bits.
 // Finally, the ½ index picks up whatever remaining bits are leftover.
-func (_ FuzzyHandler) Approximation(target *big.Int, minResolution ...int) (indices Passage, approximation *big.Int, delta *big.Int, comparison RelativeSize) {
+func (_ _fuzzy) Approximation(target *big.Int, minResolution ...int) Approximation {
+	var approx Approximation
+	approx.Target = target
+
 	bitWidth := 3
 	if len(minResolution) > 0 {
 		bitWidth = minResolution[0]
@@ -396,17 +408,71 @@ func (_ FuzzyHandler) Approximation(target *big.Int, minResolution ...int) (indi
 	indexBits2 := From.Number(index2, bitWidth2x)
 	indexBits3 := From.Number(index3, bitWidth)
 
-	approximation = NewPhraseFromBits(fuzzy0...).AppendBits(fuzzy1...).AppendBits(fuzzy2...).AppendBits(fuzzy3...).AsBigInt()
-	indices = NewPassage(NewPhraseFromBits(indexBits0...), NewPhraseFromBits(indexBits1...), NewPhraseFromBits(indexBits2...), NewPhraseFromBits(indexBits3...))
+	approx.Value = NewPhraseFromBits(fuzzy0...).AppendBits(fuzzy1...).AppendBits(fuzzy2...).AppendBits(fuzzy3...).AsBigInt()
+	approx.Indices = NewPassage(NewPhraseFromBits(indexBits0...), NewPhraseFromBits(indexBits1...), NewPhraseFromBits(indexBits2...), NewPhraseFromBits(indexBits3...))
 
-	comparison = NewRelativeSize(approximation.Cmp(target))
-	if comparison == 0 {
-		delta = new(big.Int)
-	} else if comparison < 0 {
-		delta = new(big.Int).Sub(target, approximation)
+	approx.Relativity = NewRelativeSize(approx.Value.Cmp(target))
+	if approx.Relativity == 0 {
+		approx.Delta = new(big.Int)
+	} else if approx.Relativity < 0 {
+		approx.Delta = new(big.Int).Sub(target, approx.Value)
 	} else {
-		delta = new(big.Int).Sub(approximation, target)
+		approx.Delta = new(big.Int).Sub(approx.Value, target)
 	}
 
-	return indices, approximation, delta, comparison
+	return approx
+}
+
+// CorrectionFactor represents a synthetic value with three parts:
+//
+// Threshold - A threshold of '1' indicates that the correction factor
+// is above 1.0, while a threshold of '0' indicates it's below 1.0.
+//
+// Focus - This crumb indicates how this region should be "focused in" on.
+// This defines both the resolution bit width for the value as well as the
+// target factor range to subdivide a synthetic value from.
+// The focus crumb key can be decoded using the below table:
+//
+//	Key | Bit Width | Index Range
+//	 00 |     4     | 0-1
+//	 01 |     3     | 0-3
+//	 10 |     2     | 0-7
+//	 11 |     1     | 0-15
+//
+// The above key also interprets the factor ranges, when combined with a threshold:
+//
+//	Threshold | Key |   Factor Range
+//	        0 |  00 |    1.5 - 2.0
+//	        0 |  01 |   1.25 - 1.5
+//	        0 |  10 |  1.125 - 1.0625
+//	        0 |  11 | 1.0625 - 1.001
+//	----------------------------------
+//	        1 |  00 |    0.5 - 0.75
+//	        1 |  01 |   0.75 - 0.875
+//	        1 |  10 |  0.875 - 0.9375
+//	        1 |  11 | 0.9375 - 1.0
+//
+// Value - This is a variable width region of bits that indicates the
+// subdivision index to factor against the approximation.
+//
+// For example:
+//
+//		0 | 00 | 0000 -> Factor 1.5
+//		0 | 00 | 0001 -> Factor 1.5 + 1/15th of a 0.5 Δ between 1.5 and 2.0
+//	 0 | 01 | 101  -> Factor 1.25 + 5/7ths of a 0.25 Δ between 1.25 and 1.5
+//	 0 | 11 | 1    -> Factor 1.001
+//	 1 | 11 | 1    -> Factor 1.0 -> This can also represent a 'terminus' conditional.
+//
+// As you likely noticed, the bit width -decreases- as the source accuracy goes up.
+// This is by design, as it promotes -good- approximations while supporting less resolute "shots in the dark."
+type CorrectionFactor struct {
+	Threshold Bit
+	Focus     Crumb
+	Value     []Bit
+}
+
+// Correct takes the provided approximation and generates a CorrectionFactor to apply against it,
+// then returns the resulting approximation with the correction factor applied.
+func (_ _fuzzy) Correct(approximation Approximation) (Approximation, CorrectionFactor) {
+	return Approximation{}, CorrectionFactor{}
 }

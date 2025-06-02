@@ -141,7 +141,7 @@ func (c *Composition) distill1(target *big.Int) {
 	//c.distill(corrected)
 }
 
-type approx struct {
+type _approx struct {
 	Base       int
 	Exponent   int
 	Target     *big.Int
@@ -151,7 +151,7 @@ type approx struct {
 	Correction float32
 }
 
-func (approx *approx) Correct() {
+func (approx *_approx) Correct() {
 	fuzzyFloat := new(big.Float).SetInt(approx.Fuzzy)
 	targetFloat := new(big.Float).SetInt(approx.Target)
 
@@ -197,7 +197,7 @@ func logBaseN(x *big.Int, base int) *big.Float {
 	return new(big.Float).Quo(lnX, lnBase)
 }
 
-func findSmallest(input ...approx) approx {
+func findSmallest(input ..._approx) _approx {
 	if len(input) == 0 {
 		panic("need at least one value")
 	}
