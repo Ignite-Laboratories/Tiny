@@ -351,117 +351,6 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	return read, remainder
 }
 
-// FuzzyRead reads up to your architecture's bit width worth of bits and passes each sequentially to the provided
-// key function until it returns false.
-// The found measurement of bits is then passed to the projection function, which should parse the key determine
-// how many more bits to read.
-//
-// Essentially, this progressively tests bit-for-bit until it can parse a value and make a logical decision.
-//
-// Finally, the found key Measurement, projection Phrase, and remainder Phrase are returned.
-//
-// NOTE: The most common fuzzy projection functions are accessible from tiny.Fuzzy.
-//
-// For example:
-//
-//		 FuzzyRead(tiny.Fuzzy.Count(2), tiny.Fuzzy.SixtyFour)
-//
-//	 value-> 0    𝧘 Resulting Continuation Size
-//	      | 0 0 | | 0 0 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	      | Key |C|                Remainder                    | <- Fuzzy read
-//
-//	 value-> 1      𝧘 Resulting Continuation Size
-//	      | 0 1 | 0 0 | 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	      | Key |  C  |               Remainder                 | <- Fuzzy read
-//
-//	 value-> 2        𝧘 Resulting Continuation Size
-//	      | 1 0 | 0 0 1 1 | 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	      | Key |  Cont   |             Remainder               | <- Fuzzy read
-//
-//	 value-> 3          𝧘 Resulting Continuation Size
-//	      | 1 1 | 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	      | Key |   Continue  |            Remainder            | <- Fuzzy read
-func (phrase Phrase) FuzzyRead(keyFn func(Bit) bool, projectionFn func(Measurement) int) (key Measurement, projection Phrase, remainder Phrase) {
-	// This wrapper lets us use phrase.ReadMeasurement(1), but we have to then pull the found bit out and pass it along
-	keyFnWrapper := func(m Measurement) bool {
-		// If there are no more bits to read, just return false...
-		if m.BitLength() == 0 {
-			return false
-		}
-		// ...otherwise, add the bit to the key and then pass it along to the key function
-		key.AppendBits(m.Bits[0])
-		return keyFn(m.Bits[0])
-	}
-
-	var bit Measurement
-	for bit, remainder = phrase.ReadMeasurement(1); keyFnWrapper(bit); bit, remainder = remainder.ReadMeasurement(1) {
-	}
-
-	projection, remainder = remainder.Read(projectionFn(key))
-	return key, projection, remainder
-}
-
-// ReadZLEScaled reads the next bits as if they are a Zero Length Encoded value.
-// It returns the key (all bits until the first One is found), the projection bit range, and the remainder phrase.
-//
-// NOTE: The values encoded by a scaled ZLE projection phrase are meant to be -interpreted- as defined below!
-//
-// This particular flavor of ZLE will return and addressable bit range up to 64 bits wide.
-//
-//	ZLE Key | Bit Range | Value Range
-//	      1 |     2     |   0-3
-//	    0 1 |     3     |   0-2³ + 3 (4-11)
-//	  0 0 1 |     8     |   0-2⁸ + 11 (12-267)
-//	0 0 0 0 |    16     |   0-2¹⁶
-//	0 0 0 1 |    64     |   0-2⁶⁴
-func (phrase Phrase) ReadZLEScaled() (key Measurement, projection Phrase, remainder Phrase) {
-	return phrase.FuzzyRead(Fuzzy.ZLEKey(), Fuzzy.ParseZLEScaled)
-}
-
-// ReadZLE64 reads the next bits as if they are a Zero Length Encoded value.
-// It returns the key (all bits until the first One is found), the projection bit range, and the remainder phrase.
-//
-// This particular flavor of ZLE will return and addressable bit range up to 64 bits wide.
-//
-//	ZLE Key | Projection Bit Range
-//	      1 | 4
-//	    0 1 | 8
-//	  0 0 1 | 16
-//	0 0 0 0 | 32
-//	0 0 0 1 | 64
-func (phrase Phrase) ReadZLE64() (key Measurement, projection Phrase, remainder Phrase) {
-	return phrase.FuzzyRead(Fuzzy.ZLEKey(), Fuzzy.ParseZLE64)
-}
-
-// ReadZLE5 reads the next bits as if they are a Zero Length Encoded value.
-// It returns the key (all bits until the first One is found), the projection bit range, and the remainder phrase.
-//
-// This particular flavor of ZLE will return and addressable bit range up to 5 bits wide.
-//
-//	Micro ZLE Key | Projection Bit Range
-//	            1 | 1
-//	          0 1 | 2
-//	        0 0 1 | 3
-//	      0 0 0 0 | 4
-//	      0 0 0 1 | 5
-func (phrase Phrase) ReadZLE5() (key Measurement, projection Phrase, remainder Phrase) {
-	return phrase.FuzzyRead(Fuzzy.ZLEKey(), Fuzzy.ParseZLE5)
-}
-
-// ReadZLE reads the next bits as if they are a Zero Length Encoded value.
-// It returns the key (all bits until the first One is found), the projection bit range, and the remainder phrase.
-//
-//	Macro ZLE Key  | Projection Bit Range
-//	             1 | Read a 0 (2⁰) bit value
-//	           0 1 | Read a 2 (2¹) bit value
-//	         0 0 1 | Read a 4 (2²) bit value
-//	       0 0 0 1 | Read a 8 (2³) bit value
-//	              ...
-//	           𝑛 1 | Read a 2ⁿ bit value
-func (phrase Phrase) ReadZLE(upperLimit ...int) (key Measurement, projection Phrase, remainder Phrase) {
-	return phrase.FuzzyRead(Fuzzy.ZLEKey(upperLimit...), Fuzzy.ParseZLE)
-}
-
 // ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and provides the
 // remainder as a Phrase.
 //
@@ -491,9 +380,19 @@ func (phrase Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
 }
 
 // ReadUntilOne reads the source phrase until it reaches the first 1, then returns the zero count and remainder.
-func (phrase Phrase) ReadUntilOne() (zeros int, remainder Phrase) {
+//
+// If you'd like it to stop after a certain count, provide a limit.
+func (phrase Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
+	l := -1
+	if len(limit) > 0 {
+		l = limit[0]
+	}
+
 	remainder = phrase
 	for b, r, err := remainder.ReadBit(); err == nil; b, r, err = r.ReadBit() {
+		if l >= 0 && zeros >= l {
+			break
+		}
 		if b == 1 {
 			return zeros, remainder
 		}

@@ -1,6 +1,8 @@
 package tiny
 
-import "math/big"
+import (
+	"math"
+)
 
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0
@@ -170,18 +172,35 @@ func NewRelativeSize(value int) RelativeSize {
 }
 
 /**
-Correction Factors
+Correction Factor Focus
 */
 
-var Factor2pt0 = new(big.Float).SetFloat64(2.0)
-var Factor1pt5 = new(big.Float).SetFloat64(1.5)
-var Factor1pt125 = new(big.Float).SetFloat64(1.125)
-var Factor1pt0625 = new(big.Float).SetFloat64(1.0625)
-var Factor1pt001 = new(big.Float).SetFloat64(1.0001)
-var Factor1pt03125 = new(big.Float).SetFloat64(1.03125)
-var Factor0pt99 = new(big.Float).SetFloat64(0.99)
-var Factor0pt96875 = new(big.Float).SetFloat64(0.96875)
-var Factor0pt9375 = new(big.Float).SetFloat64(0.9375)
-var Factor0pt875 = new(big.Float).SetFloat64(0.875)
-var Factor0pt75 = new(big.Float).SetFloat64(0.75)
-var Factor0pt5 = new(big.Float).SetFloat64(0.5)
+var factors0 = [][]float64{
+	GenerateCorrectionFactors(focus000Log, 7),
+	GenerateCorrectionFactors(focus001Log, 15),
+	GenerateCorrectionFactors(focus010Log, 63),
+	GenerateCorrectionFactors(focus011Log, 255),
+}
+var factors1 = [][]float64{
+	GenerateCorrectionFactors(focus100Log, 7),
+	GenerateCorrectionFactors(focus101Log, 15),
+	GenerateCorrectionFactors(focus110Log, 63),
+	GenerateCorrectionFactors(focus111Log, 255),
+}
+
+var focus000Log = (math.Log(1.05) - math.Log(1.0)) / float64(7)
+var focus001Log = (math.Log(1.05) - math.Log(1.0)) / float64(15)
+var focus010Log = (math.Log(1.05) - math.Log(1.0)) / float64(63)
+var focus011Log = (math.Log(1.05) - math.Log(1.0)) / float64(255)
+var focus100Log = (math.Log(0.95) - math.Log(1.0)) / float64(7)
+var focus101Log = (math.Log(0.95) - math.Log(1.0)) / float64(15)
+var focus110Log = (math.Log(0.95) - math.Log(1.0)) / float64(63)
+var focus111Log = (math.Log(0.95) - math.Log(1.0)) / float64(255)
+
+func GenerateCorrectionFactors(log float64, max int) []float64 {
+	out := make([]float64, max)
+	for i := 0; i < max; i++ {
+		out[i] = math.Exp(float64(i) * log)
+	}
+	return out
+}

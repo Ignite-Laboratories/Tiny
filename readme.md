@@ -9,14 +9,43 @@ strings of binary data, for example, is not a common operation - but one that th
 
 The project has several recursive layers of structure - starting with the _measurement_
 
-**Measurement** - A container of 0-32 bits of binary information (convertable to an `int`)
+----
+**Measurement** - First dimension: point value
 
-**Phrase** - A slice of measurements
+A container of up to the host architecture's bit width worth of binary information
 
-**Passage** - A map of named phrases
+Allows a variable binary measurement that's _always_ convertable to a Go `int`
 
-**Composition** - A map of named passages
+----
+**Phrase** - Second dimension: ordered sets of point values
 
+A slice of measurements 
+
+Allows an arbitrarily long binary measurement to be taken
+
+----
+**Passage** - Third dimension: unordered sets of ordered sets of point values
+
+A map of named phrases 
+
+Allows clustering of arbitrary measurements
+
+----
+**Movement** - Fourth dimension: the timing of how to perform a singular transformation cycle
+
+Holds the logical steps to perform a single cycle of binary transformation
+
+----
+**Composition** - Executes transformations
+
+Holds the starting conditions to coordinate recursively performing movements
+
+----
+**Growth Scheme**
+
+The _implied_ rules in which a recursive pathway should be walked, such as the standard passage bit width
+
+----
 This project entirely operates on the concept of _variable ranges of binary information._
 While the information, itself, is a value - each measurement of binary information may or may not contain
 multiple _sub-measurements_ which store the actual calculable values.

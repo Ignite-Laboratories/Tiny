@@ -412,6 +412,16 @@ func Test_Phrase_ReadUntilOne(t *testing.T) {
 	}
 }
 
+func Test_Phrase_ReadUntilOne_WithLimit(t *testing.T) {
+	input := tiny.NewPhraseFromBits(0, 0, 0, 0, 0, 1, 0, 0, 1)
+	zeros, remainder := input.ReadUntilOne(4)
+	remainder = remainder.Align()
+	if zeros != 4 {
+		t.Errorf("Expected %d zeros, got %d", 4, zeros)
+	}
+	ComparePhrases(remainder, tiny.NewPhraseFromBits(0, 1, 0, 0, 1), t)
+}
+
 /**
 Trifurcate
 */
@@ -685,107 +695,6 @@ func Test_Phrase_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(0, func(i int, m tiny.Measurement) {})
-}
-
-/**
-Read ZLE Tests
-
-NOTE: These are nearly identical to their fuzzy_test.go counterpart functions,
-      These just test the convenience method on Phrase
-*/
-
-func Test_Phrase_InterpretScaledZLE(t *testing.T) {
-	tester := func(input int) {
-		passage := tiny.NewZLEScaledPassage(input)
-		result := tiny.Fuzzy.InterpretZLEScaled(passage)
-		if input != result {
-			t.Errorf("Expected %d, got %d", input, result)
-		}
-	}
-
-	tester(0)
-	tester(2)
-	tester(5)
-	tester(77)
-	tester(333)
-	tester(65536)
-}
-
-func Test_Phrase_ReadScaledZLE(t *testing.T) {
-	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
-
-	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
-		eProjection, eRemainder := data.Read(length)
-		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadZLEScaled()
-		CompareMeasurements(key, eKey, t)
-		ComparePhrases(projection, eProjection, t)
-		ComparePhrases(remainder, eRemainder, t)
-	}
-
-	tester(2, tiny.NewMeasurement([]byte{}, 1), data)
-	tester(3, tiny.NewMeasurement([]byte{}, 0, 1), data)
-	tester(8, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
-	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0), data)
-	tester(64, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
-}
-
-func Test_Phrase_Read64BitZLE(t *testing.T) {
-	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
-
-	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
-		eProjection, eRemainder := data.Read(length)
-		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadZLE64()
-		CompareMeasurements(key, eKey, t)
-		ComparePhrases(projection, eProjection, t)
-		ComparePhrases(remainder, eRemainder, t)
-	}
-
-	tester(4, tiny.NewMeasurement([]byte{}, 1), data)
-	tester(8, tiny.NewMeasurement([]byte{}, 0, 1), data)
-	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
-	tester(32, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0), data)
-	tester(64, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
-}
-
-func Test_Phrase_Read5BitZLE(t *testing.T) {
-	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
-
-	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
-		eProjection, eRemainder := data.Read(length)
-		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadZLE5()
-		CompareMeasurements(key, eKey, t)
-		ComparePhrases(projection, eProjection, t)
-		ComparePhrases(remainder, eRemainder, t)
-	}
-
-	tester(1, tiny.NewMeasurement([]byte{}, 1), data)
-	tester(2, tiny.NewMeasurement([]byte{}, 0, 1), data)
-	tester(3, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
-	tester(4, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0), data)
-	tester(5, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
-}
-
-func Test_Phrase_ReadZLE(t *testing.T) {
-	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33, 11, 77, 22, 33, 11}, 0, 1)
-
-	tester := func(length int, eKey tiny.Measurement, data tiny.Phrase) {
-		eProjection, eRemainder := data.Read(length)
-		phrase := append(tiny.Phrase{eKey}, data...)
-		key, projection, remainder := phrase.ReadZLE(-1)
-		CompareMeasurements(key, eKey, t)
-		ComparePhrases(projection, eProjection, t)
-		ComparePhrases(remainder, eRemainder, t)
-	}
-
-	tester(0, tiny.NewMeasurement([]byte{}, 1), data)
-	tester(2, tiny.NewMeasurement([]byte{}, 0, 1), data)
-	tester(4, tiny.NewMeasurement([]byte{}, 0, 0, 1), data)
-	tester(8, tiny.NewMeasurement([]byte{}, 0, 0, 0, 1), data)
-	tester(16, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0, 1), data)
-	tester(32, tiny.NewMeasurement([]byte{}, 0, 0, 0, 0, 0, 1), data)
 }
 
 /**

@@ -1,5 +1,19 @@
 package tiny
 
+/**
+ZLE
+*/
+
+type ZLEScheme interface {
+	KeyBitWidth() int
+	Read(Phrase) (value int, remainder Phrase)
+	Encode(int) (key Phrase, projection Phrase)
+}
+
+/**
+Shade
+*/
+
 // Shade is a descriptor of whether the binary data is Light, Dark, or Grey.
 type Shade int
 
