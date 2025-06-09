@@ -200,66 +200,6 @@ func Test_Measurement_Prepend(t *testing.T) {
 	test.CompareSlices(measure.GetAllBits(), expected, t)
 }
 
-func Test_Measurement_UnQuarterSplit(t *testing.T) {
-	for i := 0; i < 256; i++ {
-		expected := []byte{byte(i)}
-		data := tiny.NewMeasurement(expected)
-		data.QuarterSplit()
-		data.UnQuarterSplit()
-		test.CompareSlices(expected, data.Bytes, t)
-	}
-}
-
-func Test_Measurement_QuarterSplit(t *testing.T) {
-	for i := 0; i < 256; i++ {
-		measure := tiny.NewMeasurement([]byte{byte(i)})
-		measure.QuarterSplit()
-
-		if i < 64 {
-			if measure.BitLength() != 7 {
-				t.Errorf("Expected reduction for 0-63")
-			}
-			if measure.Read(0, 1)[0] != 0 {
-				t.Errorf("Expected a code of '0' for 0-63")
-			}
-			valueBits := measure.Read(1, 7)
-			value := tiny.To.Byte(valueBits...)
-			if value != byte(i) {
-				t.Errorf("Expected a value of %d, got %d", i, value)
-			}
-		} else {
-			code := measure.Read(0, 2)
-			if i < 128 {
-				if measure.BitLength() != 8 {
-					t.Errorf("Expected no reduction for 64-127")
-				}
-				if code[0] != 1 && code[1] != 0 {
-					t.Errorf("Expected a code of '10' for 64-127")
-				}
-				valueBits := measure.Read(2, 8)
-				value := tiny.To.Byte(valueBits...)
-				value += 64
-				if value != byte(i) {
-					t.Errorf("Expected a value of %d, got %d", i, value)
-				}
-			} else {
-				if measure.BitLength() != 9 {
-					t.Errorf("Expected 1 growth for 128+")
-				}
-				if code[0] != 1 && code[1] != 1 {
-					t.Errorf("Expected a code of '11' for 128+")
-				}
-				valueBits := measure.Read(2, 9)
-				value := tiny.To.Byte(valueBits...)
-				value += 128
-				if value != byte(i) {
-					t.Errorf("Expected a value of %d, got %d", i, value)
-				}
-			}
-		}
-	}
-}
-
 func Test_Measurement_TrimStart(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		for ii := 0; ii < 8; ii++ {

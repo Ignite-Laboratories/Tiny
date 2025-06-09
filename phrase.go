@@ -155,22 +155,6 @@ func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 	return out, current
 }
 
-// QuarterSplit quarter splits each Measurement of the Phrase.
-func (phrase Phrase) QuarterSplit() {
-	for i, m := range phrase {
-		m.QuarterSplit()
-		phrase[i] = m
-	}
-}
-
-// UnQuarterSplit reverses a quarter split operation on each Measurement of the Phrase.
-func (phrase Phrase) UnQuarterSplit() {
-	for i, m := range phrase {
-		m.UnQuarterSplit()
-		phrase[i] = m
-	}
-}
-
 // BitLength returns the total length of all bits in each Measurement of the Phrase.
 func (phrase Phrase) BitLength() int {
 	total := 0

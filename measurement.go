@@ -218,60 +218,6 @@ func (m *Measurement) Prepend(measure Measurement) {
 	m.PrependBytes(measure.Bytes...) // Then the starting bytes
 }
 
-// QuarterSplit is a unique operation to a byte.  The two most significant bits in a byte
-// represent 128 and 64, which means that those two bits cover three quarters of the entire
-// address space.  The act of quarter splitting exploits this to reduce the size of bytes
-// under a value of 64, while keeping no change in bit length for 64-127, but taking at 1-bit
-// hit on anything 128+.  In doing so, a self describing bit scheme can be used for readability.
-//
-// The first 1-2 bits describe how to read the next bits:
-//
-//	 0: 6 more bits (the value was under 64)
-//	10: 6 more bits (the value was 64-127 and has had 64 subtracted from it)
-//	11: 7 more bits (the value was 128+ and has had 128 subtracted from it)
-func (m *Measurement) QuarterSplit() {
-	// Get the measurement's value and clear it out
-	value := m.Value()
-	valueWidth := 6
-	m.Clear()
-
-	if value < 64 {
-		m.AppendBits(0)
-	} else if value < 128 {
-		m.AppendBits(1, 0)
-		value -= 64
-	} else {
-		m.AppendBits(1, 1)
-		value -= 128
-		valueWidth = 7
-	}
-	m.AppendBits(From.Number(value, valueWidth)...)
-}
-
-// UnQuarterSplit is the reverse of a QuarterSplit operation.
-//
-// NOTE: This requires your input Measurement to be quarter split,
-// but will not fail whatsoever if it isn't!  Please be selective
-// of when you call this.
-func (m *Measurement) UnQuarterSplit() {
-	// Get the measurement's value and clear it out
-	bits := m.GetAllBits()
-	m.Clear()
-
-	// Calculate the new value
-	var newValue int
-	if bits[0] == 0 { // 0
-		newValue = To.Number(WidthMorsel, bits[1:]...)
-	} else if bits[1] == 0 { // 1 0
-		newValue = To.Number(WidthMorsel, bits[2:]...)
-		newValue += 64
-	} else { // 1 1
-		newValue = To.Number(WidthShred, bits[2:]...)
-		newValue += 128
-	}
-	m.AppendBytes(byte(newValue))
-}
-
 // TrimStart removes the provided number of bits from the beginning of the Measurement.
 func (m *Measurement) TrimStart(count int) {
 	bits := m.GetAllBits()
