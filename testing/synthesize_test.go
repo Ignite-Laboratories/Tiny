@@ -3,6 +3,7 @@ package testing
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"math/big"
@@ -273,4 +274,38 @@ func Test_Synthesize_Approximate_Byte(t *testing.T) {
 		}
 		test.CompareSlices(result, expected[index], t)
 	}
+}
+
+func Test_Synthesize_Boundary(t *testing.T) {
+	limit := 16
+	for i := 0; i <= limit; i++ {
+		value := i
+		repetend := tiny.Zero
+		if i == limit {
+			value = limit - 1
+			repetend = tiny.One
+		}
+
+		bits := tiny.From.Number(value, 3)
+		repeating := tiny.Synthesize.Repeating(5, repetend)
+		out := tiny.Synthesize.Boundary(bits, repetend, 8)
+		expected := tiny.NewPhraseFromBits(bits...).Append(repeating).Align()
+		fmt.Println(out)
+		ComparePhrases(out, expected, t)
+	}
+}
+
+func Test_Synthesize_Boundaries(t *testing.T) {
+	out := tiny.Synthesize.Boundaries(3, 8)
+	fmt.Println(out)
+}
+
+func Test_Synthesize_Boundaries_ShouldPanicWithNegativeDepth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	tiny.Synthesize.Boundaries(-1, 8)
+}
+
+func Test_Synthesize_Boundaries_ShouldPanicWithNegativeWidth(t *testing.T) {
+	defer test.ShouldPanic(t)
+	tiny.Synthesize.Boundaries(3, -1)
 }

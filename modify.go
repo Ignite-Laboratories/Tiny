@@ -17,11 +17,3 @@ func (_ _modify) ToggleBytes(data ...byte) []byte {
 	}
 	return data
 }
-
-// QuarterSplit calls Measurement.QuarterSplit on each element of the provided slice.
-// NOTE: QuarterSplit is a mutable operation against the underlying measurements.
-func (_ _modify) QuarterSplit(data ...Measurement) {
-	for _, d := range data {
-		d.QuarterSplit()
-	}
-}

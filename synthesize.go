@@ -9,8 +9,21 @@ type _synthesize struct{}
 
 // ForEach calls the provided function the desired number of times and then builds
 // a Phrase from the collected results of all invocations.
-// For example, to synthesize a string of 5 ones:
-// Synthesize.WalkBits(5, func(i int) Bit { return 1 })
+//
+// NOTE: This efficiently converts every 8 bits into a full byte automatically.
+//
+// For example, to synthesize a phrase of 5 ones:
+//
+//	Synthesize.ForEach(5, func(i int) Bit { return One })
+//
+// Or, to synthesize a phrase of zeros except every nth bit:
+//
+//	Synthesize.ForEach(1024, func(i int) Bit {
+//	 if i % 𝑛 == 0 {
+//	  return One
+//	 }
+//	 return Zero
+//	})
 func (_ _synthesize) ForEach(count int, f func(int) Bit) Phrase {
 	var bytes []byte
 	var bits []Bit
@@ -116,8 +129,7 @@ func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 //
 // NOTE: This will panic if you provide a measurement width of 0 or less, or greater
 // than your architecture's bit width.
-func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) Phrase {
-	var phrase Phrase
+func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase Phrase) {
 	if length == 0 {
 		return phrase
 	}
@@ -135,6 +147,86 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) Phrase {
 		phrase = append(phrase, s.Random(width)...)
 	}
 	return phrase
+}
+
+// Boundary synthesizes a binary boundary position.  These are positions where the most significant
+// bits are defined, followed by a repeating bit until the end of the bit-width.
+//
+// The provided width is the overall bit-width of the resulting phrase.
+//
+// For example - a note can subdivide 8 boundary positions of a byte index:
+//
+//	    ⬐ The MSBs
+//	[ 1 1 1 - 1 1 1 1 1 ] <- Dark boundary
+//	[ 1 1 1 - 0 0 0 0 0 ] <- ⅞
+//	[ 1 1 0 - 0 0 0 0 0 ] <- ¾
+//	[ 1 0 1 - 0 0 0 0 0 ] <- ⅝
+//	[ 1 0 0 - 0 0 0 0 0 ] <- Mid-point
+//	[ 0 1 1 - 0 0 0 0 0 ] <- ⅜
+//	[ 0 1 0 - 0 0 0 0 0 ] <- ¼
+//	[ 0 0 1 - 0 0 0 0 0 ] <- ⅛
+//	[ 0 0 0 - 0 0 0 0 0 ] <- Light boundary
+//	              ⬑ The repeating bits
+func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
+	if width == 0 {
+		return Phrase{}
+	}
+
+	x := 0
+	return s.ForEach(width, func(i int) Bit {
+		if x >= len(msbs) {
+			return repetend
+		}
+		out := msbs[x]
+		x++
+		return out
+	})
+}
+
+// Boundaries generates all of the boundaries for the provided depth at the specified bit width.
+//
+// The depth value defines the bit width of subdivision - for instance, a value of 3 will create
+// a 3-bit wide range of boundary points.
+//
+// See Boundary for more information on that process.
+//
+// NOTE: This will panic if provided a negative depth or width.
+func (s _synthesize) Boundaries(depth int, width int) (boundaries []Phrase) {
+	if depth < 0 {
+		panic("cannot synthesize boundaries with a negative depth")
+	}
+	if width <= 0 {
+		if width == 0 {
+			return []Phrase{}
+		}
+		panic("cannot synthesize boundaries with a negative width")
+	}
+
+	i := 0
+	for {
+		// Create the MSBs
+		bits := From.Number(i, depth)
+
+		// Check if they are all 1
+		reachedEnd := true
+		for ii := 0; ii < len(bits); ii++ {
+			if bits[ii] == Zero {
+				// This is the final iteration
+				reachedEnd = false
+			}
+		}
+
+		// Synthesize the boundary point
+		boundaries = append(boundaries, s.Boundary(bits, Zero, width))
+
+		i++
+		if reachedEnd {
+			// Synthesize the final 'dark' boundary point
+			boundaries = append(boundaries, s.Boundary(bits, One, width))
+			break
+		}
+	}
+	return boundaries
 }
 
 // Subdivided returns back a synthetic set of binary digits of the provided bit width.

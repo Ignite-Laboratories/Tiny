@@ -133,6 +133,16 @@ func (phrase Phrase) PrependBytesAndBits(bytes []byte, bits ...Bit) Phrase {
 	return append(NewPhraseFromBytesAndBits(bytes, bits...), phrase...)
 }
 
+// Append appends the provided phrase to the end of the source phrase.
+func (phrase Phrase) Append(p Phrase) Phrase {
+	return append(phrase, p...)
+}
+
+// Prepend prepends the provided phrase to the beginning of the source phrase.
+func (phrase Phrase) Prepend(p Phrase) Phrase {
+	return append(p, phrase...)
+}
+
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
 func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 	out := make([]byte, 0, len(phrase))
@@ -507,6 +517,54 @@ func (phrase Phrase) Invert() Phrase {
 		out[i] = m
 	}
 	return out
+}
+
+// DeltaEncode uses the source phrase value to encode the delta from a known relative boundary point.
+//
+// Don't worry, it's not that complex - here's an index of data:
+//
+//	[ 1 1 1 1 ... 1 1 1 ] <- Dark Boundary
+//	↕   Fourth Index    ↕
+//	[ 1 1 0 0 ... 0 0 0 ] <- Upper Quarter Boundary
+//	↕    Third Index    ↕
+//	[ 1 0 0 0 ... 0 0 0 ] <- Mid Boundary
+//	↕   Second Index    ↕
+//	[ 0 1 0 0 ... 0 0 0 ] <- Lower Quarter Boundary
+//	↕    First Index    ↕
+//	[ 0 0 0 0 ... 0 0 0 ] <- Light Boundary
+//
+// A signature dictates where the target exists relative to the final bit width, while the delta (Δ) tells us
+// how many bits were removed from the source phrase.
+// The remainder tells us how far our target is from the signature's vantage point.
+//
+// The signature is a very simple measurement - the first bit tells you if the data existed in the lower
+// or upper half of the address space, with each next bit telling you if its closer to the top or bottom of
+// each subsequent halving of the address space.
+// The standard depth to walk is three bits, but you can optionally override this at your discretion.
+//
+//	NOTE: This will panic if you give it a depth of 0 or less
+//
+// So, for example:
+//
+//	              ⬐ Remainder
+//	[ 1 0 1 ] [ 1 0 1 ]
+//	    ⬑ Key Signature
+//
+// The key signature tells us it's in the upper eighth of the lower quandrant of the upper half.
+// Because it's in the UPPER eighth, the remainder value is considered to be subtracted from the
+// synthetic vantage point.
+//
+// So, with an 8 bit Δ, you'd synthesize 11 bits (including the remainder) as such:
+//
+//	| 1 1 0 0 0 0 0 0 0 0 0 | <- Synthesized value at the appropriate vantage point (the 3rd quarter, here)
+//	|                 1 0 1 | <- Remainder to subtract
+//	| 1 0 1 1 1 1 1 1 0 1 1 | <- Resulting value
+func (phrase Phrase) DeltaEncode(depth ...int) (signature Measurement, delta int, remainder Phrase) {
+	return Measurement{}, -1, nil
+}
+
+func (phrase Phrase) DeltaDecode(signature Measurement, delta int, remainder Phrase) Phrase {
+	return nil
 }
 
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.

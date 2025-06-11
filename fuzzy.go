@@ -75,7 +75,7 @@ func (_ _sixtyFour) Encode(value int) (key Phrase, projection Phrase) {
 	case value < 1<<32:
 		bitLength = 32
 		key = NewPhraseFromBits(0, 0, 0, 1)
-	case value < 1<<64:
+	default:
 		bitLength = 64
 		key = NewPhraseFromBits(0, 0, 0, 0)
 	}
