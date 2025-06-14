@@ -295,17 +295,32 @@ func Test_Synthesize_Boundary(t *testing.T) {
 	}
 }
 
-func Test_Synthesize_Boundaries(t *testing.T) {
-	out := tiny.Synthesize.Boundaries(3, 8)
-	fmt.Println(out)
+func Test_Synthesize_AllBoundaries(t *testing.T) {
+	// Test Logic: We know all the 3-bit boundaries, so just test that it outputs the right ones
+	// Genuinely, we'd be doing the same exact thing if we actually validated each bit individually =)
+	expected := []tiny.Phrase{
+		tiny.NewPhrase(0),
+		tiny.NewPhrase(32),
+		tiny.NewPhrase(64),
+		tiny.NewPhrase(96),
+		tiny.NewPhrase(128),
+		tiny.NewPhrase(160),
+		tiny.NewPhrase(192),
+		tiny.NewPhrase(224),
+		tiny.NewPhrase(255),
+	}
+	out := tiny.Synthesize.AllBoundaries(3, 8)
+	for i, p := range expected {
+		ComparePhrases(p, out[i], t)
+	}
 }
 
-func Test_Synthesize_Boundaries_ShouldPanicWithNegativeDepth(t *testing.T) {
+func Test_Synthesize_AllBoundaries_ShouldPanicWithNegativeDepth(t *testing.T) {
 	defer test.ShouldPanic(t)
-	tiny.Synthesize.Boundaries(-1, 8)
+	tiny.Synthesize.AllBoundaries(-1, 8)
 }
 
-func Test_Synthesize_Boundaries_ShouldPanicWithNegativeWidth(t *testing.T) {
+func Test_Synthesize_AllBoundaries_ShouldPanicWithNegativeWidth(t *testing.T) {
 	defer test.ShouldPanic(t)
-	tiny.Synthesize.Boundaries(3, -1)
+	tiny.Synthesize.AllBoundaries(3, -1)
 }

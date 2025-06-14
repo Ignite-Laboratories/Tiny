@@ -156,17 +156,18 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase P
 //
 // For example - a note can subdivide 8 boundary positions of a byte index:
 //
-//	    ⬐ The MSBs
-//	[ 1 1 1 - 1 1 1 1 1 ] <- Dark boundary
-//	[ 1 1 1 - 0 0 0 0 0 ] <- ⅞
-//	[ 1 1 0 - 0 0 0 0 0 ] <- ¾
-//	[ 1 0 1 - 0 0 0 0 0 ] <- ⅝
-//	[ 1 0 0 - 0 0 0 0 0 ] <- Mid-point
-//	[ 0 1 1 - 0 0 0 0 0 ] <- ⅜
-//	[ 0 1 0 - 0 0 0 0 0 ] <- ¼
-//	[ 0 0 1 - 0 0 0 0 0 ] <- ⅛
-//	[ 0 0 0 - 0 0 0 0 0 ] <- Light boundary
-//	              ⬑ The repeating bits
+//	 |<- Overall Width ->|
+//		|   ⬐ The MSBs      |
+//		| 1 1 1 - 1 1 1 1 1 | <- Dark boundary
+//		| 1 1 1 - 0 0 0 0 0 | <- ⅞
+//		| 1 1 0 - 0 0 0 0 0 | <- ¾
+//		| 1 0 1 - 0 0 0 0 0 | <- ⅝
+//		| 1 0 0 - 0 0 0 0 0 | <- Mid-point
+//		| 0 1 1 - 0 0 0 0 0 | <- ⅜
+//		| 0 1 0 - 0 0 0 0 0 | <- ¼
+//		| 0 0 1 - 0 0 0 0 0 | <- ⅛
+//		| 0 0 0 - 0 0 0 0 0 | <- Light boundary
+//		              ⬑ The repetend
 func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
 	if width == 0 {
 		return Phrase{}
@@ -183,7 +184,13 @@ func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
 	})
 }
 
-// Boundaries generates all of the boundaries for the provided depth at the specified bit width.
+// ClosestBoundary synthesizes the closest approximate boundary to the target value.
+//func (s _synthesize) ClosestBoundary(value Phrase, depth int) (msbs Measurement, repetend []Bit, delta Phrase) {
+//	msbs, remainder := data.ReadMeasurement(depth)
+//
+//}
+
+// AllBoundaries generates all of the boundaries for the provided depth at the specified bit width.
 //
 // The depth value defines the bit width of subdivision - for instance, a value of 3 will create
 // a 3-bit wide range of boundary points.
@@ -191,7 +198,7 @@ func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
 // See Boundary for more information on that process.
 //
 // NOTE: This will panic if provided a negative depth or width.
-func (s _synthesize) Boundaries(depth int, width int) (boundaries []Phrase) {
+func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 	if depth < 0 {
 		panic("cannot synthesize boundaries with a negative depth")
 	}

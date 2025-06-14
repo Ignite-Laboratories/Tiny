@@ -349,7 +349,7 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 // remainder as a Phrase.
 //
 // NOTE: This will panic if you attempt to read more than your architecture's bit width.
-// If you wish to read more than your architecture's bit width, please use Read.
+// For that, please use Read.
 func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
 	if length > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
