@@ -2,7 +2,6 @@ package tiny
 
 import (
 	"crypto/rand"
-	"math/big"
 )
 
 type _synthesize struct{}
@@ -184,12 +183,6 @@ func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
 	})
 }
 
-// ClosestBoundary synthesizes the closest approximate boundary to the target value.
-//func (s _synthesize) ClosestBoundary(value Phrase, depth int) (msbs Measurement, repetend []Bit, delta Phrase) {
-//	msbs, remainder := data.ReadMeasurement(depth)
-//
-//}
-
 // AllBoundaries generates all of the boundaries for the provided depth at the specified bit width.
 //
 // The depth value defines the bit width of subdivision - for instance, a value of 3 will create
@@ -236,41 +229,11 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 	return boundaries
 }
 
-// Subdivided returns back a synthetic set of binary digits of the provided bit width.
+//// Approximation creates a synthetic approximation of the target phrase.
+//// The depth value indicates the bit-width of pattern to utilize in approximating the target.
+//// The retain value indicates how many bits of the target phrase to retain, while the remainder should be synthesized.
+////
+//// A binary pattern is used to subdivide an index of data logarithmically.
+//func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) (pattern Phrase, value Phrase) {
 //
-// The numeric range is then subdivided at the provided resolution and a value is synthesized
-// at the provided index.
-//
-// NOTE: If you request an index outsize of the subdivision range, this "clamps" it into that range.
-func (s _synthesize) Subdivided(width int, index int, resolution int) []Bit {
-	if index < 0 {
-		index = 0
-	}
-	if index > resolution {
-		index = resolution
-	}
-
-	upper, _ := new(big.Int).SetString(Synthesize.Ones(width).StringBinary(), 2)
-	step := new(big.Float).Quo(new(big.Float).SetInt(upper), big.NewFloat(float64(resolution)))
-	value := new(big.Float).Mul(step, big.NewFloat(float64(index)))
-	truncated, _ := value.Int(nil)
-	return From.BigInt(truncated, width)
-}
-
-// Approximation subdivides the target's bit-width range and then finds the closest index to the provided target.
-//
-// If no approximation width is provided, the bit length of the target is used.
-//
-// A binary representation of the closest value, plus its index, is returned.
-func (_ _synthesize) Approximation(target *big.Int, resolution int, width ...int) ([]Bit, int) {
-	w := target.BitLen()
-	if len(width) > 0 {
-		w = width[0]
-	}
-	targetFloat := new(big.Float).SetInt(target)
-	upper, _ := new(big.Int).SetString(Synthesize.Ones(w).StringBinary(), 2)
-	step := new(big.Float).Quo(new(big.Float).SetInt(upper), big.NewFloat(float64(resolution)))
-	index, _ := new(big.Float).Quo(targetFloat, step).Int(nil)
-	indexInt := int(index.Int64())
-	return Synthesize.Subdivided(w, indexInt, resolution), indexInt
-}
+//}

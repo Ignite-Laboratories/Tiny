@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	msbSize := 8
+	msbSize := 128
 	patternSize := 5
 	dataLength := 32
 

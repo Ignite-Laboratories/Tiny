@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
-	"math/big"
 	"testing"
 )
 
@@ -171,108 +170,6 @@ func synthesize_random(t *testing.T, g func(int) tiny.Bit) {
 				t.FailNow()
 			}
 		}
-	}
-}
-
-func Test_Synthesize_Subdivided_ShouldAcceptNegativeIndex(t *testing.T) {
-	result := tiny.Synthesize.Subdivided(8, -1, 7)
-	test.CompareSlices(result, tiny.From.Number(0, 8), t)
-}
-
-func Test_Synthesize_Subdivided_ShouldAcceptOversizedIndex(t *testing.T) {
-	result := tiny.Synthesize.Subdivided(8, 8, 7)
-	test.CompareSlices(result, tiny.From.Number(255, 8), t)
-}
-
-func Test_Synthesize_Subdivided_Byte(t *testing.T) {
-	expected := [][]tiny.Bit{
-		tiny.From.Number(0, 8),
-		tiny.From.Number(36, 8),
-		tiny.From.Number(72, 8),
-		tiny.From.Number(109, 8),
-		tiny.From.Number(145, 8),
-		tiny.From.Number(182, 8),
-		tiny.From.Number(218, 8),
-		tiny.From.Number(255, 8),
-	}
-
-	for i := 0; i < 8; i++ {
-		result := tiny.Synthesize.Subdivided(8, i, 7)
-		test.CompareSlices(result, expected[i], t)
-	}
-}
-
-func Test_Synthesize_Subdivided_Int16(t *testing.T) {
-	expected := [][]tiny.Bit{
-		tiny.From.Number(0, 16),
-		tiny.From.Number(9362, 16),
-		tiny.From.Number(18724, 16),
-		tiny.From.Number(28086, 16),
-		tiny.From.Number(37448, 16),
-		tiny.From.Number(46810, 16),
-		tiny.From.Number(56172, 16),
-		tiny.From.Number(65535, 16),
-	}
-
-	for i := 0; i < 8; i++ {
-		result := tiny.Synthesize.Subdivided(16, i, 7)
-		test.CompareSlices(result, expected[i], t)
-	}
-}
-
-func Test_Synthesize_Approximate_42(t *testing.T) {
-	expectedBits := tiny.Synthesize.Pattern(42, 1, 0, 0)
-	expectedIndex := 4
-	result, index := tiny.Synthesize.Approximation(tiny.Synthesize.Pattern(42, 1, 0).AsBigInt(), 7)
-	test.CompareSlices(result, expectedBits.Bits(), t)
-	if index != expectedIndex {
-		t.Fatalf("Expected index %d, got %d", expectedIndex, index)
-	}
-}
-
-func Test_Synthesize_Approximate_Byte(t *testing.T) {
-	expected := [][]tiny.Bit{
-		tiny.From.Number(0, 8),
-		tiny.From.Number(36, 8),
-		tiny.From.Number(72, 8),
-		tiny.From.Number(109, 8),
-		tiny.From.Number(145, 8),
-		tiny.From.Number(182, 8),
-		tiny.From.Number(218, 8),
-		tiny.From.Number(255, 8),
-	}
-
-	expectedIndex := -1
-	for i := int64(0); i < 256; i++ {
-		expectedIndex = 0
-		if i > 36 {
-			expectedIndex = 1
-		}
-		if i > 72 {
-			expectedIndex = 2
-		}
-		if i > 109 {
-			expectedIndex = 3
-		}
-		if i > 145 {
-			expectedIndex = 4
-		}
-		if i > 182 {
-			expectedIndex = 5
-		}
-		if i > 218 {
-			expectedIndex = 6
-		}
-		if i == 255 {
-			expectedIndex = 7
-		}
-
-		result, index := tiny.Synthesize.Approximation(big.NewInt(i), 7, 8)
-
-		if index != expectedIndex {
-			t.Fatalf("Expected index %d, got %d", expectedIndex, index)
-		}
-		test.CompareSlices(result, expected[index], t)
 	}
 }
 
