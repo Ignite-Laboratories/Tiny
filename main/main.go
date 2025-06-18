@@ -7,7 +7,20 @@ import (
 )
 
 func main() {
-	msbSize := 128
+	dataLength := 32
+	data := tiny.Synthesize.RandomPhrase(dataLength)
+	a := tiny.Synthesize.Approximation(data, 3)
+	test := a.Value.StringBinary()
+	if len(test) == 0 {
+		fmt.Println("here")
+	}
+	fmt.Println(data.StringBinary())
+	fmt.Println(test)
+	fmt.Println(a.Delta.Text(2))
+}
+
+func main2() {
+	msbSize := 0
 	patternSize := 5
 	dataLength := 32
 
