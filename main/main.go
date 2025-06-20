@@ -10,12 +10,11 @@ func main() {
 	dataLength := 32
 	data := tiny.Synthesize.RandomPhrase(dataLength)
 	a := tiny.Synthesize.Approximation(data, 3)
-	test := a.Value.StringBinary()
-	if len(test) == 0 {
-		fmt.Println("here")
-	}
+	fmt.Println(a.Lower)
+	fmt.Println(a.Upper)
+
 	fmt.Println(data.StringBinary())
-	fmt.Println(test)
+	fmt.Println(a.GetClosestValue().Text(2))
 	fmt.Println(a.Delta.Text(2))
 }
 

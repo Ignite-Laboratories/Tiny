@@ -230,17 +230,14 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 	return boundaries
 }
 
-type Approximation struct {
-	Signature Phrase
-	Target    Phrase
-	Value     Phrase
-	Delta     *big.Int
-}
-
 // Approximation creates a synthetic approximation of the target phrase.
+//
 // The depth value indicates the bit-width of pattern to utilize in approximating the target.
+//
 // The retain value indicates how many bits of the target phrase to retain, while the remainder should be synthesized.
-// If retain is left out, it's considered to be '0'.
+// The retained bits are emitted to the approximation signature, followed immediately by the closest binary pattern
+// of the provided depth to the target.
+// If retain is left out or negative, it's considered to be '0'.
 func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Approximation {
 	a := Approximation{
 		Target: target,
@@ -261,75 +258,39 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 	a.Signature = a.Signature.AppendBits(msbs.Bits()...)
 
 	smallest := t
-	pattern := s.Zeros(target.BitLength() - r).Prepend(msbs)
 	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
-	for i := 0; i <= (1<<depth)-1; i++ {
+
+	subdivisions := (1 << depth) - 1
+	patterns := make([]*big.Int, subdivisions+1)
+	bestI := 0
+
+	for i := 0; i <= subdivisions; i++ {
 		// Create the initial pattern bits
 		bits := From.Number(i, depth)
 
 		// Synthesize the full pattern
 		p := s.Pattern(target.BitLength()-r, bits...).Prepend(msbs)
+		pInt := p.AsBigInt()
+		patterns[i] = pInt
 
 		// Get the delta value
-		delta := new(big.Int).Sub(t, p.AsBigInt())
+		delta := new(big.Int).Sub(t, pInt)
 		if delta.CmpAbs(smallest) <= 0 {
-			// Save off the best result
-			pattern = append(make(Phrase, 0, len(p)), p...)
-			// NOTE: This doesn't just assign 'p' because whenever we prepend the MSBs on the next iteration Go appears
-			// to affect the assigned 'pattern' variable - even though it doesn't fall into this if statement.
-			// As a result, this workaround was found.
 			patternBits = NewPhraseFromBits(bits...)
 			smallest = delta
+			bestI = i
 		}
 	}
 
-	a.Value = pattern
+	if smallest.Sign() < 0 {
+		a.Upper = patterns[bestI]
+		a.Lower = patterns[bestI-1]
+	} else {
+		a.Upper = patterns[bestI+1]
+		a.Lower = patterns[bestI]
+	}
+
 	a.Signature = a.Signature.Append(patternBits)
 	a.Delta = smallest
 	return a
-}
-
-// Refine refines the provided approximation.
-// The depth value indicates the bit-width of pattern to utilize in approximating the target.
-// The retain value indicates how many bits of the source approximation to retain, while the remainder should be refined.
-func (s _synthesize) Refine(approximation Approximation, depth int, retain ...int) Approximation {
-	if depth <= 0 {
-		return approximation
-	}
-	r := 0
-	if len(retain) > 0 {
-		r = retain[0]
-		if r < 0 {
-			r = 0
-		}
-	}
-
-	t := approximation.Target.AsBigInt()
-	msbs, _ := approximation.Value.Read(r)
-
-	smallest := approximation.Delta
-	var pattern Phrase
-	var patternBits Phrase
-	for i := 0; i <= (1<<depth)-1; i++ {
-		// Create the initial pattern bits
-		bits := From.Number(i, depth)
-
-		// Synthesize the full pattern
-		p := s.Pattern(approximation.Value.BitLength()-r, bits...).Prepend(msbs)
-
-		// Get the delta value
-		delta := new(big.Int).Sub(t, p.AsBigInt())
-		if delta.CmpAbs(smallest) < 0 {
-			// Save off the best result
-			pattern = make(Phrase, len(p))
-			copy(pattern, p)
-			patternBits = NewPhraseFromBits(bits...)
-			smallest = delta
-		}
-	}
-
-	approximation.Value = pattern
-	approximation.Signature = approximation.Signature.Append(patternBits)
-	approximation.Delta = smallest
-	return approximation
 }
