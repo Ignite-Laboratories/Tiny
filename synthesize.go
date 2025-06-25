@@ -290,7 +290,9 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		a.Lower = patterns[bestI]
 	}
 
+	a.BitDepth = depth
 	a.Signature = a.Signature.Append(patternBits)
 	a.Delta = smallest
+	a.Cycles++
 	return a
 }
