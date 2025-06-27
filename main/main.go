@@ -6,28 +6,27 @@ import (
 )
 
 func main() {
-	dataLength := 32
+	dataLength := 256
 	data := tiny.Synthesize.RandomPhrase(dataLength)
-	a := tiny.Synthesize.Approximation(data, 3)
-	fmt.Println(a.Lower)
-	fmt.Println(a.Upper)
-	fmt.Println(data.StringBinary())
-	fmt.Println(a.GetClosestValue().Text(2))
+	a := tiny.Synthesize.Approximation(data, 8)
+	fmt.Println(a.Target.AsBigInt())
+	fmt.Println(a.Value)
 	fmt.Println(a.Delta.Text(2))
+	fmt.Println(a.Signature)
+	fmt.Println(a.CalculateBitDrop())
 
-	l := len(a.Delta.Text(2))
-
+	m := -1
+	mi := -1
 	for i := 0; i < 64; i++ {
-		fmt.Println()
-
 		a.Refine()
-		fmt.Println(a.Lower)
-		fmt.Println(a.Upper)
-		fmt.Println(data.StringBinary())
-		fmt.Println(a.GetClosestValue().Text(2))
-		fmt.Println(a.Delta.Text(2))
-		nl := len(a.Delta.Text(2))
-		fmt.Println(l - nl)
-		l = nl
+		drop := a.CalculateBitDrop()
+		if drop > m {
+			mi = i
+			m = drop
+		}
 	}
+
+	fmt.Println()
+	fmt.Println(m)
+	fmt.Println(mi)
 }

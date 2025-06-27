@@ -273,7 +273,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		pInt := p.AsBigInt()
 		patterns[i] = pInt
 
-		// Get the delta value
+		// Get the delta
 		delta := new(big.Int).Sub(t, pInt)
 		if delta.CmpAbs(smallest) <= 0 {
 			patternBits = NewPhraseFromBits(bits...)
@@ -282,17 +282,20 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		}
 	}
 
+	var upper *big.Int
+	var lower *big.Int
+
 	if smallest.Sign() < 0 {
-		a.Upper = patterns[bestI]
-		a.Lower = patterns[bestI-1]
+		upper = patterns[bestI]
+		lower = patterns[bestI-1]
 	} else {
-		a.Upper = patterns[bestI+1]
-		a.Lower = patterns[bestI]
+		upper = patterns[bestI+1]
+		lower = patterns[bestI]
 	}
 
-	a.BitDepth = depth
+	a.Value = patterns[bestI]
 	a.Signature = a.Signature.Append(patternBits)
 	a.Delta = smallest
-	a.Cycles++
+	a.Height = new(big.Int).Sub(upper, lower)
 	return a
 }
