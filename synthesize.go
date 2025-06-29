@@ -51,6 +51,34 @@ func (s _synthesize) Zeros(count int) Phrase {
 	return s.ForEach(count, func(i int) Bit { return Zero })
 }
 
+// TrailingZeros creates a slice of '1's of the requested length, except for the trailing bits.
+//
+// This has a mathematical purpose!  An index of data is 0—2ⁿ and a fully dark index is 0—(2ⁿ)-1, but
+// introducing zeros to the right is equivalent to subtracting by a dark index as wide as the range of zeros.
+//
+// For example:
+//
+//	1 0 0 0 0 0 0 <- 64
+//	  1 1 1 1 1 1 <- 63 (64-1)  [implied]
+//	  1 1 1 1 1 0 <- 62 (64-2)  [2¹]
+//	  1 1 1 1 0 0 <- 60 (64-4)  [2²]
+//	  1 1 1 0 0 0 <- 56 (64-8)  [2³]
+//	  1 1 0 0 0 0 <- 48 (64-16) [2⁴]
+//	  1 0 0 0 0 0 <- 32 (64-32) [2⁵]
+//	  0 0 0 0 0 0 <- 0  (64-64) [2⁶]
+//
+// This allows us to decay a dark value exponentially.
+func (s _synthesize) TrailingZeros(count int, zeros int) Phrase {
+	remainder := count
+	return s.ForEach(count, func(i int) Bit {
+		remainder--
+		if remainder < zeros {
+			return Zero
+		}
+		return One
+	})
+}
+
 // Repeating repeats the provided pattern the desired number of times.
 // Use Repeating when you want the entire pattern emitted a fixed number of times.
 // Use Pattern when you want the pattern to fit within a specified length.
@@ -242,6 +270,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 	a := Approximation{
 		Target:       target,
 		TargetBigInt: target.AsBigInt(),
+		IndexWidth:   target.BitLength(),
 	}
 	if depth <= 0 {
 		return a
@@ -270,7 +299,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		bits := From.Number(i, depth)
 
 		// Synthesize the full pattern
-		p := s.Pattern(target.BitLength()-r, bits...).Prepend(msbs)
+		p := s.Pattern(a.IndexWidth-r, bits...).Prepend(msbs)
 		pInt := p.AsBigInt()
 		patterns[i] = pInt
 		phrases[i] = p

@@ -42,6 +42,42 @@ func Test_Synthesize_Zeros(t *testing.T) {
 	}
 }
 
+func Test_Synthesize_ReducedOnes(t *testing.T) {
+	bitLength := 10
+
+	for i := 0; i <= bitLength; i++ {
+		phrase := tiny.Synthesize.TrailingZeros(bitLength, i)
+		bits := phrase.Bits()
+
+		expected1s := bitLength - i
+		expected0s := i
+		found1s := 0
+		found0s := 0
+
+		gotOnes := false
+
+		for _, b := range bits {
+			if b == 1 {
+				gotOnes = true
+				found1s++
+			} else {
+				if !gotOnes && expected1s > 0 {
+					t.Errorf("Expected ones followed by zeros, got %v", bits)
+				}
+				found0s++
+			}
+		}
+
+		if expected0s != found0s {
+			t.Errorf("Expected %d zeros, got %d", expected0s, found0s)
+		}
+
+		if expected1s != found1s {
+			t.Errorf("Expected %d ones, got %d", expected1s, found1s)
+		}
+	}
+}
+
 func Test_Synthesize_Repeating(t *testing.T) {
 	patternTester := func(t *testing.T, pattern ...tiny.Bit) {
 		for count := 0; count < 8; count++ {
