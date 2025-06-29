@@ -1,32 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ignite-laboratories/tiny"
 )
 
+var approxDepth = 3
+
 func main() {
-	dataLength := 256
+	dataLength := 32
 	data := tiny.Synthesize.RandomPhrase(dataLength)
-	a := tiny.Synthesize.Approximation(data, 8)
-	fmt.Println(a.Target.AsBigInt())
-	fmt.Println(a.Value)
-	fmt.Println(a.Delta.Text(2))
-	fmt.Println(a.Signature)
-	fmt.Println(a.CalculateBitDrop())
+	a := tiny.Synthesize.Approximation(data, approxDepth)
 
-	m := -1
-	mi := -1
-	for i := 0; i < 64; i++ {
-		a.Refine()
-		drop := a.CalculateBitDrop()
-		if drop > m {
-			mi = i
-			m = drop
-		}
-	}
-
-	fmt.Println()
-	fmt.Println(m)
-	fmt.Println(mi)
+	a.Modulate(tiny.Modulate.Toggle(4, false, 0, 1, 1))
 }

@@ -240,7 +240,8 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 // If retain is left out or negative, it's considered to be '0'.
 func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Approximation {
 	a := Approximation{
-		Target: target,
+		Target:       target,
+		TargetBigInt: target.AsBigInt(),
 	}
 	if depth <= 0 {
 		return a
@@ -253,15 +254,15 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		}
 	}
 
-	t := target.AsBigInt()
 	msbs, _ := target.Read(r)
 	a.Signature = a.Signature.AppendBits(msbs.Bits()...)
 
-	smallest := t
+	smallest := a.TargetBigInt
 	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
 
 	subdivisions := (1 << depth) - 1
 	patterns := make([]*big.Int, subdivisions+1)
+	phrases := make([]Phrase, subdivisions+1)
 	bestI := 0
 
 	for i := 0; i <= subdivisions; i++ {
@@ -272,9 +273,10 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		p := s.Pattern(target.BitLength()-r, bits...).Prepend(msbs)
 		pInt := p.AsBigInt()
 		patterns[i] = pInt
+		phrases[i] = p
 
 		// Get the delta
-		delta := new(big.Int).Sub(t, pInt)
+		delta := new(big.Int).Sub(a.TargetBigInt, pInt)
 		if delta.CmpAbs(smallest) <= 0 {
 			patternBits = NewPhraseFromBits(bits...)
 			smallest = delta
@@ -282,20 +284,9 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		}
 	}
 
-	var upper *big.Int
-	var lower *big.Int
-
-	if smallest.Sign() < 0 {
-		upper = patterns[bestI]
-		lower = patterns[bestI-1]
-	} else {
-		upper = patterns[bestI+1]
-		lower = patterns[bestI]
-	}
-
-	a.Value = patterns[bestI]
+	a.Value = phrases[bestI]
 	a.Signature = a.Signature.Append(patternBits)
 	a.Delta = smallest
-	a.Height = new(big.Int).Sub(upper, lower)
+	a.BitDepth = depth
 	return a
 }

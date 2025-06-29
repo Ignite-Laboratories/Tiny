@@ -10,11 +10,14 @@ var Analyze _analyze
 //	tiny.From [byte/number/etc...]
 var From _from
 
-// Fuzzy is the global instance of _fuzzy
+// Fuzzy provides access to fuzzy read operations and ZLE.
 var Fuzzy _fuzzy
 
 // Modify is a way to alter existing binary information.
 var Modify _modify
+
+// Modulate provides access to preconfigured modulation functions.
+var Modulate _modulate
 
 // Synthesize is a way to create binary slices from known parameters.
 var Synthesize _synthesize
