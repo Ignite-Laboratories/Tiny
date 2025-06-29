@@ -31,9 +31,20 @@ type Approximation struct {
 // approximation bit length using the following formula:
 //
 //	target - (signature + delta)
-func (a Approximation) CalculateBitDrop() int {
+func (a *Approximation) CalculateBitDrop() int {
 	length := a.Target.BitLength()
 	dl := a.Delta.Text(2)
 	sig := a.Signature.BitLength()
 	return length - (sig + len(dl))
+}
+
+// Refine finds the closest synthetic value to the delta and applies it to the approximation
+// using the following encoding scheme:
+//
+//  Sign ⬎    ⬐ Dark ZLE  ⬐ Light ZLE
+//      ⁰⁄₁ [ ⁰⁄₁ ... ] [ ⁰⁄₁ ... ] ╮
+//       ↑                          │
+//       ╰───────────LOOP───────────╯
+func (a *Approximation) Refine(retain ...int) (stride int) {
+
 }
