@@ -37,28 +37,3 @@ func (a Approximation) CalculateBitDrop() int {
 	sig := a.Signature.BitLength()
 	return length - (sig + len(dl))
 }
-
-// Modulate calls the provided modulation function for every pattern of the source approximation
-// and returns the resulting pattern information.
-func (a Approximation) Modulate(fn ModulationFunc) Approximation {
-	bitLen := a.Value.BitLength()
-	l := bitLen / a.BitDepth
-	if bitLen%a.BitDepth > 0 {
-		l += 1
-	}
-
-	result := make([]Bit, 0, a.Value.BitLength())
-	i := 0
-	for remainder := a.Value; remainder.BitLength() > 0; {
-		var current Measurement
-		current, remainder = remainder.ReadMeasurement(a.BitDepth)
-		replacement := fn(i, l, current)
-		result = append(result, replacement.GetAllBits()...)
-		i++
-	}
-
-	a.Value = NewPhraseFromBits(result...)
-	a.Delta = new(big.Int).Sub(a.TargetBigInt, a.Value.AsBigInt())
-
-	return a
-}

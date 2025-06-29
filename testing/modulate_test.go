@@ -17,7 +17,7 @@ func Test_Modulate_Toggle(t *testing.T) {
 		a := tiny.Synthesize.Approximation(d, depth)
 		one := tiny.From.Number((1<<depth)-1, depth)
 		zero := tiny.From.Number(0, depth)
-		a = a.Modulate(tiny.Modulate.Toggle(width, startHigh, zero...))
+		a = tiny.Modulate.Approximation(a, tiny.Modulate.Toggle(width, startHigh, zero...))
 
 		ii := 0
 		high := startHigh
