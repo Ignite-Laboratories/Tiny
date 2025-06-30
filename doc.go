@@ -6,7 +6,7 @@
 // from another uses 'tiny.From' - while going from a tiny type to another uses 'tiny.To'.
 //
 // The core component of tiny is the Measurement.  This is a standard container for up to your architecture's
-// bit-width worth of information.
+// bit-width worth of information - ensuring every measurement easily converts to a standard int.
 //
 // The next major component of tiny is the Phrase.  This is a standard way of working with slices of measurements.
 package tiny

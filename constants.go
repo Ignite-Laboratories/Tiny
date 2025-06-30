@@ -1,9 +1,5 @@
 package tiny
 
-import (
-	"math"
-)
-
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0
 
@@ -113,16 +109,20 @@ const WidthVerse = 128
 *
 Error Messages
 */
+
 const errorMeasurementLimit = "measurements are limited to the bit-width of your system's architecture"
+const errorPassageLimit = "passages are limited to 256 bits in length"
 
 /**
 Passages
 */
 
-// PassageMaxVerses defines the maximum number of Verses a Passage may hold.
+// MaxPassage is the maximum length a passage can contain, which is specifically set to 2⁸.
 //
-// A Verse contains 16 bytes.
-const PassageMaxVerses = 64
+// This value was chosen to keep the synthesis process extremely performant through concurrency.
+const MaxPassage = 1 << 8
+
+// NOTE: Update errorPassageLimit if you change this!!!
 
 /**
 Movements
@@ -169,38 +169,4 @@ func NewRelativeSize(value int) RelativeSize {
 	default:
 		return Equal
 	}
-}
-
-/**
-Correction Factor Focus
-*/
-
-var factors0 = [][]float64{
-	GenerateCorrectionFactors(focus000Log, 7),
-	GenerateCorrectionFactors(focus001Log, 15),
-	GenerateCorrectionFactors(focus010Log, 63),
-	GenerateCorrectionFactors(focus011Log, 255),
-}
-var factors1 = [][]float64{
-	GenerateCorrectionFactors(focus100Log, 7),
-	GenerateCorrectionFactors(focus101Log, 15),
-	GenerateCorrectionFactors(focus110Log, 63),
-	GenerateCorrectionFactors(focus111Log, 255),
-}
-
-var focus000Log = (math.Log(1.05) - math.Log(1.0)) / float64(7)
-var focus001Log = (math.Log(1.05) - math.Log(1.0)) / float64(15)
-var focus010Log = (math.Log(1.05) - math.Log(1.0)) / float64(63)
-var focus011Log = (math.Log(1.05) - math.Log(1.0)) / float64(255)
-var focus100Log = (math.Log(0.95) - math.Log(1.0)) / float64(7)
-var focus101Log = (math.Log(0.95) - math.Log(1.0)) / float64(15)
-var focus110Log = (math.Log(0.95) - math.Log(1.0)) / float64(63)
-var focus111Log = (math.Log(0.95) - math.Log(1.0)) / float64(255)
-
-func GenerateCorrectionFactors(log float64, max int) []float64 {
-	out := make([]float64, max)
-	for i := 0; i < max; i++ {
-		out[i] = math.Exp(float64(i) * log)
-	}
-	return out
 }

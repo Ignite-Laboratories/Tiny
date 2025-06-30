@@ -12,13 +12,18 @@ type Approximation struct {
 	// Target is the target value to approximate.
 	Target Phrase
 
-	// TargetBigInt is the target value as a big.Int.
+	// targetBigInt is the target value as a big.Int.
 	//
 	// NOTE: This is purely an efficiency gain to avoid reconverting a static value in loop logic.
-	TargetBigInt *big.Int
+	targetBigInt *big.Int
 
 	// Value is the current approximate value.
 	Value Phrase
+
+	// valueBigInt is the approximate value as a big.Int.
+	//
+	// NOTE: This is purely an efficiency gain to avoid reconverting a static value in loop logic.
+	valueBigInt *big.Int
 
 	// Delta is the difference between Target and Value.
 	Delta *big.Int
@@ -45,49 +50,57 @@ func (a *Approximation) CalculateBitDrop() int {
 // using the following encoding scheme and should be called iteratively until enough bits
 // are gained to 'bailout'.
 //
-//	 Dark ⬎    Light ⬎    Sign ⬎
-//		╭ [ ⁰⁄₁ ... ] [ ⁰⁄₁ ... ] ⁰⁄₁ ╮
-//		╰────────←───LOOP────←────────╯
+// @formatter:off
+//
+//	Dark ⬎    Light ⬎    Sign ⬎
+//	╭ [ ⁰⁄₁ ... ] [ ⁰⁄₁ ... ] ⁰⁄₁ ╮
+//	╰────────←───loop────←────────╯
 //
 // The three major parts of this scheme are the 'cursor' position, the 'bailout' condition,
 // and the synthesis of a value relative to the initial index size.
 //
 // The starting cursor position is optionally provided as an input parameter and indicates
-// how far in from the left side of the target index to start calculating from.  This represents
-// a point from which ones can be synthesized until an ideal dark value is found.  At each
-// step an appropriate light value is found, which indicates how many zeros to synthesize
-// on the right side of the dark value.  Once the best refinement is found, the approximation
-// is updated and the dark stride is returned to be fed into the next iteration's position value.
+// how far in from the left side of the target index to start synthesizing from.  Next, an
+// appropriate light value is found, which indicates how many zeros to synthesize on the right
+// side of the dark value to decay it exponentially.  Then, the approximation is updated and
+// the dark stride is returned to be fed into the next iteration's position value.
 //
 // The bailout condition is indicated when the dark ZLE value is '0' and should be added to the
-// signature by the -calling- function.
+// signature by the -calling- function, followed by the delta.
 //
 // For example, let's synthesize a few values:
 //
-//		Position: 2
+//	 Position: 2
 //		    Dark: 3
 //		   Light: 1
 //
-//	   2   |   3   |         | 1  <- Inputs
-//		0 1 0 | 1 0 1 | 0 1 0 1 | 0  <- Approximation
-//		      |       | 1 1 1 1 | 0  <- Synthesized value
+//	  |------- Index Width ---------|
+//	  | 0 1 | 0 1 0 | 1 0 1 0 1 | 0 |  <- Approximation
+//	  |  2  |   3   |           | 1 |  <- Inputs
+//	  |     |       | 1 1 1 1 1 | 0 |  <- Synthesized value
 //
 //		Position: 0
 //		    Dark: 4
 //		   Light: 5
 //
-//	  0  |    4    |     |     5     <- Inputs
-//		    | 0 1 0 1 | 0 1 | 0 1 0 1 0 <- Approximation
-//		    |         | 1 1 | 0 0 0 0 0 <- Synthesized value
+//		|    | 0 1 0 1 | 0 1 | 0 1 0 1 0 | <- Approximation
+//		| 0  |    4    |     |     5     | <- Inputs
+//		|    |         | 1 1 | 0 0 0 0 0 | <- Synthesized value
 //
 //		Position: 1
 //		    Dark: 4
 //		   Light: 0
 //
-//	  1  |    4    |               | 0 <- Inputs
-//		 0  | 1 0 1 0 | 1 0 1 0 1 0 1 |   <- Approximation
-//		    |         | 1 1 1 1 1 1 1 |   <- Synthesized value
+//		| 0  | 1 0 1 0 | 1 0 1 0 1 0 |   | <- Approximation
+//		| 1  |    4    |             | 0 | <- Inputs
+//		|    |         | 1 1 1 1 1 1 |   | <- Synthesized value
+//
+// @formatter:on
 func (a *Approximation) Refine(position ...int) (stride int) {
+	if a.IndexWidth > MaxPassage {
+		panic(errorPassageLimit)
+	}
+
 	sign := Zero
 	if a.Delta.Sign() < 0 {
 		sign = One
@@ -102,11 +115,41 @@ func (a *Approximation) Refine(position ...int) (stride int) {
 		}
 	}
 
+	bestD := a.Delta
+	bestV := a.valueBigInt
+	bestILight := 0
+	bestIDark := 0
+
+	width := a.IndexWidth - p
 	offset := 0
-	for i := a.IndexWidth - 1; i >= 0; i-- {
-		//ones := Synthesize.Ones(a.IndexWidth - p - offset)
+	for iDark := width - 1; iDark >= 0; iDark-- {
+		for iLight := 0; iLight < width; iLight++ {
+			bits := Synthesize.TrailingZeros(iDark, iLight)
+
+			var value *big.Int
+			if sign == One {
+				value = new(big.Int).Sub(a.valueBigInt, bits.AsBigInt())
+			} else {
+				value = new(big.Int).Add(a.valueBigInt, bits.AsBigInt())
+			}
+
+			delta := new(big.Int).Sub(a.targetBigInt, value)
+
+			if delta.CmpAbs(bestD) <= 0 {
+				bestD = delta
+				bestV = value
+				bestILight = iLight
+				bestIDark = iDark
+			}
+		}
 
 		offset++
 	}
-	return -1
+
+	a.Signature = a.Signature.Append(Fuzzy.Byte.Encode(bestIDark))
+	a.Signature = a.Signature.Append(Fuzzy.Byte.Encode(bestILight))
+	a.Delta = bestD
+	a.Value = NewPhraseFromBigInt(bestV)
+	a.valueBigInt = bestV
+	return offset
 }

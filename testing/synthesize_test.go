@@ -42,7 +42,7 @@ func Test_Synthesize_Zeros(t *testing.T) {
 	}
 }
 
-func Test_Synthesize_ReducedOnes(t *testing.T) {
+func Test_Synthesize_TrailingZeros(t *testing.T) {
 	bitLength := 10
 
 	for i := 0; i <= bitLength; i++ {

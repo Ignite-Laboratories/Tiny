@@ -10,7 +10,7 @@ var Analyze _analyze
 //	tiny.From [byte/number/etc...]
 var From _from
 
-// Fuzzy provides access to fuzzy read operations and ZLE.
+// Fuzzy provides access to fuzzy ZLE operations.
 var Fuzzy _fuzzy
 
 // Modify is a way to alter existing binary information.

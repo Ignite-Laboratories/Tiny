@@ -11,8 +11,8 @@ import (
 // storing each bit individually would need 8 times the size of every bit -
 // thus, the measurement was born.
 //
-// TL;DR: This holds bits in byte form, leaving anything less than a byte
-// at the end of the binary information as a remainder of bits.
+//	tl;dr: This holds bits in byte form, leaving anything less than a byte
+//	       at the end of the binary information as a remainder of bits.
 //
 // NOTE: A measurement is limited to your architecture's bit-width wide by design.
 // This allows you to easily grow or shrink bytes at the bit level and then capture the

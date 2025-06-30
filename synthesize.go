@@ -53,21 +53,26 @@ func (s _synthesize) Zeros(count int) Phrase {
 
 // TrailingZeros creates a slice of '1's of the requested length, except for the trailing bits.
 //
-// This has a mathematical purpose!  An index of data is 0—2ⁿ and a fully dark index is 0—(2ⁿ)-1, but
-// introducing zeros to the right is equivalent to subtracting by a dark index as wide as the range of zeros.
+// This has a mathematical purpose!  A dark index of data has a max addressable value of (2ⁿ)-1 - but
+// introducing zeros to the right of a fully dark index is equivalent to 2ⁿ-2ᶻ, with 'z' being
+// the number of zeros introduced.
+//
+// @formatter:off
 //
 // For example:
 //
-//	1 0 0 0 0 0 0 <- 64
-//	  1 1 1 1 1 1 <- 63 (64-1)  [implied]
-//	  1 1 1 1 1 0 <- 62 (64-2)  [2¹]
-//	  1 1 1 1 0 0 <- 60 (64-4)  [2²]
-//	  1 1 1 0 0 0 <- 56 (64-8)  [2³]
-//	  1 1 0 0 0 0 <- 48 (64-16) [2⁴]
-//	  1 0 0 0 0 0 <- 32 (64-32) [2⁵]
-//	  0 0 0 0 0 0 <- 0  (64-64) [2⁶]
+//	1 0 0 0 0 0 0 <- 64 (2⁶)
+//	  1 1 1 1 1 1 <- 63 (2⁶-1)  [2⁰]
+//	  1 1 1 1 1 0 <- 62 (2⁶-2)  [2¹]
+//	  1 1 1 1 0 0 <- 60 (2⁶-4)  [2²]
+//	  1 1 1 0 0 0 <- 56 (2⁶-8)  [2³]
+//	  1 1 0 0 0 0 <- 48 (2⁶-16) [2⁴]
+//	  1 0 0 0 0 0 <- 32 (2⁶-32) [2⁵]
+//	  0 0 0 0 0 0 <- 0  (2⁶-64) [2⁶]
 //
 // This allows us to decay a dark value exponentially.
+//
+// @formatter:on
 func (s _synthesize) TrailingZeros(count int, zeros int) Phrase {
 	remainder := count
 	return s.ForEach(count, func(i int) Bit {
@@ -182,6 +187,8 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase P
 //
 // The provided width is the overall bit-width of the resulting phrase.
 //
+// @formatter:off
+//
 // For example - a note can subdivide 8 boundary positions of a byte index:
 //
 //	 |<- Overall Width ->|
@@ -196,6 +203,8 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase P
 //		| 0 0 1 - 0 0 0 0 0 | <- ⅛
 //		| 0 0 0 - 0 0 0 0 0 | <- Light boundary
 //		              ⬑ The repetend
+//
+// @formatter:on
 func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
 	if width == 0 {
 		return Phrase{}
@@ -269,7 +278,7 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Approximation {
 	a := Approximation{
 		Target:       target,
-		TargetBigInt: target.AsBigInt(),
+		targetBigInt: target.AsBigInt(),
 		IndexWidth:   target.BitLength(),
 	}
 	if depth <= 0 {
@@ -286,7 +295,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 	msbs, _ := target.Read(r)
 	a.Signature = a.Signature.AppendBits(msbs.Bits()...)
 
-	smallest := a.TargetBigInt
+	smallest := a.targetBigInt
 	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
 
 	subdivisions := (1 << depth) - 1
@@ -305,7 +314,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		phrases[i] = p
 
 		// Get the delta
-		delta := new(big.Int).Sub(a.TargetBigInt, pInt)
+		delta := new(big.Int).Sub(a.targetBigInt, pInt)
 		if delta.CmpAbs(smallest) <= 0 {
 			patternBits = NewPhraseFromBits(bits...)
 			smallest = delta
@@ -314,6 +323,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 	}
 
 	a.Value = phrases[bestI]
+	a.valueBigInt = a.Value.AsBigInt()
 	a.Signature = a.Signature.Append(patternBits)
 	a.Delta = smallest
 	a.BitDepth = depth

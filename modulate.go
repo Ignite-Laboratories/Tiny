@@ -46,7 +46,7 @@ func (m _modulate) Approximation(a Approximation, fn ModulationFunc) Approximati
 	}
 
 	a.Value = NewPhraseFromBits(result...)
-	a.Delta = new(big.Int).Sub(a.TargetBigInt, a.Value.AsBigInt())
+	a.Delta = new(big.Int).Sub(a.targetBigInt, a.Value.AsBigInt())
 
 	return a
 }

@@ -5,7 +5,7 @@ import (
 	"math/big"
 )
 
-// Phrase represents a Measurement slice and provides easy clustered measurement functionality.
+// Phrase represents a Measurement slice and provides clustered measurement functionality.
 type Phrase []Measurement
 
 // NewPhrase calls NewMeasurement for each input byte and returns a Phrase of the results.
@@ -88,59 +88,81 @@ func (phrase Phrase) AppendMeasurement(m Measurement) Phrase {
 	return append(phrase, m)
 }
 
+// AppendBits appends the provided bits to the end of the phrase.
+//
+// NOTE: This appends the bits as new measurements inside of a new phrase =)
+func (phrase Phrase) AppendBits(bits ...Bit) Phrase {
+	return append(phrase, NewPhraseFromBits(bits...)...)
+}
+
+// AppendBytes appends the provided bytes to the end of the phrase.
+//
+// NOTE: This appends the bits as new measurements inside of a new phrase =)
+func (phrase Phrase) AppendBytes(bytes ...byte) Phrase {
+	return append(phrase, NewPhraseFromBytesAndBits(bytes)...)
+}
+
+// AppendBitsAndBytes appends the provided bits, and then bytes, to the end of the phrase.
+//
+// NOTE: This appends the bits as new measurements inside of a new phrase =)
+func (phrase Phrase) AppendBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
+	return append(phrase, NewPhraseFromBitsAndBytes(bits, bytes...)...)
+}
+
+// AppendBytesAndBits appends the provided bytes, and then bits, to the end of the phrase.
+//
+// NOTE: This appends the bits as new measurements inside of a new phrase =)
+func (phrase Phrase) AppendBytesAndBits(bytes []byte, bits ...Bit) Phrase {
+	return append(phrase, NewPhraseFromBytesAndBits(bytes, bits...)...)
+}
+
+// Append appends the provided phrase(s) to the end of the source phrase.
+func (phrase Phrase) Append(p ...Phrase) Phrase {
+	for _, item := range p {
+		phrase = append(phrase, item...)
+	}
+	return phrase
+}
+
 // PrependMeasurement prepends the provided measurement to the phrase.
 func (phrase Phrase) PrependMeasurement(m Measurement) Phrase {
 	return append(Phrase{m}, phrase...)
 }
 
-// AppendBits appends the provided bits to the end of the phrase.
-func (phrase Phrase) AppendBits(bits ...Bit) Phrase {
-	return append(phrase, NewPhraseFromBits(bits...)...)
-}
-
 // PrependBits prepends the provided bits to the beginning of the phrase.
+//
+// NOTE: This prepends the bits as new measurements inside of a new phrase =)
 func (phrase Phrase) PrependBits(bits ...Bit) Phrase {
 	return append(NewPhraseFromBits(bits...), phrase...)
 }
 
-// AppendBytes appends the provided bytes to the end of the phrase.
-func (phrase Phrase) AppendBytes(bytes ...byte) Phrase {
-	return append(phrase, NewPhraseFromBytesAndBits(bytes)...)
-}
-
 // PrependBytes prepends the provided bytes to the beginning of the phrase.
+//
+// NOTE: This prepends the bits as new measurements inside of a new phrase =)
 func (phrase Phrase) PrependBytes(bytes ...byte) Phrase {
 	return append(NewPhraseFromBytesAndBits(bytes), phrase...)
 }
 
-// AppendBitsAndBytes appends the provided bits, and then bytes, to the end of the phrase.
-func (phrase Phrase) AppendBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
-	return append(phrase, NewPhraseFromBitsAndBytes(bits, bytes...)...)
-}
-
 // PrependBitsAndBytes prepends the provided bits, and then bytes, to the beginning of the phrase.
+//
+// NOTE: This prepends the bits as new measurements inside of a new phrase =)
 func (phrase Phrase) PrependBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
 	return append(NewPhraseFromBitsAndBytes(bits, bytes...), phrase...)
 }
 
-// AppendBytesAndBits appends the provided bytes, and then bits, to the end of the phrase.
-func (phrase Phrase) AppendBytesAndBits(bytes []byte, bits ...Bit) Phrase {
-	return append(phrase, NewPhraseFromBytesAndBits(bytes, bits...)...)
-}
-
 // PrependBytesAndBits prepends the provided bytes, and then bits, to the beginning of the phrase.
+//
+// NOTE: This prepends the bits as new measurements inside of a new phrase =)
 func (phrase Phrase) PrependBytesAndBits(bytes []byte, bits ...Bit) Phrase {
 	return append(NewPhraseFromBytesAndBits(bytes, bits...), phrase...)
 }
 
-// Append appends the provided phrase to the end of the source phrase.
-func (phrase Phrase) Append(p Phrase) Phrase {
-	return append(phrase, p...)
-}
-
-// Prepend prepends the provided phrase to the beginning of the source phrase.
-func (phrase Phrase) Prepend(p Phrase) Phrase {
-	return append(p, phrase...)
+// Prepend prepends the provided phrase(s) to the beginning of the source phrase.
+func (phrase Phrase) Prepend(p ...Phrase) Phrase {
+	for _, item := range p {
+		phrase = append(item, phrase...)
+	}
+	return phrase
 }
 
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
@@ -270,18 +292,24 @@ func (phrase Phrase) Bits() []Bit {
 //
 // A Phrase is considered "aligned" if all except the -final- measurement are of the same width.
 //
-// For example:
+// @formatter:off
 //
-//		0 1 | 0 1 0 | 0 1 1 0 1 0 0 0 | 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
-//		 M1 |  M2   |  Measurement 3  |     M4    |  Measurement 5  |  <- "Unaligned" Phrase
+// For example-
 //
-//	 Align()
+//	Starting Phrase:
 //
-//		0 1 0 1 0 0 1 1 | 0 1 0 0 0 1 0 1 | 1 0 0 0 1 0 0 0 | 0 1 |  <- Raw Bits
-//		 Measurement1   |  Measurement 2  |  Measurement 3  | M4  |  <- "Aligned" Phrase
+//	0 1 | 0 1 0 | 0 1 1 0 1 0 0 0 | 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
+//	 M1 |  M2   |  Measurement 3  |     M4    |  Measurement 5  |  <- "Unaligned" Phrase
+//
+//	Align()
+//
+//	0 1 0 1 0 0 1 1 | 0 1 0 0 0 1 0 1 | 1 0 0 0 1 0 0 0 | 0 1 |  <- Raw Bits
+//	 Measurement1   |  Measurement 2  |  Measurement 3  | M4  |  <- "Aligned" Phrase
 //
 // NOTE: This will panic if you provide a width greater than your architecture's bit width, or if
 // given a width of <= 0.
+//
+// @formatter:on
 func (phrase Phrase) Align(width ...int) Phrase {
 	w := 8
 	if len(width) > 0 {
@@ -312,7 +340,7 @@ func (phrase Phrase) Align(width ...int) Phrase {
 	return out
 }
 
-// Read reads the provided number of bits from the source phrase, plus the remainder, as phrases.
+// Read reads the provided number of bits from the source phrase, followed by the remainder, as phrases.
 //
 // NOTE: If you provide a length in excess of the phrase bit-length, only the available bits will be read
 // and the remainder will be empty.
@@ -398,6 +426,8 @@ func (phrase Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
 
 // Trifurcate takes the source phrase and subdivides it in thrice - start, middle, and end.
 //
+// @formatter:off
+//
 // For example:
 //
 //		tiny.Phrase{ 77, 22, 33 }
@@ -417,6 +447,8 @@ func (phrase Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
 //
 //		| 0 1 0 0 | 1 1 0 1 0 0 0 1 - 0 1 1 0 0 0 1 0 | 0 0 0 1 | <- Raw Bits
 //		|  Start  |     Middle1     |     Middle2     |   End   | <- Aligned Phrase Measurements
+//
+// @formatter:on
 func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
 	start, end = phrase.Read(startLen)
 	middle, end = end.Read(middleLen)
@@ -427,26 +459,30 @@ func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, midd
 //
 // The ending bits will contain any odd bits from the splitting operation.
 //
+// @formatter:off
+//
 // For example:
 //
-//			tiny.Phrase{ 77, 22, 33 }
-//	     tiny.AppendBits(1, 0, 0)
+//	tiny.Phrase{ 77, 22, 33 }
+//	tiny.AppendBits(1, 0, 0)
 //
-//			|        77       |        22       |        33       |   5   |  <- Values
-//			| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
-//			|  Measurement 1  |  Measurement 2  |  Measurement 3  |   M4  |  <- Source Phrase Measurements
+//	|        77       |        22       |        33       |   5   |  <- Values
+//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
+//	|  Measurement 1  |  Measurement 2  |  Measurement 3  |   M4  |  <- Source Phrase Measurements
 //
-//			Bifurcate()
+//	Bifurcate()
 //
-//			|        77       |         22        |        33       |   5   |  <- Values
-//			| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
-//			|             Start           |               End               |  <- Bifurcated Phrases
-//			|     Start 1     |  Start 2  | End 1 |      End 2      | End 3 |  <- Bifurcated Phrase Measurements
+//	|        77       |         22        |        33       |   5   |  <- Values
+//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
+//	|             Start           |               End               |  <- Bifurcated Phrases
+//	|     Start 1     |  Start 2  | End 1 |      End 2      | End 3 |  <- Bifurcated Phrase Measurements
 //
-//		 (Optional) Align() each phrase
+//	(Optional) Align() each phrase
 //
-//			| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 - 0 0 1 | 1 0 0 |  <- Raw Bits
-//			|     Start 1     |  Start 2  |       End 1       |     End 2     |  <- Aligned Measurements
+//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 - 0 0 1 | 1 0 0 |  <- Raw Bits
+//	|     Start 1     |  Start 2  |       End 1       |     End 2     |  <- Aligned Measurements
+//
+// @formatter:on
 func (phrase Phrase) Bifurcate() (start Phrase, end Phrase) {
 	return phrase.Read(phrase.BitLength() / 2)
 }
@@ -517,54 +553,6 @@ func (phrase Phrase) Invert() Phrase {
 		out[i] = m
 	}
 	return out
-}
-
-// DeltaEncode uses the source phrase value to encode the delta from a known relative boundary point.
-//
-// Don't worry, it's not that complex - here's an index of data:
-//
-//	[ 1 1 1 1 ... 1 1 1 ] <- Dark Boundary
-//	↕   Fourth Index    ↕
-//	[ 1 1 0 0 ... 0 0 0 ] <- Upper Quarter Boundary
-//	↕    Third Index    ↕
-//	[ 1 0 0 0 ... 0 0 0 ] <- Mid Boundary
-//	↕   Second Index    ↕
-//	[ 0 1 0 0 ... 0 0 0 ] <- Lower Quarter Boundary
-//	↕    First Index    ↕
-//	[ 0 0 0 0 ... 0 0 0 ] <- Light Boundary
-//
-// A signature dictates where the target exists relative to the final bit width, while the delta (Δ) tells us
-// how many bits were removed from the source phrase.
-// The remainder tells us how far our target is from the signature's vantage point.
-//
-// The signature is a very simple measurement - the first bit tells you if the data existed in the lower
-// or upper half of the address space, with each next bit telling you if its closer to the top or bottom of
-// each subsequent halving of the address space.
-// The standard depth to walk is three bits, but you can optionally override this at your discretion.
-//
-//	NOTE: This will panic if you give it a depth of 0 or less
-//
-// So, for example:
-//
-//	              ⬐ Remainder
-//	[ 1 0 1 ] [ 1 0 1 ]
-//	    ⬑ Key Signature
-//
-// The key signature tells us it's in the upper eighth of the lower quandrant of the upper half.
-// Because it's in the UPPER eighth, the remainder value is considered to be subtracted from the
-// synthetic vantage point.
-//
-// So, with an 8 bit Δ, you'd synthesize 11 bits (including the remainder) as such:
-//
-//	| 1 1 0 0 0 0 0 0 0 0 0 | <- Synthesized value at the appropriate vantage point (the 3rd quarter, here)
-//	|                 1 0 1 | <- Remainder to subtract
-//	| 1 0 1 1 1 1 1 1 0 1 1 | <- Resulting value
-func (phrase Phrase) DeltaEncode(depth ...int) (signature Measurement, delta int, remainder Phrase) {
-	return Measurement{}, -1, nil
-}
-
-func (phrase Phrase) DeltaDecode(signature Measurement, delta int, remainder Phrase) Phrase {
-	return nil
 }
 
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.

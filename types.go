@@ -88,50 +88,50 @@ func Upcast[TIn SubByte](data []TIn) []byte {
 	return out
 }
 
-// Bit represents one binary value. [0 - 1]
+// Bit represents one binary place. [0 - 1]
 type Bit byte
 
-// Crumb represents two binary values. [0-3]
+// Crumb represents two binary places. [0-3]
 type Crumb byte
 
-// Note represents three binary values. [0-7]
+// Note represents three binary places. [0-7]
 type Note byte
 
-// Nibble represents four binary values. [0-15]
+// Nibble represents four binary places. [0-15]
 type Nibble byte
 
-// Flake represents five binary values. [0-31]
+// Flake represents five binary places. [0-31]
 type Flake byte
 
-// Morsel represents six binary values. [0-63]
+// Morsel represents six binary places. [0-63]
 type Morsel byte
 
-// Shred represents seven binary values. [0-127]
+// Shred represents seven binary places. [0-127]
 type Shred byte
 
 /**
 Over Byte Types
 */
 
-// Scale represents twelve binary values - See MaxScale.
+// Scale represents twelve binary places - See MaxScale.
 type Scale int16
 
-// Motif represents sixteen binary values - See MaxMotif.
+// Motif represents sixteen binary places - See MaxMotif.
 type Motif int16
 
-// Riff represents twenty-four binary values - See MaxRiff.
+// Riff represents twenty-four binary places - See MaxRiff.
 type Riff int32
 
-// Cadence represents thirty-two binary values - See MaxCadence.
+// Cadence represents thirty-two binary places - See MaxCadence.
 type Cadence int32
 
-// Hook represents forty-eight binary values - See MaxHook.
+// Hook represents forty-eight binary places - See MaxHook.
 type Hook int64
 
-// Melody represents sixty-four binary values - See MaxMelody.
+// Melody represents sixty-four binary places - See MaxMelody.
 type Melody int64
 
-// Verse represents one-hundred & twenty-eight binary values - See MaxVerse.
+// Verse represents one-hundred & twenty-eight binary places - See MaxVerse.
 type Verse [2]int64
 
 /**
@@ -143,67 +143,67 @@ func (v Bit) Bits() []Bit {
 	return From.Number(int(v))
 }
 
-// Bits uses the provided value to build a 2 Bit slice.
+// Bits uses the provided value to build a 2 Bit Crumb slice.
 func (v Crumb) Bits() []Bit {
 	return From.Crumb(v)
 }
 
-// Bits uses the provided value to build a 3 Bit slice.
+// Bits uses the provided value to build a 3 Bit Note slice.
 func (v Note) Bits() []Bit {
 	return From.Note(v)
 }
 
-// Bits uses the provided value to build a 4 Bit slice.
+// Bits uses the provided value to build a 4 Bit Nibble slice.
 func (v Nibble) Bits() []Bit {
 	return From.Nibble(v)
 }
 
-// Bits uses the provided value to build a 5 Bit slice.
+// Bits uses the provided value to build a 5 Bit Flake slice.
 func (v Flake) Bits() []Bit {
 	return From.Flake(v)
 }
 
-// Bits uses the provided value to build a 6 Bit slice.
+// Bits uses the provided value to build a 6 Bit Morsel slice.
 func (v Morsel) Bits() []Bit {
 	return From.Morsel(v)
 }
 
-// Bits uses the provided value to build a 7 Bit slice.
+// Bits uses the provided value to build a 7 Bit Shred slice.
 func (v Shred) Bits() []Bit {
 	return From.Shred(v)
 }
 
-// Bits uses the provided value to build a 12 Bit slice.
+// Bits uses the provided value to build a 12 Bit Scale slice.
 func (v Scale) Bits() []Bit {
 	return From.Scale(v)
 }
 
-// Bits uses the provided value to build a 16 Bit slice.
+// Bits uses the provided value to build a 16 Bit Motif slice.
 func (v Motif) Bits() []Bit {
 	return From.Motif(v)
 }
 
-// Bits uses the provided value to build a 24 Bit slice.
+// Bits uses the provided value to build a 24 Bit Riff slice.
 func (v Riff) Bits() []Bit {
 	return From.Riff(v)
 }
 
-// Bits uses the provided value to build a 32 Bit slice.
+// Bits uses the provided value to build a 32 Bit Cadence slice.
 func (v Cadence) Bits() []Bit {
 	return From.Cadence(v)
 }
 
-// Bits uses the provided value to build a 48 Bit slice.
+// Bits uses the provided value to build a 48 Bit Hook slice.
 func (v Hook) Bits() []Bit {
 	return From.Hook(v)
 }
 
-// Bits uses the provided value to build a 64 Bit slice.
+// Bits uses the provided value to build a 64 Bit Melody slice.
 func (v Melody) Bits() []Bit {
 	return From.Melody(v)
 }
 
-// Bits uses the provided value to build a 128 Bit slice.
+// Bits uses the provided value to build a 128 Bit Verse slice.
 func (v Verse) Bits() []Bit {
 	return From.Verse(v)
 }
