@@ -78,6 +78,23 @@ func Test_Synthesize_TrailingZeros(t *testing.T) {
 	}
 }
 
+func Test_Synthesize_Midpoint(t *testing.T) {
+	for i := 1; i < 128; i++ {
+		phrase := tiny.Synthesize.Midpoint(i)
+		bits := phrase.Bits()
+		fmt.Println(bits)
+
+		if bits[0] != 1 {
+			t.Error("Expected a one in the first position")
+		}
+		for ii := 1; ii < i; ii++ {
+			if bits[ii] != 0 {
+				t.Error("Expected all zeros after the initial one.")
+			}
+		}
+	}
+}
+
 func Test_Synthesize_Repeating(t *testing.T) {
 	patternTester := func(t *testing.T, pattern ...tiny.Bit) {
 		for count := 0; count < 8; count++ {
@@ -223,7 +240,6 @@ func Test_Synthesize_Boundary(t *testing.T) {
 		repeating := tiny.Synthesize.Repeating(5, repetend)
 		out := tiny.Synthesize.Boundary(bits, repetend, 8)
 		expected := tiny.NewPhraseFromBits(bits...).Append(repeating).Align()
-		fmt.Println(out)
 		ComparePhrases(out, expected, t)
 	}
 }

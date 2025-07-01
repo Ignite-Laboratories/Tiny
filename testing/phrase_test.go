@@ -303,6 +303,81 @@ func Test_Phrase_Read_AcrossMeasurements(t *testing.T) {
 }
 
 /**
+ReadFromEnd
+*/
+
+func Test_Phrase_ReadFromEnd(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	read, remainder := phrase.ReadFromEnd(4)
+
+	ComparePhrases(read, tiny.NewPhraseFromBits(1, 1, 0, 1), t)
+	ComparePhrases(remainder, tiny.NewPhraseFromBits(0, 1, 0, 0), t)
+}
+
+func Test_Phrase_ReadFromEnd_NoData(t *testing.T) {
+	phrase := tiny.NewPhrase()
+
+	read, remainder := phrase.ReadFromEnd(4)
+
+	ComparePhrases(read, tiny.NewPhrase(), t)
+	ComparePhrases(remainder, tiny.NewPhrase(), t)
+}
+
+func Test_Phrase_ReadFromEnd_UndersizedData(t *testing.T) {
+	phrase := tiny.NewPhraseFromBits(1, 1)
+
+	read, remainder := phrase.ReadFromEnd(4)
+
+	ComparePhrases(read, tiny.NewPhraseFromBits(1, 1), t)
+	ComparePhrases(remainder, tiny.NewPhrase(), t)
+}
+
+/**
+ReadLastBit
+*/
+
+func Test_Phrase_ReadLastBit(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	bit, remainder := phrase.ReadLastBit()
+
+	if bit != 1 {
+		t.Errorf("Expected bit to be 1, got %d", bit)
+	}
+
+	ComparePhrases(remainder, tiny.NewPhraseFromBits(0, 1, 0, 0, 1, 1, 0), t)
+}
+
+func Test_Phrase_ReadLastBit_NoData(t *testing.T) {
+	phrase := tiny.NewPhrase()
+
+	bit, remainder := phrase.ReadLastBit()
+
+	if bit != 0 {
+		t.Errorf("Expected bit to be 0, got %d", bit)
+	}
+
+	if remainder.BitLength() > 0 {
+		t.Errorf("Expected remainder to be empty, got %s", remainder)
+	}
+}
+
+func Test_Phrase_ReadLastBit_OneBit(t *testing.T) {
+	phrase := tiny.NewPhraseFromBits(1)
+
+	bit, remainder := phrase.ReadLastBit()
+
+	if bit != 1 {
+		t.Errorf("Expected bit to be 0, got %d", bit)
+	}
+
+	if remainder.BitLength() > 0 {
+		t.Errorf("Expected remainder to be empty, got %s", remainder)
+	}
+}
+
+/**
 ReadMeasurement
 */
 

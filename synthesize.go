@@ -41,6 +41,54 @@ func (_ _synthesize) ForEach(count int, f func(int) Bit) Phrase {
 	return NewPhraseFromBytesAndBits(bytes, bits...)
 }
 
+// Movement creates a binary transformation step of the target phrase.
+//
+// This operation is quite simple:
+//
+//   - For the full bit width of the target, synthesize the mid-point value
+//   - Calculate the "Delta" from the midpoint to the target
+//   - Save off the Delta's sign to the movement's signature
+//   - Repeat the process for one bit width smaller
+//   - Continue this operation until you reach a value that is the same bit width as "deltaWidth"
+//   - Store the Delta on the movement
+//
+// You can reconstruct the original information by Performing the movement.
+//
+// In performing this operation you may or may not get an overall reduction in bits - however, on
+// average, you will gain -2- bits!
+//
+// This structure by itself isn't quite useful - the next layer is the Composition, which takes
+// full advantage of what a movement has to offer =)
+func (s _synthesize) Movement(target Phrase, deltaWidth int) Movement {
+	m := Movement{
+		Signature:  NewPhrase(),
+		Delta:      NewPhrase(),
+		DeltaWidth: deltaWidth,
+	}
+
+	delta := target.AsBigInt()
+
+	for i := target.BitLength(); i >= 0; i-- {
+		midpoint := Synthesize.Midpoint(i)
+
+		delta = new(big.Int).Sub(delta, midpoint.AsBigInt())
+		if delta.Sign() < 0 {
+			m.Signature = m.Signature.AppendBits(1)
+		} else {
+			m.Signature = m.Signature.AppendBits(0)
+		}
+		m.Signature = m.Signature.Align()
+		delta = new(big.Int).Abs(delta)
+		deltaLen := len(delta.Text(2))
+
+		if deltaLen <= deltaWidth {
+			m.Delta = NewPhraseFromBigInt(delta)
+			return m
+		}
+	}
+	return m
+}
+
 // Ones creates a slice of '1's of the requested length.
 func (s _synthesize) Ones(count int) Phrase {
 	return s.ForEach(count, func(i int) Bit { return One })
@@ -70,7 +118,7 @@ func (s _synthesize) Zeros(count int) Phrase {
 //	  1 0 0 0 0 0 <- 32 (2⁶-32) [2⁵]
 //	  0 0 0 0 0 0 <- 0  (2⁶-64) [2⁶]
 //
-// This allows us to decay a dark value exponentially.
+// This allows us to decay a dark value exponentially using a light value.
 //
 // @formatter:on
 func (s _synthesize) TrailingZeros(count int, zeros int) Phrase {
@@ -81,6 +129,16 @@ func (s _synthesize) TrailingZeros(count int, zeros int) Phrase {
 			return Zero
 		}
 		return One
+	})
+}
+
+// Midpoint creates a slice with a '1' in the first position and zeros in all subsequent positions.
+func (s _synthesize) Midpoint(width int) Phrase {
+	return s.ForEach(width, func(i int) Bit {
+		if i == 0 {
+			return One
+		}
+		return Zero
 	})
 }
 
@@ -270,12 +328,7 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 // Approximation creates a synthetic approximation of the target phrase.
 //
 // The depth value indicates the bit-width of pattern to utilize in approximating the target.
-//
-// The retain value indicates how many bits of the target phrase to retain, while the remainder should be synthesized.
-// The retained bits are emitted to the approximation signature, followed immediately by the closest binary pattern
-// of the provided depth to the target.
-// If retain is left out or negative, it's considered to be '0'.
-func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Approximation {
+func (s _synthesize) Approximation(target Phrase, depth int) Approximation {
 	a := Approximation{
 		Target:       target,
 		targetBigInt: target.AsBigInt(),
@@ -284,16 +337,54 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 	if depth <= 0 {
 		return a
 	}
-	r := 0
-	if len(retain) > 0 {
-		r = retain[0]
-		if r < 0 {
-			r = 0
+
+	smallest := a.targetBigInt
+	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
+
+	subdivisions := 1 << depth
+	patterns := make([]*big.Int, subdivisions)
+	phrases := make([]Phrase, subdivisions)
+	bestI := 0
+
+	for i := 0; i < subdivisions; i++ {
+		// Create the initial pattern bits
+		bits := From.Number(i, depth)
+
+		// Synthesize the pattern
+		p := s.Pattern(a.IndexWidth, bits...)
+		pInt := p.AsBigInt()
+		patterns[i] = pInt
+		phrases[i] = p
+
+		// Get the delta between the target and the largest value that doesn't exceed it
+		delta := new(big.Int).Sub(a.targetBigInt, pInt)
+		if delta.CmpAbs(smallest) <= 0 && delta.Sign() >= 0 {
+			patternBits = NewPhraseFromBits(bits...)
+			smallest = delta
+			bestI = i
 		}
 	}
 
-	msbs, _ := target.Read(r)
-	a.Signature = a.Signature.AppendBits(msbs.Bits()...)
+	a.Value = phrases[bestI]
+	a.valueBigInt = a.Value.AsBigInt()
+	a.Signature = append(a.Signature, patternBits...)
+	a.Delta = smallest
+	a.BitDepth = depth
+	return a
+}
+
+// ApproximationOld creates a synthetic approximation of the target phrase.
+//
+// The depth value indicates the bit-width of pattern to utilize in approximating the target.
+func (s _synthesize) ApproximationOld(target Phrase, depth int) Approximation {
+	a := Approximation{
+		Target:       target,
+		targetBigInt: target.AsBigInt(),
+		IndexWidth:   target.BitLength(),
+	}
+	if depth <= 0 {
+		return a
+	}
 
 	smallest := a.targetBigInt
 	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
@@ -307,8 +398,8 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 		// Create the initial pattern bits
 		bits := From.Number(i, depth)
 
-		// Synthesize the full pattern
-		p := s.Pattern(a.IndexWidth-r, bits...).Prepend(msbs)
+		// Synthesize the pattern
+		p := s.Pattern(a.IndexWidth, bits...)
 		pInt := p.AsBigInt()
 		patterns[i] = pInt
 		phrases[i] = p
@@ -324,7 +415,7 @@ func (s _synthesize) Approximation(target Phrase, depth int, retain ...int) Appr
 
 	a.Value = phrases[bestI]
 	a.valueBigInt = a.Value.AsBigInt()
-	a.Signature = a.Signature.Append(patternBits)
+	a.Signature = append(a.Signature, patternBits...)
 	a.Delta = smallest
 	a.BitDepth = depth
 	return a

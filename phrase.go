@@ -118,10 +118,11 @@ func (phrase Phrase) AppendBytesAndBits(bytes []byte, bits ...Bit) Phrase {
 
 // Append appends the provided phrase(s) to the end of the source phrase.
 func (phrase Phrase) Append(p ...Phrase) Phrase {
+	out := make(Phrase, 0, len(phrase))
 	for _, item := range p {
-		phrase = append(phrase, item...)
+		out = append(phrase, item...)
 	}
-	return phrase
+	return out
 }
 
 // PrependMeasurement prepends the provided measurement to the phrase.
@@ -159,10 +160,11 @@ func (phrase Phrase) PrependBytesAndBits(bytes []byte, bits ...Bit) Phrase {
 
 // Prepend prepends the provided phrase(s) to the beginning of the source phrase.
 func (phrase Phrase) Prepend(p ...Phrase) Phrase {
+	out := make(Phrase, 0, len(phrase))
 	for _, item := range p {
-		phrase = append(item, phrase...)
+		out = append(item, phrase...)
 	}
-	return phrase
+	return out
 }
 
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
@@ -373,6 +375,22 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	return read, remainder
 }
 
+// ReadFromEnd reads the provided number of bits from the end of the source phrase, followed by the remainder, as phrases.
+//
+// NOTE: If you provide a length in excess of the phrase bit-length, only the available bits will be read
+// and the remainder will be empty.
+func (phrase Phrase) ReadFromEnd(length int) (read Phrase, remainder Phrase) {
+	remainder, read = phrase.Read(phrase.BitLength() - length)
+	return read, remainder
+}
+
+// ReadLastBit reads the last bit of the source phrase, followed by the remainder.
+func (phrase Phrase) ReadLastBit() (last Bit, remainder Phrase) {
+	end, remainder := phrase.ReadFromEnd(1)
+	last, _, _ = end.ReadBit()
+	return last, remainder
+}
+
 // ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and provides the
 // remainder as a Phrase.
 //
@@ -393,6 +411,8 @@ func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Ph
 }
 
 // ReadBit reads a single bit from the source phrase and returns the remainder as a Phrase.
+//
+// NOTE: This returns an error if there are no more bits to read.
 func (phrase Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
 	measure, remainder := phrase.ReadMeasurement(1)
 	if measure.BitLength() == 0 {

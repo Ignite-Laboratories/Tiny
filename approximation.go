@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"fmt"
 	"math/big"
 )
 
@@ -46,9 +47,8 @@ func (a *Approximation) CalculateBitDrop() int {
 	return tLength - (sLength + len(dLength))
 }
 
-// Refine finds the closest synthetic value to the delta and applies it to the approximation
-// using the following encoding scheme and should be called iteratively until enough bits
-// are gained to 'bailout'.
+// Refine finds the closest synthetic value to the delta and applies it to the approximation,
+// then emits the below encoding scheme to its signature:
 //
 // @formatter:off
 //
@@ -62,17 +62,17 @@ func (a *Approximation) CalculateBitDrop() int {
 // The starting cursor position is optionally provided as an input parameter and indicates
 // how far in from the left side of the target index to start synthesizing from.  Next, an
 // appropriate light value is found, which indicates how many zeros to synthesize on the right
-// side of the dark value to decay it exponentially.  Then, the approximation is updated and
-// the dark stride is returned to be fed into the next iteration's position value.
+// side of the dark value, decaying it exponentially.
 //
-// The bailout condition is indicated when the dark ZLE value is '0' and should be added to the
-// signature by the -calling- function, followed by the delta.
+// The bailout condition is indicated when the dark ZLE value is '0' - meaning no more bits
+// apply to the refinement process as a fully dark index would never be closer than the last
+// approximation.  This condition should be added to the signature by the -calling- function.
 //
 // For example, let's synthesize a few values:
 //
 //	 Position: 2
-//		    Dark: 3
-//		   Light: 1
+//		 Dark: 3
+//		Light: 1
 //
 //	  |------- Index Width ---------|
 //	  | 0 1 | 0 1 0 | 1 0 1 0 1 | 0 |  <- Approximation
@@ -96,7 +96,18 @@ func (a *Approximation) CalculateBitDrop() int {
 //		|    |         | 1 1 1 1 1 1 |   | <- Synthesized value
 //
 // @formatter:on
-func (a *Approximation) Refine(position ...int) (stride int) {
+//
+// NOTE: The standard encoder uses the Fuzzy Byte map unless otherwise specified.
+func (a *Approximation) Refine(position int, encoder ...FuzzyEncodeFunc) (stride int) {
+	if position < 0 {
+		position = 0
+	}
+
+	fn := Fuzzy.Byte.Encode
+	if len(encoder) > 0 {
+		fn = encoder[0]
+	}
+
 	if a.IndexWidth > MaxPassage {
 		panic(errorPassageLimit)
 	}
@@ -105,35 +116,31 @@ func (a *Approximation) Refine(position ...int) (stride int) {
 	if a.Delta.Sign() < 0 {
 		sign = One
 	}
-	a.Signature = a.Signature.AppendBits(sign)
-
-	p := 0
-	if len(position) > 0 {
-		p = position[0]
-		if p < 0 {
-			p = 0
-		}
-	}
 
 	bestD := a.Delta
 	bestV := a.valueBigInt
 	bestILight := 0
 	bestIDark := 0
 
-	width := a.IndexWidth - p
+	width := a.IndexWidth - position
 	offset := 0
-	for iDark := width - 1; iDark >= 0; iDark-- {
-		for iLight := 0; iLight < width; iLight++ {
+	for iDark := width; iDark >= 0; iDark-- {
+		for iLight := 0; iLight < iDark; iLight++ {
 			bits := Synthesize.TrailingZeros(iDark, iLight)
+			bitsBigInt := bits.AsBigInt()
+			fmt.Println(bits)
 
 			var value *big.Int
 			if sign == One {
-				value = new(big.Int).Sub(a.valueBigInt, bits.AsBigInt())
+				value = new(big.Int).Sub(a.valueBigInt, bitsBigInt)
 			} else {
-				value = new(big.Int).Add(a.valueBigInt, bits.AsBigInt())
+				value = new(big.Int).Add(a.valueBigInt, bitsBigInt)
 			}
 
 			delta := new(big.Int).Sub(a.targetBigInt, value)
+			fmt.Println("----------------------------------------------------------------")
+			fmt.Println(bitsBigInt)
+			fmt.Println(delta.Text(2))
 
 			if delta.CmpAbs(bestD) <= 0 {
 				bestD = delta
@@ -146,8 +153,9 @@ func (a *Approximation) Refine(position ...int) (stride int) {
 		offset++
 	}
 
-	a.Signature = a.Signature.Append(Fuzzy.Byte.Encode(bestIDark))
-	a.Signature = a.Signature.Append(Fuzzy.Byte.Encode(bestILight))
+	a.Signature = a.Signature.AppendBits(sign)
+	a.Signature = a.Signature.Append(fn(bestIDark))
+	a.Signature = a.Signature.Append(fn(bestILight))
 	a.Delta = bestD
 	a.Value = NewPhraseFromBigInt(bestV)
 	a.valueBigInt = bestV

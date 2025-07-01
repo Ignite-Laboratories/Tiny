@@ -4,11 +4,15 @@ package tiny
 ZLE
 */
 
-type ZLEScheme interface {
-	KeyBitWidth() int
-	Read(Phrase) (value int, remainder Phrase)
-	Encode(int) (key Phrase, projection Phrase)
-}
+// FuzzyEncodeFunc is a type of function that emits out a key and projection based on its own rules.
+//
+// See the various fields on the _fuzzy structure for the details of each standard implementation.
+type FuzzyEncodeFunc func(value int) (key Phrase, projection Phrase)
+
+// FuzzyReadFunc is a type of function that reads the next bits in the source phrase based on its own rules.
+//
+// See the various fields on the _fuzzy structure for the details of each standard implementation.
+type FuzzyReadFunc func(data Phrase) (value int, remainder Phrase)
 
 /**
 Shade
