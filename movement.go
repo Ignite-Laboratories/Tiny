@@ -1,30 +1,36 @@
 package tiny
 
-import "math/big"
+import (
+	"fmt"
+	"math/big"
+)
 
 type Movement struct {
-	Signature  Phrase
-	Delta      Phrase
-	DeltaWidth int
+	Signature    Phrase
+	Delta        Phrase
+	DeltaWidth   int
+	InitialWidth int
 }
 
 // Perform uses the current movement information to re-build the original information.
 func (m Movement) Perform() Phrase {
 	signature := m.Signature
-	bitLength := m.Signature.BitLength() + m.DeltaWidth
 	delta := m.Delta.AsBigInt()
+	bitLength := m.InitialWidth
 
-	for i := 0; i < bitLength; i++ {
+	for i := m.DeltaWidth; i < bitLength+1; i++ {
 		var sign Bit
 		sign, signature = signature.ReadLastBit()
 
-		midpoint := Synthesize.Midpoint(i + m.DeltaWidth + 1)
+		midpoint := Synthesize.Midpoint(i)
+		fmt.Println(midpoint)
 
 		if sign == One {
 			delta = new(big.Int).Sub(midpoint.AsBigInt(), delta)
 		} else {
 			delta = new(big.Int).Add(midpoint.AsBigInt(), delta)
 		}
+		fmt.Println(delta.Text(2))
 	}
 
 	return NewPhraseFromBigInt(delta)

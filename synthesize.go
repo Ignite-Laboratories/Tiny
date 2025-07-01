@@ -2,6 +2,7 @@ package tiny
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 )
 
@@ -61,15 +62,17 @@ func (_ _synthesize) ForEach(count int, f func(int) Bit) Phrase {
 // full advantage of what a movement has to offer =)
 func (s _synthesize) Movement(target Phrase, deltaWidth int) Movement {
 	m := Movement{
-		Signature:  NewPhrase(),
-		Delta:      NewPhrase(),
-		DeltaWidth: deltaWidth,
+		Signature:    NewPhrase(),
+		Delta:        NewPhrase(),
+		DeltaWidth:   deltaWidth,
+		InitialWidth: target.BitLength(),
 	}
 
 	delta := target.AsBigInt()
 
-	for i := target.BitLength(); i >= 0; i-- {
+	for i := m.InitialWidth; i >= deltaWidth; i-- {
 		midpoint := Synthesize.Midpoint(i)
+		fmt.Println(midpoint)
 
 		delta = new(big.Int).Sub(delta, midpoint.AsBigInt())
 		if delta.Sign() < 0 {
@@ -79,12 +82,10 @@ func (s _synthesize) Movement(target Phrase, deltaWidth int) Movement {
 		}
 		m.Signature = m.Signature.Align()
 		delta = new(big.Int).Abs(delta)
-		deltaLen := len(delta.Text(2))
+		deltaStr := delta.Text(2)
+		m.Delta = NewPhraseFromBigInt(delta)
 
-		if deltaLen <= deltaWidth {
-			m.Delta = NewPhraseFromBigInt(delta)
-			return m
-		}
+		fmt.Println(deltaStr)
 	}
 	return m
 }
