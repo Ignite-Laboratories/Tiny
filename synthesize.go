@@ -2,7 +2,6 @@ package tiny
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
 )
 
@@ -42,26 +41,20 @@ func (_ _synthesize) ForEach(count int, f func(int) Bit) Phrase {
 	return NewPhraseFromBytesAndBits(bytes, bits...)
 }
 
-// Movement creates a binary transformation step of the target phrase.
-//
-// This operation is quite simple:
+// Passage encodes a traditional binary Phrase using the below scheme.
 //
 //   - For the full bit width of the target, synthesize the mid-point value
 //   - Calculate the "Delta" from the midpoint to the target
-//   - Save off the Delta's sign to the movement's signature
+//   - Save off the Delta's sign to the passage's signature
 //   - Repeat the process for one bit width smaller
 //   - Continue this operation until you reach a value that is the same bit width as "deltaWidth"
-//   - Store the Delta on the movement
+//   - Store the Delta on the passage
 //
-// You can reconstruct the original information by Performing the movement.
+// You can reconstruct the original information by "performing" the passage.
 //
-// In performing this operation you may or may not get an overall reduction in bits - however, on
-// average, you will gain -2- bits!
-//
-// This structure by itself isn't quite useful - the next layer is the Composition, which takes
-// full advantage of what a movement has to offer =)
-func (s _synthesize) Movement(target Phrase, deltaWidth int) Movement {
-	m := Movement{
+// This may or may not get an overall reduction in bits - however, on average, you will gain 2 bits =)
+func (s _synthesize) Passage(target Phrase, deltaWidth int) Passage {
+	p := Passage{
 		Signature:    NewPhrase(),
 		Delta:        NewPhrase(),
 		DeltaWidth:   deltaWidth,
@@ -70,22 +63,35 @@ func (s _synthesize) Movement(target Phrase, deltaWidth int) Movement {
 
 	delta := target.AsBigInt()
 
-	for i := m.InitialWidth; i >= deltaWidth; i-- {
+	for i := p.InitialWidth; i >= deltaWidth; i-- {
 		midpoint := Synthesize.Midpoint(i)
-		fmt.Println(midpoint)
 
 		delta = new(big.Int).Sub(delta, midpoint.AsBigInt())
 		if delta.Sign() < 0 {
-			m.Signature = m.Signature.AppendBits(1)
+			p.Signature = p.Signature.AppendBits(1)
 		} else {
-			m.Signature = m.Signature.AppendBits(0)
+			p.Signature = p.Signature.AppendBits(0)
 		}
-		m.Signature = m.Signature.Align()
+		p.Signature = p.Signature.Align()
 		delta = new(big.Int).Abs(delta)
-		deltaStr := delta.Text(2)
-		m.Delta = NewPhraseFromBigInt(delta)
+		p.Delta = NewPhraseFromBigInt(delta)
+	}
+	return p
+}
 
-		fmt.Println(deltaStr)
+// Movement gathers all of the movements into a single seed value which can be re-performed.
+func (s _synthesize) Movement(target Phrase, bitWidth int) Movement {
+	m := Movement{}
+	for {
+		p := s.Passage(target, bitWidth)
+		target = p.AsPhrase()
+		m.Cycles++
+
+		if target.BitLength() < 16 {
+			m.Signature = p.Signature
+			m.Delta = p.Delta
+			break
+		}
 	}
 	return m
 }
