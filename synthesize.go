@@ -184,6 +184,8 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Phrase {
 // If you would prefer to implement your own bit-for-bit randomness, you may optionally provide
 // a function that dynamically generates each Bit.
 //
+// NOTE: This ensures it will never return all 1s, 0s, or repeating [ 1 0 ] [ 0 1 ].
+//
 // NOTE: This will panic if given a length greater than your architecture's bit width.
 func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 	g := func(_ int) Bit {
@@ -330,100 +332,4 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 		}
 	}
 	return boundaries
-}
-
-// Approximation creates a synthetic approximation of the target phrase.
-//
-// The depth value indicates the bit-width of pattern to utilize in approximating the target.
-func (s _synthesize) Approximation(target Phrase, depth int) Approximation {
-	a := Approximation{
-		Target:       target,
-		targetBigInt: target.AsBigInt(),
-		IndexWidth:   target.BitLength(),
-	}
-	if depth <= 0 {
-		return a
-	}
-
-	smallest := a.targetBigInt
-	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
-
-	subdivisions := 1 << depth
-	patterns := make([]*big.Int, subdivisions)
-	phrases := make([]Phrase, subdivisions)
-	bestI := 0
-
-	for i := 0; i < subdivisions; i++ {
-		// Create the initial pattern bits
-		bits := From.Number(i, depth)
-
-		// Synthesize the pattern
-		p := s.Pattern(a.IndexWidth, bits...)
-		pInt := p.AsBigInt()
-		patterns[i] = pInt
-		phrases[i] = p
-
-		// Get the delta between the target and the largest value that doesn't exceed it
-		delta := new(big.Int).Sub(a.targetBigInt, pInt)
-		if delta.CmpAbs(smallest) <= 0 && delta.Sign() >= 0 {
-			patternBits = NewPhraseFromBits(bits...)
-			smallest = delta
-			bestI = i
-		}
-	}
-
-	a.Value = phrases[bestI]
-	a.valueBigInt = a.Value.AsBigInt()
-	a.Signature = append(a.Signature, patternBits...)
-	a.Delta = smallest
-	a.BitDepth = depth
-	return a
-}
-
-// ApproximationOld creates a synthetic approximation of the target phrase.
-//
-// The depth value indicates the bit-width of pattern to utilize in approximating the target.
-func (s _synthesize) ApproximationOld(target Phrase, depth int) Approximation {
-	a := Approximation{
-		Target:       target,
-		targetBigInt: target.AsBigInt(),
-		IndexWidth:   target.BitLength(),
-	}
-	if depth <= 0 {
-		return a
-	}
-
-	smallest := a.targetBigInt
-	patternBits := NewPhraseFromBits(From.Number(0, depth)...)
-
-	subdivisions := (1 << depth) - 1
-	patterns := make([]*big.Int, subdivisions+1)
-	phrases := make([]Phrase, subdivisions+1)
-	bestI := 0
-
-	for i := 0; i <= subdivisions; i++ {
-		// Create the initial pattern bits
-		bits := From.Number(i, depth)
-
-		// Synthesize the pattern
-		p := s.Pattern(a.IndexWidth, bits...)
-		pInt := p.AsBigInt()
-		patterns[i] = pInt
-		phrases[i] = p
-
-		// Get the delta
-		delta := new(big.Int).Sub(a.targetBigInt, pInt)
-		if delta.CmpAbs(smallest) <= 0 {
-			patternBits = NewPhraseFromBits(bits...)
-			smallest = delta
-			bestI = i
-		}
-	}
-
-	a.Value = phrases[bestI]
-	a.valueBigInt = a.Value.AsBigInt()
-	a.Signature = append(a.Signature, patternBits...)
-	a.Delta = smallest
-	a.BitDepth = depth
-	return a
 }

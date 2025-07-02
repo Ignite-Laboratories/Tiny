@@ -4,6 +4,10 @@ import (
 	"bytes"
 )
 
+/**
+NOTE: This was heavily used in the early development of tiny, but has minimal use now
+*/
+
 type _analyze int
 
 // Average calculates the average of a slice of tiny.Measurement values and returns the result.

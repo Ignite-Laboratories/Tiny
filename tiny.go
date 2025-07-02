@@ -16,9 +16,6 @@ var Fuzzy _fuzzy
 // Modify is a way to alter existing binary information.
 var Modify _modify
 
-// Modulate provides access to preconfigured modulation functions.
-var Modulate _modulate
-
 // Synthesize is a way to create binary slices from known parameters.
 var Synthesize _synthesize
 
