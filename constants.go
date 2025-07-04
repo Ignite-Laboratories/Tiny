@@ -54,12 +54,6 @@ const MaxCadence = (1 << 32) - 1
 // MaxHook is the maximum value a Hook can hold.
 const MaxHook = (1 << 48) - 1
 
-// MaxMelody is the maximum value a Melody can hold.
-const MaxMelody = (1 << 64) - 1
-
-// MaxVerse is the maximum value a Verse can hold.
-const MaxVerse = (1 << 128) - 1
-
 // WidthBit is the number of binary positions a Bit represents.
 const WidthBit = 1
 
@@ -84,6 +78,9 @@ const WidthShred = 7
 // WidthByte is the number of binary positions a Byte represents.
 const WidthByte = 8
 
+// WidthRun is the number of binary positions a Run represents
+const WidthRun = 10
+
 // WidthScale is the number of binary positions a Scale represents.
 const WidthScale = 12
 
@@ -98,12 +95,6 @@ const WidthCadence = 32
 
 // WidthHook is the number of binary positions a Hook represents.
 const WidthHook = 48
-
-// WidthMelody is the number of binary positions a Melody represents.
-const WidthMelody = 64
-
-// WidthVerse is the number of binary positions a Verse represents.
-const WidthVerse = 128
 
 /*
 *

@@ -114,29 +114,26 @@ type Morsel byte
 type Shred byte
 
 /**
-Over Byte Types
+Super Byte Types
 */
 
+// Run represents ten binary places - See MaxRun.
+type Run int
+
 // Scale represents twelve binary places - See MaxScale.
-type Scale int16
+type Scale int
 
 // Motif represents sixteen binary places - See MaxMotif.
-type Motif int16
+type Motif int
 
 // Riff represents twenty-four binary places - See MaxRiff.
-type Riff int32
+type Riff int
 
 // Cadence represents thirty-two binary places - See MaxCadence.
-type Cadence int32
+type Cadence int
 
 // Hook represents forty-eight binary places - See MaxHook.
-type Hook int64
-
-// Melody represents sixty-four binary places - See MaxMelody.
-type Melody int64
-
-// Verse represents one-hundred & twenty-eight binary places - See MaxVerse.
-type Verse [2]int64
+type Hook int
 
 /**
 Bits()
@@ -177,6 +174,11 @@ func (v Shred) Bits() []Bit {
 	return From.Shred(v)
 }
 
+// Bits uses the provided value to build a 10 Bit Run slice.
+func (v Run) Bits() []Bit {
+	return From.Run(v)
+}
+
 // Bits uses the provided value to build a 12 Bit Scale slice.
 func (v Scale) Bits() []Bit {
 	return From.Scale(v)
@@ -200,16 +202,6 @@ func (v Cadence) Bits() []Bit {
 // Bits uses the provided value to build a 48 Bit Hook slice.
 func (v Hook) Bits() []Bit {
 	return From.Hook(v)
-}
-
-// Bits uses the provided value to build a 64 Bit Melody slice.
-func (v Melody) Bits() []Bit {
-	return From.Melody(v)
-}
-
-// Bits uses the provided value to build a 128 Bit Verse slice.
-func (v Verse) Bits() []Bit {
-	return From.Verse(v)
 }
 
 /**
@@ -251,6 +243,11 @@ func (v Shred) String() string {
 	return To.String(v.Bits()...)
 }
 
+// String converts a Run to a 10-bit string.
+func (v Run) String() string {
+	return To.String(v.Bits()...)
+}
+
 // String converts a Scale to a 12-bit string.
 func (v Scale) String() string {
 	return To.String(v.Bits()...)
@@ -273,15 +270,5 @@ func (v Cadence) String() string {
 
 // String converts a Hook to a 48-bit string.
 func (v Hook) String() string {
-	return To.String(v.Bits()...)
-}
-
-// String converts a Melody to a 64-bit string.
-func (v Melody) String() string {
-	return To.String(v.Bits()...)
-}
-
-// String converts a Verse to a 128-bit string.
-func (v Verse) String() string {
 	return To.String(v.Bits()...)
 }

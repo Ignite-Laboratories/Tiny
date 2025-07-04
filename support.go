@@ -20,3 +20,12 @@ func GetArchitectureBitWidth() int {
 	}
 	panic("what be you, beast!?  over 2¹² bits of computation!??")
 }
+
+// GetBitWidth returns the number of binary digits necessary to represent the provided number
+func GetBitWidth(number int) int {
+	if number == 0 {
+		return 1
+	} else {
+		return int(math.Floor(math.Log2(float64(number)))) + 1
+	}
+}

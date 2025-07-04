@@ -290,21 +290,21 @@ func (_ _fuzzy) SixtyFour(key tiny.Measurement) int {
 //
 //		 FuzzyRead(2, tiny.Fuzzy.Window(3))
 //
-//	Value-> 1  |   1                                             <- Window Occurances
-//	     | 0 0 | 0 0 1 | 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key | Cont  |            Remainder                  | <- Fuzzy read
+//	Value-> 1  |   1                                             ← Window Occurances
+//	     | 0 0 | 0 0 1 | 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key | Cont  |            Remainder                  | ← Fuzzy read
 //
-//	Value-> 2  |   1       2                                       <- Window Occurances
-//	     | 0 1 | 0 0 1 - 1 0 1 | 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |  Continuation |         Remainder               | <- Fuzzy read
+//	Value-> 2  |   1       2                                       ← Window Occurances
+//	     | 0 1 | 0 0 1 - 1 0 1 | 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |  Continuation |         Remainder               | ← Fuzzy read
 //
-//	Value-> 3  |   1       2       3                                 <- Window Occurances
-//	     | 1 0 | 0 0 1 - 1 0 1 - 0 0 0 | 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |     Continuation      |        Remainder          | <- Fuzzy read
+//	Value-> 3  |   1       2       3                                 ← Window Occurances
+//	     | 1 0 | 0 0 1 - 1 0 1 - 0 0 0 | 1 0 1 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |     Continuation      |        Remainder          | ← Fuzzy read
 //
-//	Value-> 4  |   1       2       3       4                           <- Window Occurances
-//	     | 1 1 | 0 0 1 - 1 0 1 - 0 0 0 - 1 0 1 | 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |          Continuation         |      Remainder      | <- Fuzzy read
+//	Value-> 4  |   1       2       3       4                           ← Window Occurances
+//	     | 1 1 | 0 0 1 - 1 0 1 - 0 0 0 - 1 0 1 | 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |          Continuation         |      Remainder      | ← Fuzzy read
 func (_ _fuzzy) Window(windowWidth int) func(tiny.Measurement) int {
 	if windowWidth <= 0 {
 		panic("fuzzy.Window: window width must be greater than zero")
@@ -327,21 +327,21 @@ func (_ _fuzzy) Window(windowWidth int) func(tiny.Measurement) int {
 //
 //		 FuzzyRead(2, tiny.Fuzzy.PowerWindow(2))
 //
-//	Value-> 1  |  1                                              <- Window Occurances
-//	     | 0 0 | 0 0 | 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |  C  |             Remainder                   | <- Fuzzy read
+//	Value-> 1  |  1                                              ← Window Occurances
+//	     | 0 0 | 0 0 | 1 1 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |  C  |             Remainder                   | ← Fuzzy read
 //
-//	Value-> 2  |  1     2                                          <- Window Occurances
-//	     | 0 1 | 0 0 - 1 1 | 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |   Cont    |           Remainder                 | <- Fuzzy read
+//	Value-> 2  |  1     2                                          ← Window Occurances
+//	     | 0 1 | 0 0 - 1 1 | 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |   Cont    |           Remainder                 | ← Fuzzy read
 //
-//	Value-> 4  |  1     2     3     4                                  <- Window Occurances
-//	     | 1 0 | 0 0 - 1 1 - 0 1 - 0 0 | 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |      Continuation     |          Remainder          | <- Fuzzy read
+//	Value-> 4  |  1     2     3     4                                  ← Window Occurances
+//	     | 1 0 | 0 0 - 1 1 - 0 1 - 0 0 | 0 1 0 1 1 0 0 0 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |      Continuation     |          Remainder          | ← Fuzzy read
 //
-//	Value-> 8  |  1     2     3     4     5     6     7     8                  <- Window Occurances
-//	     | 1 1 | 0 0 - 1 1 - 0 1 - 0 0 - 0 1 - 0 1 - 1 0 - 0 0 | 1 0 0 0 0 1 | <- Raw bits
-//	     | Key |                  Continuation                 |  Remainder  | <- Fuzzy read
+//	Value-> 8  |  1     2     3     4     5     6     7     8                  ← Window Occurances
+//	     | 1 1 | 0 0 - 1 1 - 0 1 - 0 0 - 0 1 - 0 1 - 1 0 - 0 0 | 1 0 0 0 0 1 | ← Raw bits
+//	     | Key |                  Continuation                 |  Remainder  | ← Fuzzy read
 //
 // NOTE: The output continuation phrase will be aligned to its source form, but a call to Phrase.Align(windowWidth)
 // will yield even measurements as demonstrated above.

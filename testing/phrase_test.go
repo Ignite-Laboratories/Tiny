@@ -157,9 +157,9 @@ func Test_Phrase_AlignOnByteWidth(t *testing.T) {
 	//     33 -> 0 0 1 0 0 0 0 1
 	//
 	// Output:
-	//      |       77        |       22        |       33        |  <- "Unaligned"
-	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
-	//  |      83        |       69        |      136        |       <- "Aligned"
+	//      |       77        |       22        |       33        |  ← "Unaligned"
+	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   ← Raw Bits
+	//  |      83        |       69        |      136        |       ← "Aligned"
 
 	// Build the phrase
 	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
@@ -183,9 +183,9 @@ func Test_Phrase_AlignOnSmallerWidth(t *testing.T) {
 	//     33 -> 0 0 1 0 0 0 0 1
 	//
 	// Output:
-	//      |       77        |       22        |       33        |  <- "Unaligned"
-	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
-	//  |   5   |   3    |    4   |   5    |    8   |   8    |  1    <- "Aligned"
+	//      |       77        |       22        |       33        |  ← "Unaligned"
+	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   ← Raw Bits
+	//  |   5   |   3    |    4   |   5    |    8   |   8    |  1    ← "Aligned"
 
 	// Build the phrase
 	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
@@ -213,9 +213,9 @@ func Test_Phrase_AlignOnLargerWidth(t *testing.T) {
 	//     33 -> 0 0 1 0 0 0 0 1
 	//
 	// Output:
-	//      |       77        |       22        |       33        |  <- "Unaligned"
-	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   <- Raw Bits
-	//  |        333          |        88           |     33         <- "Aligned"
+	//      |       77        |       22        |       33        |  ← "Unaligned"
+	//   0 1 0 1 0 0 1 1 - 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 - 0 1   ← Raw Bits
+	//  |        333          |        88           |     33         ← "Aligned"
 
 	phrase := append(tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}, tiny.NewPhrase(77, 22, 33)...)
 	aligned := phrase.Align(10)
@@ -510,8 +510,8 @@ func Test_Phrase_Trifurcate(t *testing.T) {
 	//     33 -> 0 0 1 0 0 0 0 1
 	//
 	// Output:
-	//   0 1 0 0 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1  <- Raw Bits
-	//  |     Start      |     Middle      |      End       | <- "Trifurcated"
+	//   0 1 0 0 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 0 0 0 1  ← Raw Bits
+	//  |     Start      |     Middle      |      End       | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77, 22, 33)
 
 	s, m, e := phrase.Trifurcate(8, 8)
@@ -529,8 +529,8 @@ func Test_Phrase_Trifurcate_OddSize(t *testing.T) {
 	//     33 -> 0 0 1 0 0 0 0 1
 	//
 	// Output:
-	//   0 1 0 0 - 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 - 0 0 0 1  <- Raw Bits
-	//  | Start  | Middle1 |     Middle2     | Middle3 |   End  | <- "Trifurcated"
+	//   0 1 0 0 - 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 - 0 0 0 1  ← Raw Bits
+	//  | Start  | Middle1 |     Middle2     | Middle3 |   End  | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77, 22, 33)
 
 	s, m, e := phrase.Trifurcate(4, 16)
@@ -556,8 +556,8 @@ func Test_Phrase_Trifurcate_ExcessiveMiddleLength(t *testing.T) {
 	//     77 -> 0 1 0 0 1 1 0 1
 	//
 	// Output:
-	//   0 1 - 0 0 1 1 0 1      <- Raw Bits
-	//  | S  |   Middle   | E | <- "Trifurcated"
+	//   0 1 - 0 0 1 1 0 1      ← Raw Bits
+	//  | S  |   Middle   | E | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
 	s, m, e := phrase.Trifurcate(2, 8)
@@ -578,8 +578,8 @@ func Test_Phrase_Trifurcate_ExcessiveStartLength(t *testing.T) {
 	//     77 -> 0 1 0 0 1 1 0 1
 	//
 	// Output:
-	//   0 1 0 0 1 1 0 1          <- Raw Bits
-	//  |     Start     | M | E | <- "Trifurcated"
+	//   0 1 0 0 1 1 0 1          ← Raw Bits
+	//  |     Start     | M | E | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
 	s, m, e := phrase.Trifurcate(10, 8)
@@ -600,8 +600,8 @@ func Test_Phrase_Trifurcate_ZeroStartLength(t *testing.T) {
 	//     77 -> 0 1 0 0 1 1 0 1
 	//
 	// Output:
-	//       0 1 0 0 - 1 1 0 1  <- Raw Bits
-	//  | S | Middle |  End   | <- "Trifurcated"
+	//       0 1 0 0 - 1 1 0 1  ← Raw Bits
+	//  | S | Middle |  End   | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
 	s, m, e := phrase.Trifurcate(0, 4)
@@ -622,8 +622,8 @@ func Test_Phrase_Trifurcate_ZeroStartLengthAndNoEnd(t *testing.T) {
 	//     77 -> 0 1 0 0 1 1 0 1
 	//
 	// Output:
-	//       0 1 0 0 1 1 0 1      <- Raw Bits
-	//  | S |    Middle     | E | <- "Trifurcated"
+	//       0 1 0 0 1 1 0 1      ← Raw Bits
+	//  | S |    Middle     | E | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
 	s, m, e := phrase.Trifurcate(0, 10)
@@ -779,10 +779,10 @@ Invert
 func Test_Phrase_Invert(t *testing.T) {
 	expected := tiny.NewPhraseFromBytesAndBits([]byte{178, 233, 222}, 0, 1, 1, 0)
 	phrase := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33}, 1, 0, 0, 1)
-	// |        77       |         22      |        33       |    9    | <- Input Values
-	// | 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 1 | <- Input
-	// | 1 0 1 1 0 0 1 0 | 1 1 1 0 1 0 0 1 | 1 1 0 1 1 1 1 0 | 0 1 1 0 | <- Inverted
-	// |       178       |        233      |       222       |    6    | <- Inverted Values
+	// |        77       |         22      |        33       |    9    | ← Input Values
+	// | 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 1 |  Input
+	// | 1 0 1 1 0 0 1 0 | 1 1 1 0 1 0 0 1 | 1 1 0 1 1 1 1 0 | 0 1 1 0 |  Inverted
+	// |       178       |        233      |       222       |    6    |  Inverted Values
 	phrase = phrase.Invert()
 	ComparePhrases(phrase, expected, t)
 }

@@ -300,13 +300,13 @@ func (phrase Phrase) Bits() []Bit {
 //
 //	Starting Phrase:
 //
-//	0 1 | 0 1 0 | 0 1 1 0 1 0 0 0 | 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
-//	 M1 |  M2   |  Measurement 3  |     M4    |  Measurement 5  |  <- "Unaligned" Phrase
+//	| 0 1 | 0 1 0 | 0 1 1 0 1 0 0 0 | 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  ← Raw Bits
+//	|  M0 -  M1   -  Measurement 2  -     M3    -  Measurement 4  |  ← "Unaligned" Phrase
 //
 //	Align()
 //
-//	0 1 0 1 0 0 1 1 | 0 1 0 0 0 1 0 1 | 1 0 0 0 1 0 0 0 | 0 1 |  <- Raw Bits
-//	 Measurement1   |  Measurement 2  |  Measurement 3  | M4  |  <- "Aligned" Phrase
+//	| 0 1 0 1 0 0 1 1 | 0 1 0 0 0 1 0 1 | 1 0 0 0 1 0 0 0 | 0 1 |  ← Raw Bits
+//	|  Measurement 0  -  Measurement 1  -  Measurement 2  - M3  |  ← "Aligned" Phrase
 //
 // NOTE: This will panic if you provide a width greater than your architecture's bit width, or if
 // given a width of <= 0.
@@ -452,21 +452,21 @@ func (phrase Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
 //
 //		tiny.Phrase{ 77, 22, 33 }
 //
-//		|        77       |        22       |        33       |  <- Bytes
-//		| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  <- Raw Bits
-//		|  Measurement 1  |  Measurement 2  |  Measurement 3  |  <- Source Phrase
+//		|        77       |        22       |        33       |  ← Bytes
+//		| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 |  ← Raw Bits
+//		|  Measurement 0  |  Measurement 1  |  Measurement 2  |  ← Source Phrase
 //
 //		Trifurcate(4,16)
 //
-//		|    4    |                  16                 |           <- Trifurcation lengths
-//		| 0 1 0 0 | 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 | 0 0 0 1 | <- Raw Bits
-//		|  Start  |               Middle                |   End   | <- Trifurcated Phrases
-//		|  Start  | Middle1 |     Middle2     | Middle3 |   End   | <- Phrase Measurements
+//		|    4    |                  16                 |           ← Trifurcation lengths
+//		| 0 1 0 0 | 1 1 0 1 - 0 0 0 1 0 1 1 0 - 0 0 1 0 | 0 0 0 1 | ← Raw Bits
+//		|  Start  |               Middle                |   End   | ← Trifurcated Phrases
+//		|  Start  | Middle0 -     Middle1     - Middle2 |   End   | ← Phrase Measurements
 //
 //	 (Optional) Align() each phrase
 //
-//		| 0 1 0 0 | 1 1 0 1 0 0 0 1 - 0 1 1 0 0 0 1 0 | 0 0 0 1 | <- Raw Bits
-//		|  Start  |     Middle1     |     Middle2     |   End   | <- Aligned Phrase Measurements
+//		| 0 1 0 0 | 1 1 0 1 0 0 0 1 - 0 1 1 0 0 0 1 0 | 0 0 0 1 | ← Raw Bits
+//		|  Start  |     Middle0     -     Middle1     |   End   | ← Aligned Phrase Measurements
 //
 // @formatter:on
 func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
@@ -486,21 +486,21 @@ func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, midd
 //	tiny.Phrase{ 77, 22, 33 }
 //	tiny.AppendBits(1, 0, 0)
 //
-//	|        77       |        22       |        33       |   5   |  <- Values
-//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
-//	|  Measurement 1  |  Measurement 2  |  Measurement 3  |   M4  |  <- Source Phrase Measurements
+//	|        77       |        22       |        33       |   5   |  ← Values
+//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  ← Raw Bits
+//	|  Measurement 0  -  Measurement 1  -  Measurement 2  -   M3  |  ← Source Phrase Measurements
 //
 //	Bifurcate()
 //
-//	|        77       |         22        |        33       |   5   |  <- Values
-//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  <- Raw Bits
-//	|             Start           |               End               |  <- Bifurcated Phrases
-//	|     Start 1     |  Start 2  | End 1 |      End 2      | End 3 |  <- Bifurcated Phrase Measurements
+//	|        77       |         22        |        33       |   5   |  ← Values
+//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 |  ← Raw Bits
+//	|             Start           |               End               |  ← Bifurcated Phrases
+//	|     Start 0     -  Start 1  | End 0 -      End 1      - End 2 |  ← Bifurcated Phrase Measurements
 //
 //	(Optional) Align() each phrase
 //
-//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 - 0 0 1 | 1 0 0 |  <- Raw Bits
-//	|     Start 1     |  Start 2  |       End 1       |     End 2     |  <- Aligned Measurements
+//	| 0 1 0 0 1 1 0 1 | 0 0 0 1 0 - 1 1 0 | 0 0 1 0 0 - 0 0 1 | 1 0 0 |  ← Raw Bits
+//	|     Start 0     -  Start 1  |       End 0       -     End 1     |  ← Aligned Measurements
 //
 // @formatter:on
 func (phrase Phrase) Bifurcate() (start Phrase, end Phrase) {

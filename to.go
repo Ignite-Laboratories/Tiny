@@ -67,6 +67,11 @@ func (t _to) Byte(bits ...Bit) byte {
 	return byte(t.Number(8, bits...))
 }
 
+// Run converts the first 10 bits of the Bit slice to a Run and ignores the rest.
+func (t _to) Run(bits ...Bit) Run {
+	return Run(t.Number(10, bits...))
+}
+
 // Scale converts the first 12 bits of the Bit slice to a Scale and ignores the rest.
 func (t _to) Scale(bits ...Bit) Scale {
 	return Scale(t.Number(12, bits...))
@@ -90,11 +95,6 @@ func (t _to) Cadence(bits ...Bit) Cadence {
 // Hook converts the first 48 bits of the Bit slice to a Hook and ignores the rest.
 func (t _to) Hook(bits ...Bit) Hook {
 	return Hook(t.Number(48, bits...))
-}
-
-// Melody converts the first 64 bits of the Bit slice to a Melody and ignores the rest.
-func (t _to) Melody(bits ...Bit) Melody {
-	return Melody(t.Number(64, bits...))
 }
 
 // Measure converts a Bit slice to a Measurement.

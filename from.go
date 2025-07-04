@@ -44,6 +44,11 @@ func (f _from) Byte(value byte) []Bit {
 	return f.Number(int(value), WidthByte)
 }
 
+// Run uses the provided value to build a 10-bit slice.
+func (f _from) Run(value Run) []Bit {
+	return f.Number(int(value), WidthRun)
+}
+
 // Scale uses the provided value to build a 12-bit slice.
 func (f _from) Scale(value Scale) []Bit {
 	return f.Number(int(value), WidthScale)
@@ -67,16 +72,6 @@ func (f _from) Cadence(value Cadence) []Bit {
 // Hook uses the provided value to build a 48-bit slice.
 func (f _from) Hook(value Hook) []Bit {
 	return f.Number(int(value), WidthHook)
-}
-
-// Melody uses the provided value to build a 64-bit slice.
-func (f _from) Melody(value Melody) []Bit {
-	return f.Number(int(value), WidthMelody)
-}
-
-// Verse uses the provided value to build a 128-bit slice.
-func (f _from) Verse(value Verse) []Bit {
-	return append(f.Number(int(value[0]), WidthMelody), f.Number(int(value[1]), WidthMelody)...)
 }
 
 // Bytes uses the provided slice of bytes to build a Bit slice.

@@ -116,14 +116,14 @@ func (s _synthesize) Zeros(count int) Phrase {
 //
 // For example:
 //
-//	1 0 0 0 0 0 0 <- 64 (2⁶)
-//	  1 1 1 1 1 1 <- 63 (2⁶-1)  [2⁰]
-//	  1 1 1 1 1 0 <- 62 (2⁶-2)  [2¹]
-//	  1 1 1 1 0 0 <- 60 (2⁶-4)  [2²]
-//	  1 1 1 0 0 0 <- 56 (2⁶-8)  [2³]
-//	  1 1 0 0 0 0 <- 48 (2⁶-16) [2⁴]
-//	  1 0 0 0 0 0 <- 32 (2⁶-32) [2⁵]
-//	  0 0 0 0 0 0 <- 0  (2⁶-64) [2⁶]
+//	1 0 0 0 0 0 0 ← 64 (2⁶)
+//	  1 1 1 1 1 1 ← 63 (2⁶-1)  [2⁰]
+//	  1 1 1 1 1 0 ← 62 (2⁶-2)  [2¹]
+//	  1 1 1 1 0 0 ← 60 (2⁶-4)  [2²]
+//	  1 1 1 0 0 0 ← 56 (2⁶-8)  [2³]
+//	  1 1 0 0 0 0 ← 48 (2⁶-16) [2⁴]
+//	  1 0 0 0 0 0 ← 32 (2⁶-32) [2⁵]
+//	  0 0 0 0 0 0 ← 0  (2⁶-64) [2⁶]
 //
 // This allows us to decay a dark value exponentially using a light value.
 //
@@ -258,17 +258,17 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase P
 //
 // For example - a note can subdivide 8 boundary positions of a byte index:
 //
-//	 |<- Overall Width ->|
+//	 |← Overall Width ->|
 //		|   ⬐ The MSBs      |
-//		| 1 1 1 - 1 1 1 1 1 | <- Dark boundary
-//		| 1 1 1 - 0 0 0 0 0 | <- ⅞
-//		| 1 1 0 - 0 0 0 0 0 | <- ¾
-//		| 1 0 1 - 0 0 0 0 0 | <- ⅝
-//		| 1 0 0 - 0 0 0 0 0 | <- Mid-point
-//		| 0 1 1 - 0 0 0 0 0 | <- ⅜
-//		| 0 1 0 - 0 0 0 0 0 | <- ¼
-//		| 0 0 1 - 0 0 0 0 0 | <- ⅛
-//		| 0 0 0 - 0 0 0 0 0 | <- Light boundary
+//		| 1 1 1 - 1 1 1 1 1 | ← Dark boundary
+//		| 1 1 1 - 0 0 0 0 0 |  ⅞
+//		| 1 1 0 - 0 0 0 0 0 |  ¾
+//		| 1 0 1 - 0 0 0 0 0 |  ⅝
+//		| 1 0 0 - 0 0 0 0 0 |  Mid-point
+//		| 0 1 1 - 0 0 0 0 0 |  ⅜
+//		| 0 1 0 - 0 0 0 0 0 |  ¼
+//		| 0 0 1 - 0 0 0 0 0 |  ⅛
+//		| 0 0 0 - 0 0 0 0 0 |  Light boundary
 //		              ⬑ The repetend
 //
 // @formatter:on
