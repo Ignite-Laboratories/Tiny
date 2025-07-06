@@ -149,6 +149,13 @@ func (s _synthesize) Midpoint(width int) Phrase {
 	})
 }
 
+// Point synthesizes the target point in the provided index.  This is restricted to a "practical limit"
+// of 64 bits, as the input type is unable to address anything larger - if you wish to directly synthesize
+// a wider point, please consider an alternative means.
+func (s _synthesize) Point(i int, index int) Phrase {
+	return NewPhraseFromBits(From.Number(i, index)...)
+}
+
 // Repeating repeats the provided pattern the desired number of times.
 // Use Repeating when you want the entire pattern emitted a fixed number of times.
 // Use Pattern when you want the pattern to fit within a specified length.
