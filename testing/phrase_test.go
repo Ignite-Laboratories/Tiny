@@ -1,8 +1,6 @@
 package testing
 
 import (
-	"github.com/ignite-laboratories/support"
-	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -11,7 +9,7 @@ func Test_Phrase_NewPhraseFromBits(t *testing.T) {
 	bits := []tiny.Bit{0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1}
 	p := tiny.NewPhraseFromBits(bits...)
 	r, _ := p.Read(p.BitLength())
-	test.CompareSlices(bits, r.Bits(), t)
+	CompareSlices(bits, r.Bits(), t)
 }
 
 func Test_Phrase_ToBytesAndBits(t *testing.T) {
@@ -38,12 +36,12 @@ func Test_Phrase_ToBytesAndBits(t *testing.T) {
 	expectedBytes := []byte{77, 84, 88}
 	expectedBits := []tiny.Bit{1, 0, 0, 0, 0, 1}
 
-	test.CompareSlices(bytes, expectedBytes, t)
-	test.CompareSlices(bits, expectedBits, t)
+	CompareSlices(bytes, expectedBytes, t)
+	CompareSlices(bits, expectedBits, t)
 }
 
 func Test_Phrase_BitLength(t *testing.T) {
-	phrase := tiny.NewPhrase(support.RandomBytes(32)...)
+	phrase := tiny.Synthesize.RandomPhrase(32)
 	length := phrase.BitLength()
 	if length != 32*8 {
 		t.Errorf("Expected %d, Got %d", 32*8, length)
@@ -51,17 +49,17 @@ func Test_Phrase_BitLength(t *testing.T) {
 }
 
 func Test_Phrase_AllBelowThreshold(t *testing.T) {
-	below := tiny.NewPhrase(support.FixedBytes(32, 55)...)
+	below := tiny.NewPhrase(32, 55)
 	if !below.AllBelowThreshold(55) {
 		t.Errorf("Input data was below threshold, but AllBelowThreshold returned false")
 	}
 
-	above := tiny.NewPhrase(support.FixedBytes(32, 77)...)
+	above := tiny.NewPhrase(32, 77)
 	if above.AllBelowThreshold(55) {
 		t.Errorf("Input data was above threshold, but AllBelowThreshold returned true")
 	}
 
-	random := tiny.NewPhrase(support.RandomBytes(32)...)
+	random := tiny.Synthesize.RandomPhrase(32)
 	random[7] = tiny.NewMeasurement([]byte{77}) // ensure at least one is above threshold
 	if above.AllBelowThreshold(55) {
 		t.Errorf("Input data was above threshold, but AllBelowThreshold returned true")
@@ -71,19 +69,19 @@ func Test_Phrase_AllBelowThreshold(t *testing.T) {
 func Test_Phrase_CountBelowThreshold(t *testing.T) {
 	threshold := 55
 
-	below := tiny.NewPhrase(support.FixedBytes(32, 33)...)
+	below := tiny.Synthesize.Repeating(32, tiny.From.Byte(33)...)
 	belowCount := below.CountBelowThreshold(threshold)
 	if belowCount != 32 {
 		t.Errorf("Expected 32 below a threshold of %d, Got %d", threshold, belowCount)
 	}
 
-	above := tiny.NewPhrase(support.FixedBytes(32, 77)...)
+	above := tiny.Synthesize.Repeating(32, tiny.From.Byte(77)...)
 	aboveCount := above.CountBelowThreshold(threshold)
 	if aboveCount != 0 {
 		t.Errorf("Expected 0 below a threshold of %d, Got %d", threshold, aboveCount)
 	}
 
-	random := tiny.NewPhrase(support.RandomBytes(32)...)
+	random := tiny.Synthesize.RandomPhrase(32)
 	randomCount := random.CountBelowThreshold(threshold)
 	var count int
 	for _, b := range random {
@@ -117,7 +115,7 @@ func Test_Phrase_BreakMeasurementsApart(t *testing.T) {
 }
 
 func Test_Phrase_BreakMeasurementsApart_PanicBeyondBounds(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 
 	data := tiny.NewPhrase(0, 65, 130, 195)
 	data.BreakMeasurementsApart(9)
@@ -238,19 +236,19 @@ func Test_Phrase_Align_Simple(t *testing.T) {
 }
 
 func Test_Phrase_Align_PanicIfZeroWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	phrase := tiny.NewPhrase(77, 22, 33)
 	phrase.Align(0)
 }
 
 func Test_Phrase_Align_PanicIfNegativeWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	phrase := tiny.NewPhrase(77, 22, 33)
 	phrase.Align(-1)
 }
 
 func Test_Phrase_Align_PanicIfWidthTooLarge(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	phrase := tiny.NewPhrase(11, 33, 55, 99, 77, 22, 33)
 	phrase.Align(tiny.GetArchitectureBitWidth() + 1)
 }
@@ -425,7 +423,7 @@ func Test_Phrase_ReadMeasurement_OverByte(t *testing.T) {
 }
 
 func Test_Phrase_ReadMeasurement_ShouldPanicIfOverArchitectureBitWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	tiny.NewPhrase().ReadMeasurement(tiny.GetArchitectureBitWidth() + 1)
 }
 
@@ -752,21 +750,21 @@ func Test_Phrase_WalkBits_AtStride(t *testing.T) {
 }
 
 func Test_Phrase_WalkBits_ShouldPanicIfStrideTooLarge(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(tiny.GetArchitectureBitWidth()+1, func(i int, m tiny.Measurement) {})
 }
 
 func Test_Phrase_WalkBits_ShouldPanicIfStrideIsNegative(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(-1, func(i int, m tiny.Measurement) {})
 }
 
 func Test_Phrase_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 
 	remainder := tiny.Synthesize.RandomPhrase(4, 8)
 	remainder.WalkBits(0, func(i int, m tiny.Measurement) {})

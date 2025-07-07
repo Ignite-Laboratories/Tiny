@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -15,7 +14,7 @@ func Test_Synthesize_ForEach(t *testing.T) {
 	phrase := tiny.Synthesize.ForEach(22, func(i int) tiny.Bit {
 		return script[i]
 	})
-	test.CompareSlices(phrase.Bits(), script, t)
+	CompareSlices(phrase.Bits(), script, t)
 }
 
 func Test_Synthesize_Ones(t *testing.T) {
@@ -140,19 +139,19 @@ func Test_Synthesize_Pattern(t *testing.T) {
 }
 
 func Test_Synthesize_RandomPhrase_ShouldPanicWithLargeMeasurementWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	remainder := tiny.Synthesize.RandomPhrase(1, tiny.GetArchitectureBitWidth()+1)
 	remainder.WalkBits(3, func(i int, m tiny.Measurement) {})
 }
 
 func Test_Synthesize_RandomPhrase_ShouldPanicWithNegativeMeasurementWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	remainder := tiny.Synthesize.RandomPhrase(1, -1)
 	remainder.WalkBits(3, func(i int, m tiny.Measurement) {})
 }
 
 func Test_Synthesize_RandomPhrase_ShouldPanicWith0MeasurementWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	remainder := tiny.Synthesize.RandomPhrase(1, 0)
 	remainder.WalkBits(3, func(i int, m tiny.Measurement) {})
 }
@@ -265,11 +264,11 @@ func Test_Synthesize_AllBoundaries(t *testing.T) {
 }
 
 func Test_Synthesize_AllBoundaries_ShouldPanicWithNegativeDepth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	tiny.Synthesize.AllBoundaries(-1, 8)
 }
 
 func Test_Synthesize_AllBoundaries_ShouldPanicWithNegativeWidth(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	tiny.Synthesize.AllBoundaries(3, -1)
 }

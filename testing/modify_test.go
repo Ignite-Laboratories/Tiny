@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -11,7 +10,7 @@ func Test_Modify_ToggleBytes(t *testing.T) {
 	inverse := []byte{0, 255, 127, 128, 178}
 
 	toggled := tiny.Modify.ToggleBytes(bytes...)
-	test.CompareSlices(toggled, inverse, t)
+	CompareSlices(toggled, inverse, t)
 }
 
 func Test_Modify_ToggleBits(t *testing.T) {
@@ -19,5 +18,5 @@ func Test_Modify_ToggleBits(t *testing.T) {
 	inverse := tiny.From.Bits(0, 1, 1, 0, 0, 1, 0, 0)
 
 	toggled := tiny.Modify.ToggleBits(data...)
-	test.CompareSlices(toggled, inverse, t)
+	CompareSlices(toggled, inverse, t)
 }

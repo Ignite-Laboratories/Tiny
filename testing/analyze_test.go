@@ -1,24 +1,17 @@
 package testing
 
 import (
-	"github.com/ignite-laboratories/support"
-	"github.com/ignite-laboratories/support/test"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
 
 func Test_Operate_GetAverage(t *testing.T) {
-	bytes := support.RandomBytes(32)
-	data := make([]tiny.Measurement, 32)
-	for i, b := range bytes {
-		data[i] = tiny.NewMeasurement([]byte{b})
-	}
+	data := tiny.Synthesize.Random(32)
 	average := 0
-
 	for _, d := range data {
 		average += int(d.Value())
 	}
-	average /= 32
+	average /= 4
 	toTest := tiny.Analyze.Average(data...)
 
 	if average != int(toTest) {
@@ -287,7 +280,7 @@ func Test_Analyze_Repetition(t *testing.T) {
 }
 
 func Test_Analyze_Repetition_ShouldPanicIfEmptyPattern(t *testing.T) {
-	defer test.ShouldPanic(t)
+	defer ShouldPanic(t)
 	nonPattern := tiny.From.Byte(77)
 	tiny.Analyze.Repetition(nonPattern)
 }
