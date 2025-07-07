@@ -7,6 +7,22 @@ import (
 	"unicode/utf8"
 )
 
+func Test_Support_PrintDeltaCharacter(t *testing.T) {
+	a := tiny.PrintDeltaCharacter(0, 0)
+	b := tiny.PrintDeltaCharacter(0, 1)
+	c := tiny.PrintDeltaCharacter(1, 0)
+
+	if a != "|" {
+		t.Fatalf("expected '|', got '%s'", a)
+	}
+	if b != "\\" {
+		t.Fatalf("expected '\\', got '%s'", a)
+	}
+	if c != "/" {
+		t.Fatalf("expected '/', got '%s'", a)
+	}
+}
+
 func Test_Support_PrintIndexWidth(t *testing.T) {
 	// Separate regex for each output
 	validateWithDigits := regexp.MustCompile(`^\|←\s*\d+\s*→\|$`)

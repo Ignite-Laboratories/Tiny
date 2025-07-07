@@ -79,23 +79,6 @@ func (s _synthesize) Passage(target Phrase, deltaWidth int) Passage {
 	return p
 }
 
-// Movement gathers all of the movements into a single seed value which can be re-performed.
-func (s _synthesize) Movement(target Phrase, bitWidth int) Movement {
-	m := Movement{}
-	for {
-		p := s.Passage(target, bitWidth)
-		target = p.AsPhrase()
-		m.Cycles++
-
-		if target.BitLength() < 16 {
-			m.Signature = p.Signature
-			m.Delta = p.Delta
-			break
-		}
-	}
-	return m
-}
-
 // Ones creates a slice of '1's of the requested length.
 func (s _synthesize) Ones(count int) Phrase {
 	return s.ForEach(count, func(i int) Bit { return One })
@@ -303,7 +286,14 @@ func (s _synthesize) Boundary(msbs []Bit, repetend Bit, width int) Phrase {
 // See Boundary for more information on that process.
 //
 // NOTE: This will panic if provided a negative depth or width.
-func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
+//
+// NOTE: If you'd like only light boundaries, please pass false to includeDark.
+func (s _synthesize) AllBoundaries(depth int, width int, includeDark ...bool) (boundaries []Phrase) {
+	include := true
+	if len(includeDark) > 0 {
+		include = includeDark[0]
+	}
+
 	if depth < 0 {
 		panic("cannot synthesize boundaries with a negative depth")
 	}
@@ -333,8 +323,10 @@ func (s _synthesize) AllBoundaries(depth int, width int) (boundaries []Phrase) {
 
 		i++
 		if reachedEnd {
-			// Synthesize the final 'dark' boundary point
-			boundaries = append(boundaries, s.Boundary(bits, One, width))
+			if include {
+				// Synthesize the final 'dark' boundary point
+				boundaries = append(boundaries, s.Boundary(bits, One, width))
+			}
 			break
 		}
 	}

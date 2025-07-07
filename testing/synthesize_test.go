@@ -263,6 +263,25 @@ func Test_Synthesize_AllBoundaries(t *testing.T) {
 	}
 }
 
+func Test_Synthesize_AllBoundaries_ExceptDark(t *testing.T) {
+	// Test Logic: We know all the 3-bit boundaries, so just test that it outputs the right ones
+	// Genuinely, we'd be doing the same exact thing if we actually validated each bit individually =)
+	expected := []tiny.Phrase{
+		tiny.NewPhrase(0),
+		tiny.NewPhrase(32),
+		tiny.NewPhrase(64),
+		tiny.NewPhrase(96),
+		tiny.NewPhrase(128),
+		tiny.NewPhrase(160),
+		tiny.NewPhrase(192),
+		tiny.NewPhrase(224),
+	}
+	out := tiny.Synthesize.AllBoundaries(3, 8, false)
+	for i, p := range expected {
+		ComparePhrases(p, out[i], t)
+	}
+}
+
 func Test_Synthesize_AllBoundaries_ShouldPanicWithNegativeDepth(t *testing.T) {
 	defer ShouldPanic(t)
 	tiny.Synthesize.AllBoundaries(-1, 8)

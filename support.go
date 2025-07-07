@@ -80,3 +80,20 @@ func PrintIndexWidth(width int, showWidth ...bool) string {
 		return fmt.Sprintf("|←%*v%s%*v→|", left, "", widthStr, right, "")
 	}
 }
+
+// PrintDeltaCharacter is used to build waveform visualizations in a vertically emitted text plot.
+// It calculates if the values have changed and then prints the appropriate pipe character to visualize it.
+//
+//	if old == new -> '|'
+//	if old < new -> '\'
+//	if old > new -> '/'
+func PrintDeltaCharacter(old int, new int) string {
+	switch {
+	case old < new:
+		return "\\"
+	case old > new:
+		return "/"
+	default:
+		return "|"
+	}
+}

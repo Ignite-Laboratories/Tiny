@@ -507,36 +507,6 @@ func (phrase Phrase) Bifurcate() (start Phrase, end Phrase) {
 	return phrase.Read(phrase.BitLength() / 2)
 }
 
-// Focus is used to limit the width of eminently relevant measurements.
-// It finds the midpoint of the phrase (using flooring) to split it in twain.
-// Because of the floored split point, the right phrase will be larger if the data is odd in length.
-//
-// You may optionally provide a 'times' parameter that indicates how many times to "focus" into the
-// eminent measurements of the phrase recursively.
-// This will continue to bisect the left phrase and grow the right by prepending it with the remainder.
-func (phrase Phrase) Focus(times ...int) (left Phrase, right Phrase) {
-	t := 1
-	if len(times) > 0 {
-		t = times[0]
-		if t < 1 {
-			// If provided a negative or zero value, just bisect once
-			t = 1
-		}
-	}
-
-	length := phrase.BitLength()
-	midpoint := length / 2
-	left, right = phrase.Read(midpoint)
-
-	if t > 1 {
-		ll, rr := left.Focus(t - 1)
-		left = ll
-		right = append(rr, right...)
-	}
-
-	return left, right
-}
-
 // WalkBits walks the bits of the source phrase at the provided stride and calls the
 // provided function for each measurement step.
 //
