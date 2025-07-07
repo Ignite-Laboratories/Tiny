@@ -25,3 +25,6 @@ var Synthesize _synthesize
 //
 //	tiny.To [byte/number/etc...]
 var To _to
+
+// Print contains miscellaneous functions for printing out textual information.
+var Print _print

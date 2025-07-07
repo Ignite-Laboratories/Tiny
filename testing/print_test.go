@@ -7,10 +7,10 @@ import (
 	"unicode/utf8"
 )
 
-func Test_Support_PrintDeltaCharacter(t *testing.T) {
-	a := tiny.PrintDeltaCharacter(0, 0)
-	b := tiny.PrintDeltaCharacter(0, 1)
-	c := tiny.PrintDeltaCharacter(1, 0)
+func Test_Print_DeltaCharacter(t *testing.T) {
+	a := tiny.Print.DeltaCharacter(0, 0)
+	b := tiny.Print.DeltaCharacter(0, 1)
+	c := tiny.Print.DeltaCharacter(1, 0)
 
 	if a != "|" {
 		t.Fatalf("expected '|', got '%s'", a)
@@ -23,15 +23,15 @@ func Test_Support_PrintDeltaCharacter(t *testing.T) {
 	}
 }
 
-func Test_Support_PrintIndexWidth(t *testing.T) {
+func Test_Print_IndexWidth(t *testing.T) {
 	// Separate regex for each output
 	validateWithDigits := regexp.MustCompile(`^\|←\s*\d+\s*→\|$`)
 	validateWithoutDigits := regexp.MustCompile(`^\|←\s*→\|$`)
 
 	for i := 0; i < 129; i++ {
 		// Test with width (with digits)
-		strWith := tiny.PrintIndexWidth(i)
-		strWithout := tiny.PrintIndexWidth(i, false)
+		strWith := tiny.Print.IndexWidth(i)
+		strWithout := tiny.Print.IndexWidth(i, false)
 
 		switch {
 		case i == 0:
@@ -69,9 +69,9 @@ func Test_Support_PrintIndexWidth(t *testing.T) {
 	}
 }
 
-func Test_Support_PrintIndexWidth_NegativeInput(t *testing.T) {
-	strWith := tiny.PrintIndexWidth(-1)
-	strWithout := tiny.PrintIndexWidth(-1, false)
+func Test_Print_IndexWidth_NegativeInput(t *testing.T) {
+	strWith := tiny.Print.IndexWidth(-1)
+	strWithout := tiny.Print.IndexWidth(-1, false)
 
 	if strWith != "||" && strWithout != "||" {
 		t.Fatalf("expected '||', got %s", strWith)
