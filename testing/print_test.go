@@ -35,8 +35,8 @@ func Test_Print_IndexWidth(t *testing.T) {
 
 		switch {
 		case i == 0:
-			if strWith != "||" && strWithout != "||" {
-				t.Fatalf("expected '||', got %s", strWith)
+			if strWith != "| |" && strWithout != "| |" {
+				t.Fatalf("expected '| |', got %s", strWith)
 			}
 			continue
 		case i == 1:
@@ -73,7 +73,7 @@ func Test_Print_IndexWidth_NegativeInput(t *testing.T) {
 	strWith := tiny.Print.IndexWidth(-1)
 	strWithout := tiny.Print.IndexWidth(-1, false)
 
-	if strWith != "||" && strWithout != "||" {
-		t.Fatalf("expected '||', got %s", strWith)
+	if strWith != "| |" && strWithout != "| |" {
+		t.Fatalf("expected '| |', got %s", strWith)
 	}
 }

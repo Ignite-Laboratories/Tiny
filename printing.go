@@ -40,7 +40,7 @@ func (_ _print) IndexWidth(width int, showWidth ...bool) string {
 
 	switch {
 	case width == 0:
-		return "||"
+		return "| |"
 	case width == 1:
 		return fmt.Sprintf("|%s|", widthStr)
 	case width == 2:
@@ -71,4 +71,23 @@ func (_ _print) DeltaCharacter(old int, new int) string {
 	default:
 		return "|"
 	}
+}
+
+// BitDrop prints a waveform showing the relative bit drop from the provided index width
+//
+// For instance, let's walk a note index and show the outputs for each point from this function:
+//
+//	|←3→|
+//	||  | (
+//
+//	| 11|  (7)  ||  |
+//	| 10|  (6)  ||  |
+//	|  1|  (5)  |-| |
+//	|  0|  (4)  |-| |
+//	|  1|  (3)  |-| |
+//	| 10|  (2)  ||  |
+//	| 11|  (1)  ||  |
+//	|100|  (0)  |   |
+func (_ _print) BitDrop(point Phrase, index int) string {
+	return ""
 }
