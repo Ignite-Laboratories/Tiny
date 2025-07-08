@@ -705,3 +705,81 @@ func Test_Phrase_Invert(t *testing.T) {
 	phrase = phrase.Invert()
 	ComparePhrases(phrase, expected, t)
 }
+
+/**
+Padding
+*/
+
+func Test_Phrase_PadLeftToLength(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	paddedAA := phrase.PadLeftToLength(20)
+	paddedAB := phrase.PadLeftToLength(20, tiny.One)
+	expectedAA := tiny.NewPhrase(0)
+	expectedAA = expectedAA.AppendBits(0, 0, 0, 0)
+	expectedAA = expectedAA.AppendBytes(77)
+
+	expectedAB := tiny.NewPhrase(255)
+	expectedAB = expectedAB.AppendBits(1, 1, 1, 1)
+	expectedAB = expectedAB.AppendBytes(77)
+
+	ComparePhrases(paddedAA, expectedAA, t)
+	ComparePhrases(paddedAB, expectedAB, t)
+
+	expectedUndersized := tiny.NewPhraseFromBits(0, 1, 0, 0, 1, 1, 0, 1)
+
+	paddedBA := phrase.PadLeftToLength(5)
+	paddedBB := phrase.PadLeftToLength(5, tiny.One)
+
+	ComparePhrases(paddedBA, expectedUndersized, t)
+	ComparePhrases(paddedBB, expectedUndersized, t)
+
+	paddedCA := phrase.PadLeftToLength(0)
+	paddedCB := phrase.PadLeftToLength(0, tiny.One)
+
+	ComparePhrases(paddedCA, expectedUndersized, t)
+	ComparePhrases(paddedCB, expectedUndersized, t)
+
+	paddedDA := phrase.PadLeftToLength(-7)
+	paddedDB := phrase.PadLeftToLength(7, tiny.One)
+
+	ComparePhrases(paddedDA, expectedUndersized, t)
+	ComparePhrases(paddedDB, expectedUndersized, t)
+}
+
+func Test_Phrase_PadRightToLength(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+
+	paddedAA := phrase.PadRightToLength(20)
+	paddedAB := phrase.PadRightToLength(20, tiny.One)
+	expectedAA := tiny.NewPhrase(77)
+	expectedAA = expectedAA.AppendBytes(0)
+	expectedAA = expectedAA.AppendBits(0, 0, 0, 0)
+
+	expectedAB := tiny.NewPhrase(77)
+	expectedAB = expectedAB.AppendBytes(255)
+	expectedAB = expectedAB.AppendBits(1, 1, 1, 1)
+
+	ComparePhrases(paddedAA, expectedAA, t)
+	ComparePhrases(paddedAB, expectedAB, t)
+
+	expectedUndersized := tiny.NewPhraseFromBits(0, 1, 0, 0, 1, 1, 0, 1)
+
+	paddedBA := phrase.PadRightToLength(5)
+	paddedBB := phrase.PadRightToLength(5, tiny.One)
+
+	ComparePhrases(paddedBA, expectedUndersized, t)
+	ComparePhrases(paddedBB, expectedUndersized, t)
+
+	paddedCA := phrase.PadRightToLength(0)
+	paddedCB := phrase.PadRightToLength(0, tiny.One)
+
+	ComparePhrases(paddedCA, expectedUndersized, t)
+	ComparePhrases(paddedCB, expectedUndersized, t)
+
+	paddedDA := phrase.PadRightToLength(-7)
+	paddedDB := phrase.PadRightToLength(7, tiny.One)
+
+	ComparePhrases(paddedDA, expectedUndersized, t)
+	ComparePhrases(paddedDB, expectedUndersized, t)
+}

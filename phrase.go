@@ -2,6 +2,7 @@ package tiny
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 )
 
@@ -198,11 +199,6 @@ func (phrase Phrase) BitLength() int {
 	return total
 }
 
-// BitLengthAsBigInt returns the total length of all bits in each Measurement of the Phrase as a big.Int.
-func (phrase Phrase) BitLengthAsBigInt() *big.Int {
-	return big.NewInt(int64(phrase.BitLength()))
-}
-
 // CountBelowThreshold counts any Measurement of the Phrase that's below the provided threshold value.
 func (phrase Phrase) CountBelowThreshold(threshold int) int {
 	var count int
@@ -376,6 +372,10 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 }
 
 // ReadFromEnd reads the provided number of bits from the end of the source phrase, followed by the remainder, as phrases.
+// The returned bits remain in logical order from left-to-right - for example -
+//
+//	                                  read ⬎         ⬐ remainder
+//	[ 1 0 0 1 0 1 1 ].ReadFromEnd(3) -> [ 0 1 1] [ 1 0 0 1]
 //
 // NOTE: If you provide a length in excess of the phrase bit-length, only the available bits will be read
 // and the remainder will be empty.
@@ -442,6 +442,52 @@ func (phrase Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
 		remainder = r
 	}
 	return zeros, remainder
+}
+
+/**
+Padding
+*/
+
+// PadLeftToLength pads the phrase to the desired overall length with zeros on the left (most significant) side
+// of the bits.
+//
+// NOTE: If you'd prefer to pad with ones, please override the char parameter with tiny.One
+func (phrase Phrase) PadLeftToLength(overall int, char ...Bit) Phrase {
+	c := Zero
+	if len(char) > 0 {
+		c = char[0]
+	}
+
+	toPad := overall - phrase.BitLength()
+	if toPad <= 0 {
+		return phrase
+	}
+
+	if c == Zero {
+		return phrase.Prepend(Synthesize.Zeros(toPad))
+	}
+	return phrase.Prepend(Synthesize.Ones(toPad))
+}
+
+// PadRightToLength pads the phrase to the desired overall length with zeros on the right (least significant) side
+// // of the bits.
+//
+// NOTE: If you'd prefer to pad with ones, please override the char parameter with tiny.One
+func (phrase Phrase) PadRightToLength(overall int, char ...Bit) Phrase {
+	c := Zero
+	if len(char) > 0 {
+		c = char[0]
+	}
+
+	toPad := overall - phrase.BitLength()
+	if toPad <= 0 {
+		return phrase
+	}
+
+	if c == Zero {
+		return phrase.Append(Synthesize.Zeros(toPad))
+	}
+	return phrase.Append(Synthesize.Ones(toPad))
 }
 
 // Trifurcate takes the source phrase and subdivides it in thrice - start, middle, and end.
@@ -541,6 +587,47 @@ func (phrase Phrase) Invert() Phrase {
 	for i, m := range phrase {
 		m.Invert()
 		out[i] = m
+	}
+	return out
+}
+
+// Add performs binary addition between the source phrase and the provided phrase.
+// The result will be at least as wide as the largest operand to be added.
+func (phrase Phrase) Add(b Phrase) Phrase {
+	aLen := phrase.BitLength()
+	bLen := b.BitLength()
+	length := int(math.Max(float64(aLen), float64(bLen)))
+
+	if aLen < bLen {
+		phrase = phrase.PadLeftToLength(length)
+	} else {
+		b = b.PadLeftToLength(length)
+	}
+
+	reader := func() (pA, pB Phrase) {
+		pA, phrase = phrase.ReadFromEnd(1)
+		pB, b = b.ReadFromEnd(1)
+		return pA, pB
+	}
+
+	carry := Zero
+	out := NewPhrase()
+	for pA, pB := reader(); pA.BitLength() > 0; pA, pB = reader() {
+		bitA := pA.Bits()[0]
+		bitB := pB.Bits()[0]
+
+		c := bitA + bitB + carry
+		if carry == One {
+			carry = Zero
+		}
+		if c > 1 {
+			c -= 2
+			carry = One
+		}
+		out = out.PrependBits(c)
+	}
+	if carry == One {
+		out = out.PrependBits(One)
 	}
 	return out
 }
