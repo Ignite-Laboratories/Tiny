@@ -632,6 +632,82 @@ func (phrase Phrase) Add(b Phrase) Phrase {
 	return out
 }
 
+// Sub performs binary subtraction between the source phrase and the provided phrase.
+func (phrase Phrase) Sub(b Phrase) (result Phrase, sign bool) {
+	aLen := phrase.BitLength()
+	bLen := b.BitLength()
+	length := int(math.Max(float64(aLen), float64(bLen)))
+
+	if aLen < bLen {
+		phrase = phrase.PadLeftToLength(length)
+	} else {
+		b = b.PadLeftToLength(length)
+	}
+
+	startP := phrase
+	startB := b
+	startReader := func() (pA, pB Phrase) {
+		pA, startP = startP.Read(1)
+		pB, startB = startB.Read(1)
+		return pA, pB
+	}
+	endReader := func() (pA, pB Phrase) {
+		pA, phrase = phrase.ReadFromEnd(1)
+		pB, b = b.ReadFromEnd(1)
+		return pA, pB
+	}
+
+	// For subtraction, we first must find which value is larger.
+	// So we walk from the beginning until we find the first position
+	// where one side is larger than the other
+	for pA, pB := startReader(); true; pA, pB = startReader() {
+		bitA := pA.Bits()[0]
+		bitB := pB.Bits()[0]
+
+		if bitA > bitB {
+			// a is bigger
+			break
+		}
+		if bitB > bitA {
+			// b is bigger
+			sign = true
+			break
+		}
+	}
+
+	if sign {
+		phrase, b = b, phrase
+	}
+
+	borrow := Zero
+	out := NewPhrase()
+	for pA, pB := endReader(); pA.BitLength() > 0; pA, pB = endReader() {
+		bitA := int(pA.Bits()[0])
+		bitB := int(pB.Bits()[0])
+
+		if borrow == One {
+			borrow = Zero
+			bitA -= 1
+
+			if bitA < 0 {
+				borrow = One
+				bitA += 2
+			}
+		}
+
+		c := bitA - bitB
+		if c < 0 {
+			c += 2
+			borrow = One
+		}
+		out = out.PrependBits(Bit(c))
+	}
+	if borrow == One {
+		out = out.PrependBits(One)
+	}
+	return out, sign
+}
+
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.
 func (phrase Phrase) StringBinary() string {
 	out := ""
