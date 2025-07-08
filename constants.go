@@ -105,6 +105,8 @@ const errorMeasurementLimit = "measurements are limited to the bit-width of your
 
 const errorPassageLimit = "passages are limited to 256 bits in length"
 
+const ErrorEndOfBits = "no more bits to read"
+
 /**
 Passages
 */

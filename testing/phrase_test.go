@@ -713,6 +713,8 @@ Padding
 func Test_Phrase_PadLeftToLength(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
+	// Pad to over the target index
+
 	paddedAA := phrase.PadLeftToLength(20)
 	paddedAB := phrase.PadLeftToLength(20, tiny.One)
 	expectedAA := tiny.NewPhrase(0)
@@ -725,6 +727,8 @@ func Test_Phrase_PadLeftToLength(t *testing.T) {
 
 	ComparePhrases(paddedAA, expectedAA, t)
 	ComparePhrases(paddedAB, expectedAB, t)
+
+	// Pad to under the target index
 
 	expectedUndersized := tiny.NewPhraseFromBits(0, 1, 0, 0, 1, 1, 0, 1)
 
@@ -750,8 +754,11 @@ func Test_Phrase_PadLeftToLength(t *testing.T) {
 func Test_Phrase_PadRightToLength(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
+	// Pad to over the target index
+
 	paddedAA := phrase.PadRightToLength(20)
 	paddedAB := phrase.PadRightToLength(20, tiny.One)
+
 	expectedAA := tiny.NewPhrase(77)
 	expectedAA = expectedAA.AppendBytes(0)
 	expectedAA = expectedAA.AppendBits(0, 0, 0, 0)
@@ -762,6 +769,8 @@ func Test_Phrase_PadRightToLength(t *testing.T) {
 
 	ComparePhrases(paddedAA, expectedAA, t)
 	ComparePhrases(paddedAB, expectedAB, t)
+
+	// Pad to under the target index
 
 	expectedUndersized := tiny.NewPhraseFromBits(0, 1, 0, 0, 1, 1, 0, 1)
 
@@ -783,3 +792,7 @@ func Test_Phrase_PadRightToLength(t *testing.T) {
 	ComparePhrases(paddedDA, expectedUndersized, t)
 	ComparePhrases(paddedDB, expectedUndersized, t)
 }
+
+/**
+Arithmetic
+*/

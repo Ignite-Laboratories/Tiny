@@ -74,9 +74,9 @@ func NewPhraseFromBigInt(b *big.Int) Phrase {
 }
 
 // AsBigInt converts the tiny.Phrase into a big.Int.
-func (phrase Phrase) AsBigInt() *big.Int {
+func (a Phrase) AsBigInt() *big.Int {
 	out := new(big.Int)
-	out.SetString(phrase.StringBinary(), 2)
+	out.SetString(a.StringBinary(), 2)
 	return out
 }
 
@@ -85,96 +85,96 @@ Append/Prepend
 */
 
 // AppendMeasurement appends the provided measurement to the phrase.
-func (phrase Phrase) AppendMeasurement(m Measurement) Phrase {
-	return append(phrase, m)
+func (a Phrase) AppendMeasurement(m Measurement) Phrase {
+	return append(a, m)
 }
 
 // AppendBits appends the provided bits to the end of the phrase.
 //
 // NOTE: This appends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) AppendBits(bits ...Bit) Phrase {
-	return append(phrase, NewPhraseFromBits(bits...)...)
+func (a Phrase) AppendBits(bits ...Bit) Phrase {
+	return append(a, NewPhraseFromBits(bits...)...)
 }
 
 // AppendBytes appends the provided bytes to the end of the phrase.
 //
 // NOTE: This appends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) AppendBytes(bytes ...byte) Phrase {
-	return append(phrase, NewPhraseFromBytesAndBits(bytes)...)
+func (a Phrase) AppendBytes(bytes ...byte) Phrase {
+	return append(a, NewPhraseFromBytesAndBits(bytes)...)
 }
 
 // AppendBitsAndBytes appends the provided bits, and then bytes, to the end of the phrase.
 //
 // NOTE: This appends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) AppendBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
-	return append(phrase, NewPhraseFromBitsAndBytes(bits, bytes...)...)
+func (a Phrase) AppendBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
+	return append(a, NewPhraseFromBitsAndBytes(bits, bytes...)...)
 }
 
 // AppendBytesAndBits appends the provided bytes, and then bits, to the end of the phrase.
 //
 // NOTE: This appends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) AppendBytesAndBits(bytes []byte, bits ...Bit) Phrase {
-	return append(phrase, NewPhraseFromBytesAndBits(bytes, bits...)...)
+func (a Phrase) AppendBytesAndBits(bytes []byte, bits ...Bit) Phrase {
+	return append(a, NewPhraseFromBytesAndBits(bytes, bits...)...)
 }
 
 // Append appends the provided phrase(s) to the end of the source phrase.
-func (phrase Phrase) Append(p ...Phrase) Phrase {
-	out := make(Phrase, 0, len(phrase))
+func (a Phrase) Append(p ...Phrase) Phrase {
+	out := make(Phrase, 0, len(a))
 	for _, item := range p {
-		out = append(phrase, item...)
+		out = append(a, item...)
 	}
 	return out
 }
 
 // PrependMeasurement prepends the provided measurement to the phrase.
-func (phrase Phrase) PrependMeasurement(m Measurement) Phrase {
-	return append(Phrase{m}, phrase...)
+func (a Phrase) PrependMeasurement(m Measurement) Phrase {
+	return append(Phrase{m}, a...)
 }
 
 // PrependBits prepends the provided bits to the beginning of the phrase.
 //
 // NOTE: This prepends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) PrependBits(bits ...Bit) Phrase {
-	return append(NewPhraseFromBits(bits...), phrase...)
+func (a Phrase) PrependBits(bits ...Bit) Phrase {
+	return append(NewPhraseFromBits(bits...), a...)
 }
 
 // PrependBytes prepends the provided bytes to the beginning of the phrase.
 //
 // NOTE: This prepends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) PrependBytes(bytes ...byte) Phrase {
-	return append(NewPhraseFromBytesAndBits(bytes), phrase...)
+func (a Phrase) PrependBytes(bytes ...byte) Phrase {
+	return append(NewPhraseFromBytesAndBits(bytes), a...)
 }
 
 // PrependBitsAndBytes prepends the provided bits, and then bytes, to the beginning of the phrase.
 //
 // NOTE: This prepends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) PrependBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
-	return append(NewPhraseFromBitsAndBytes(bits, bytes...), phrase...)
+func (a Phrase) PrependBitsAndBytes(bits []Bit, bytes ...byte) Phrase {
+	return append(NewPhraseFromBitsAndBytes(bits, bytes...), a...)
 }
 
 // PrependBytesAndBits prepends the provided bytes, and then bits, to the beginning of the phrase.
 //
 // NOTE: This prepends the bits as new measurements inside of a new phrase =)
-func (phrase Phrase) PrependBytesAndBits(bytes []byte, bits ...Bit) Phrase {
-	return append(NewPhraseFromBytesAndBits(bytes, bits...), phrase...)
+func (a Phrase) PrependBytesAndBits(bytes []byte, bits ...Bit) Phrase {
+	return append(NewPhraseFromBytesAndBits(bytes, bits...), a...)
 }
 
 // Prepend prepends the provided phrase(s) to the beginning of the source phrase.
-func (phrase Phrase) Prepend(p ...Phrase) Phrase {
-	out := make(Phrase, 0, len(phrase))
+func (a Phrase) Prepend(p ...Phrase) Phrase {
+	out := make(Phrase, 0, len(a))
 	for _, item := range p {
-		out = append(item, phrase...)
+		out = append(item, a...)
 	}
 	return out
 }
 
 // ToBytesAndBits converts its measurements into bytes and the remainder of bits.
-func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
-	out := make([]byte, 0, len(phrase))
+func (a Phrase) ToBytesAndBits() ([]byte, []Bit) {
+	out := make([]byte, 0, len(a))
 
 	current := make([]Bit, 8)
 	var i int
-	for _, measure := range phrase {
+	for _, measure := range a {
 		for _, bit := range measure.GetAllBits() {
 			current[i] = bit
 			i++
@@ -191,18 +191,18 @@ func (phrase Phrase) ToBytesAndBits() ([]byte, []Bit) {
 }
 
 // BitLength returns the total length of all bits in each Measurement of the Phrase.
-func (phrase Phrase) BitLength() int {
+func (a Phrase) BitLength() int {
 	total := 0
-	for _, m := range phrase {
+	for _, m := range a {
 		total += m.BitLength()
 	}
 	return total
 }
 
 // CountBelowThreshold counts any Measurement of the Phrase that's below the provided threshold value.
-func (phrase Phrase) CountBelowThreshold(threshold int) int {
+func (a Phrase) CountBelowThreshold(threshold int) int {
 	var count int
-	for _, m := range phrase {
+	for _, m := range a {
 		if m.Value() < threshold {
 			count++
 		}
@@ -211,8 +211,8 @@ func (phrase Phrase) CountBelowThreshold(threshold int) int {
 }
 
 // AllBelowThreshold checks if every Measurement of the Phrase is below the provided threshold value.
-func (phrase Phrase) AllBelowThreshold(threshold int) bool {
-	for _, m := range phrase {
+func (a Phrase) AllBelowThreshold(threshold int) bool {
+	for _, m := range a {
 		if m.Value() > threshold {
 			return false
 		}
@@ -223,11 +223,11 @@ func (phrase Phrase) AllBelowThreshold(threshold int) bool {
 // BreakMeasurementsApart breaks each Measurement of the Phrase apart at the provided index and returns
 // the two resulting phrases.  The left phrase will contain the most significant bits, while the right
 // phrase will contain the least significant bits.
-func (phrase Phrase) BreakMeasurementsApart(index int) (left Phrase, right Phrase) {
-	left = make(Phrase, len(phrase))
-	right = make(Phrase, len(phrase))
+func (a Phrase) BreakMeasurementsApart(index int) (left Phrase, right Phrase) {
+	left = make(Phrase, len(a))
+	right = make(Phrase, len(a))
 
-	for i, m := range phrase {
+	for i, m := range a {
 		l, r := m.BreakApart(index)
 		left[i] = l
 		right[i] = r
@@ -258,27 +258,27 @@ func RecombineMeasurements(left Phrase, right Phrase) Phrase {
 }
 
 // AsInts converts each Measurement of the Phrase into an int.
-func (phrase Phrase) AsInts() []int {
-	out := make([]int, len(phrase))
-	for i, m := range phrase {
+func (a Phrase) AsInts() []int {
+	out := make([]int, len(a))
+	for i, m := range a {
 		out[i] = m.Value()
 	}
 	return out
 }
 
 // AsBytes converts each Measurement of the Phrase into a byte.
-func (phrase Phrase) AsBytes() []byte {
-	out := make([]byte, len(phrase))
-	for i, m := range phrase {
+func (a Phrase) AsBytes() []byte {
+	out := make([]byte, len(a))
+	for i, m := range a {
 		out[i] = byte(m.Value())
 	}
 	return out
 }
 
 // Bits returns a slice of the phrase's underlying bits.
-func (phrase Phrase) Bits() []Bit {
-	out := make([]Bit, 0, phrase.BitLength())
-	for _, m := range phrase {
+func (a Phrase) Bits() []Bit {
+	out := make([]Bit, 0, a.BitLength())
+	for _, m := range a {
 		out = append(out, m.GetAllBits()...)
 	}
 	return out
@@ -308,7 +308,7 @@ func (phrase Phrase) Bits() []Bit {
 // given a width of <= 0.
 //
 // @formatter:on
-func (phrase Phrase) Align(width ...int) Phrase {
+func (a Phrase) Align(width ...int) Phrase {
 	w := 8
 	if len(width) > 0 {
 		w = width[0]
@@ -320,7 +320,7 @@ func (phrase Phrase) Align(width ...int) Phrase {
 		panic(fmt.Sprintf("cannot align at a %d bit width", width))
 	}
 
-	src := phrase
+	src := a
 	out := make(Phrase, 0, len(src))
 	for {
 		measure, remainder := src.ReadMeasurement(w)
@@ -340,17 +340,16 @@ func (phrase Phrase) Align(width ...int) Phrase {
 
 // Read reads the provided number of bits from the source phrase, followed by the remainder, as phrases.
 //
-// NOTE: If you provide a length in excess of the phrase bit-length, only the available bits will be read
-// and the remainder will be empty.
+// NOTE: If you request more bits than are available, the slices will only contain the available bits =)
 //
 // NOTE: This is intended for reading long stretches of bits.
 // If you wish to read less than your architecture's bit width from the first measurement, using ReadMeasurement is a
 // little easier to work with.
-func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
-	read = make(Phrase, 0, len(phrase))
-	remainder = make(Phrase, 0, len(phrase))
+func (a Phrase) Read(length int) (read Phrase, remainder Phrase) {
+	read = make(Phrase, 0, len(a))
+	remainder = make(Phrase, 0, len(a))
 
-	for _, m := range phrase {
+	for _, m := range a {
 		if length <= 0 {
 			remainder = append(remainder, m)
 			continue
@@ -371,22 +370,26 @@ func (phrase Phrase) Read(length int) (read Phrase, remainder Phrase) {
 	return read, remainder
 }
 
-// ReadFromEnd reads the provided number of bits from the end of the source phrase, followed by the remainder, as phrases.
-// The returned bits remain in logical order from left-to-right - for example -
+// ReadFromEnd reads the provided number of bits from the end of the source phrase, followed by the remainder,
+// as phrases. The returned bits remain in the same order as they originally existed from left-to-right, merely
+// grouped into separate phrases.
 //
-//	                                  read ⬎         ⬐ remainder
-//	[ 1 0 0 1 0 1 1 ].ReadFromEnd(3) -> [ 0 1 1] [ 1 0 0 1]
+// For example -
 //
-// NOTE: If you provide a length in excess of the phrase bit-length, only the available bits will be read
-// and the remainder will be empty.
-func (phrase Phrase) ReadFromEnd(length int) (read Phrase, remainder Phrase) {
-	remainder, read = phrase.Read(phrase.BitLength() - length)
+//		 let 𝑛 = 3
+//			|         |←  𝑛  →|                  read ⬎         ⬐ remainder
+//			[ 1 1 0 1   0 1 1 ].ReadFromEnd(𝑛) -> [ 0 1 1] [ 1 1 0 1]
+//	                 ⬑  Bits are in same order ⬏
+//
+// NOTE: If you request more bits than are available, the slices will only contain the available bits =)
+func (a Phrase) ReadFromEnd(length int) (read Phrase, remainder Phrase) {
+	remainder, read = a.Read(a.BitLength() - length)
 	return read, remainder
 }
 
 // ReadLastBit reads the last bit of the source phrase, followed by the remainder.
-func (phrase Phrase) ReadLastBit() (last Bit, remainder Phrase) {
-	end, remainder := phrase.ReadFromEnd(1)
+func (a Phrase) ReadLastBit() (last Bit, remainder Phrase) {
+	end, remainder := a.ReadFromEnd(1)
 	last, _, _ = end.ReadBit()
 	return last, remainder
 }
@@ -396,13 +399,13 @@ func (phrase Phrase) ReadLastBit() (last Bit, remainder Phrase) {
 //
 // NOTE: This will panic if you attempt to read more than your architecture's bit width.
 // For that, please use Read.
-func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
+func (a Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
 	if length > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 
 	read = NewMeasurement([]byte{})
-	readMeasures, remainder := phrase.Read(length)
+	readMeasures, remainder := a.Read(length)
 	for _, m := range readMeasures {
 		read.Append(m)
 	}
@@ -412,11 +415,11 @@ func (phrase Phrase) ReadMeasurement(length int) (read Measurement, remainder Ph
 
 // ReadBit reads a single bit from the source phrase and returns the remainder as a Phrase.
 //
-// NOTE: This returns an error if there are no more bits to read.
-func (phrase Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
-	measure, remainder := phrase.ReadMeasurement(1)
+// NOTE: This kindly returns an ErrorEndOfBits error if there are no more bits to read.
+func (a Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
+	measure, remainder := a.ReadMeasurement(1)
 	if measure.BitLength() == 0 {
-		return 0, nil, fmt.Errorf("no more bits to read")
+		return 0, nil, fmt.Errorf(ErrorEndOfBits)
 	}
 	return measure.GetAllBits()[0], remainder, nil
 }
@@ -424,13 +427,13 @@ func (phrase Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
 // ReadUntilOne reads the source phrase until it reaches the first 1, then returns the zero count and remainder.
 //
 // If you'd like it to stop after a certain count, provide a limit.
-func (phrase Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
+func (a Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
 	l := -1
 	if len(limit) > 0 {
 		l = limit[0]
 	}
 
-	remainder = phrase
+	remainder = a
 	for b, r, err := remainder.ReadBit(); err == nil; b, r, err = r.ReadBit() {
 		if l >= 0 && zeros >= l {
 			break
@@ -452,42 +455,42 @@ Padding
 // of the bits.
 //
 // NOTE: If you'd prefer to pad with ones, please override the char parameter with tiny.One
-func (phrase Phrase) PadLeftToLength(overall int, char ...Bit) Phrase {
+func (a Phrase) PadLeftToLength(overall int, char ...Bit) Phrase {
 	c := Zero
 	if len(char) > 0 {
 		c = char[0]
 	}
 
-	toPad := overall - phrase.BitLength()
+	toPad := overall - a.BitLength()
 	if toPad <= 0 {
-		return phrase
+		return a
 	}
 
 	if c == Zero {
-		return phrase.Prepend(Synthesize.Zeros(toPad))
+		return a.Prepend(Synthesize.Zeros(toPad))
 	}
-	return phrase.Prepend(Synthesize.Ones(toPad))
+	return a.Prepend(Synthesize.Ones(toPad))
 }
 
 // PadRightToLength pads the phrase to the desired overall length with zeros on the right (least significant) side
 // // of the bits.
 //
 // NOTE: If you'd prefer to pad with ones, please override the char parameter with tiny.One
-func (phrase Phrase) PadRightToLength(overall int, char ...Bit) Phrase {
+func (a Phrase) PadRightToLength(overall int, char ...Bit) Phrase {
 	c := Zero
 	if len(char) > 0 {
 		c = char[0]
 	}
 
-	toPad := overall - phrase.BitLength()
+	toPad := overall - a.BitLength()
 	if toPad <= 0 {
-		return phrase
+		return a
 	}
 
 	if c == Zero {
-		return phrase.Append(Synthesize.Zeros(toPad))
+		return a.Append(Synthesize.Zeros(toPad))
 	}
-	return phrase.Append(Synthesize.Ones(toPad))
+	return a.Append(Synthesize.Ones(toPad))
 }
 
 // Trifurcate takes the source phrase and subdivides it in thrice - start, middle, and end.
@@ -515,8 +518,8 @@ func (phrase Phrase) PadRightToLength(overall int, char ...Bit) Phrase {
 //		|  Start  |     Middle0     -     Middle1     |   End   | ← Aligned Phrase Measurements
 //
 // @formatter:on
-func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
-	start, end = phrase.Read(startLen)
+func (a Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
+	start, end = a.Read(startLen)
 	middle, end = end.Read(middleLen)
 	return start, middle, end
 }
@@ -549,15 +552,15 @@ func (phrase Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, midd
 //	|     Start 0     -  Start 1  |       End 0       -     End 1     |  ← Aligned Measurements
 //
 // @formatter:on
-func (phrase Phrase) Bifurcate() (start Phrase, end Phrase) {
-	return phrase.Read(phrase.BitLength() / 2)
+func (a Phrase) Bifurcate() (start Phrase, end Phrase) {
+	return a.Read(a.BitLength() / 2)
 }
 
 // WalkBits walks the bits of the source phrase at the provided stride and calls the
 // provided function for each measurement step.
 //
 // NOTE: This will panic if given a stride greater than your architecture's bit width.
-func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
+func (a Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 	if stride > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
@@ -565,7 +568,7 @@ func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 		panic("cannot walk at a stride of 0 or less")
 	}
 
-	remainder := phrase
+	remainder := a
 	var bitM Measurement
 	i := 0
 	for bitM, remainder = remainder.ReadMeasurement(stride); len(remainder) > 0; bitM, remainder = remainder.ReadMeasurement(stride) {
@@ -582,30 +585,133 @@ func (phrase Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 // Invert XORs every bit of every measurement against 1.
 //
 // NOTE: This does so iteratively, bit-by-bit.
-func (phrase Phrase) Invert() Phrase {
-	out := make(Phrase, len(phrase))
-	for i, m := range phrase {
+func (a Phrase) Invert() Phrase {
+	out := make(Phrase, len(a))
+	for i, m := range a {
 		m.Invert()
 		out[i] = m
 	}
 	return out
 }
 
-// Add performs binary addition between the source phrase and the provided phrase.
+// NOT applies the logical operation `!𝑎` for every bit of phrase `𝑎` in order to produce phrase `𝑏`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The NOT Truth Table"
+//
+//	        𝑎 | 𝑏
+//	        0 | 1
+//	        1 | 0
+func (a Phrase) NOT() Phrase {
+
+}
+
+// AND applies the logical operation `𝑎 & 𝑏` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The AND Truth Table"
+//
+//	     𝑎 | 𝑏 | 𝑐
+//	     0 | 0 | 0
+//	     0 | 1 | 0
+//	     1 | 0 | 0
+//	     1 | 1 | 1
+func (a Phrase) AND(b Phrase) Phrase {
+
+}
+
+// OR applies the logical operation `𝑎 | 𝑏` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The OR Truth Table"
+//
+//	     𝑎 | 𝑏 | 𝑐
+//	     0 | 0 | 0
+//	     0 | 1 | 1
+//	     1 | 0 | 1
+//	     1 | 1 | 1
+func (a Phrase) OR(b Phrase) Phrase {
+
+}
+
+// XOR applies the logical operation `𝑎 ^ 𝑏` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The XOR Truth Table"
+//
+//	     𝑎 | 𝑏 | 𝑐
+//	     0 | 0 | 0
+//	     0 | 1 | 1
+//	     1 | 0 | 1
+//	     1 | 1 | 0
+func (a Phrase) XOR(b Phrase) Phrase {
+
+}
+
+// XNOR applies the logical operation `^(𝑎 ^ 𝑏)` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The XNOR Truth Table"
+//
+//	     𝑎 | 𝑏 | 𝑐
+//	     0 | 0 | 1
+//	     0 | 1 | 0
+//	     1 | 0 | 0
+//	     1 | 1 | 1
+func (a Phrase) OR(b Phrase) Phrase {
+
+}
+
+// NAND applies the logical operation `^(𝑎 & 𝑏)` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The NAND Truth Table"
+//
+//	     𝑎 | 𝑏 | 𝑐
+//	     0 | 0 | 0
+//	     0 | 1 | 1
+//	     1 | 0 | 1
+//	     1 | 1 | 1
+func (a Phrase) NAND(b Phrase) Phrase {
+
+}
+
+// NOR applies the logical operation `^(𝑎 | 𝑏)` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
+// If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
+// The results are guaranteed to always follow the below truth table -
+//
+//	"The NOR Truth Table"
+//
+//	     𝑎 | 𝑏 | 𝑐
+//	     0 | 0 | 1
+//	     0 | 1 | 0
+//	     1 | 0 | 0
+//	     1 | 1 | 0
+func (a Phrase) NOR(b Phrase) Phrase {
+
+}
+
+// Add performs binary addition between the source and provided phrases.
 // The result will be at least as wide as the largest operand to be added.
-func (phrase Phrase) Add(b Phrase) Phrase {
-	aLen := phrase.BitLength()
+func (a Phrase) Add(b Phrase) Phrase {
+	aLen := a.BitLength()
 	bLen := b.BitLength()
 	length := int(math.Max(float64(aLen), float64(bLen)))
 
 	if aLen < bLen {
-		phrase = phrase.PadLeftToLength(length)
+		a = a.PadLeftToLength(length)
 	} else {
 		b = b.PadLeftToLength(length)
 	}
 
 	reader := func() (pA, pB Phrase) {
-		pA, phrase = phrase.ReadFromEnd(1)
+		pA, a = a.ReadFromEnd(1)
 		pB, b = b.ReadFromEnd(1)
 		return pA, pB
 	}
@@ -632,19 +738,19 @@ func (phrase Phrase) Add(b Phrase) Phrase {
 	return out
 }
 
-// Sub performs binary subtraction between the source phrase and the provided phrase.
-func (phrase Phrase) Sub(b Phrase) (result Phrase, sign bool) {
-	aLen := phrase.BitLength()
+// Sub performs absolute binary subtraction between the source phrase and the provided phrase.
+func (a Phrase) Sub(b Phrase) (result Phrase, negative bool) {
+	aLen := a.BitLength()
 	bLen := b.BitLength()
 	length := int(math.Max(float64(aLen), float64(bLen)))
 
 	if aLen < bLen {
-		phrase = phrase.PadLeftToLength(length)
+		a = a.PadLeftToLength(length)
 	} else {
 		b = b.PadLeftToLength(length)
 	}
 
-	startP := phrase
+	startP := a
 	startB := b
 	startReader := func() (pA, pB Phrase) {
 		pA, startP = startP.Read(1)
@@ -652,7 +758,7 @@ func (phrase Phrase) Sub(b Phrase) (result Phrase, sign bool) {
 		return pA, pB
 	}
 	endReader := func() (pA, pB Phrase) {
-		pA, phrase = phrase.ReadFromEnd(1)
+		pA, a = a.ReadFromEnd(1)
 		pB, b = b.ReadFromEnd(1)
 		return pA, pB
 	}
@@ -670,13 +776,13 @@ func (phrase Phrase) Sub(b Phrase) (result Phrase, sign bool) {
 		}
 		if bitB > bitA {
 			// b is bigger
-			sign = true
+			negative = true
 			break
 		}
 	}
 
-	if sign {
-		phrase, b = b, phrase
+	if negative {
+		a, b = b, a
 	}
 
 	borrow := Zero
@@ -705,21 +811,21 @@ func (phrase Phrase) Sub(b Phrase) (result Phrase, sign bool) {
 	if borrow == One {
 		out = out.PrependBits(One)
 	}
-	return out, sign
+	return out, negative
 }
 
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.
-func (phrase Phrase) StringBinary() string {
+func (a Phrase) StringBinary() string {
 	out := ""
-	for _, m := range phrase {
+	for _, m := range a {
 		out += m.StringBinary()
 	}
 	return out
 }
 
-func (phrase Phrase) String() string {
-	out := make([]string, len(phrase))
-	for i, m := range phrase {
+func (a Phrase) String() string {
+	out := make([]string, len(a))
+	for i, m := range a {
 		out[i] = m.StringBinary()
 	}
 	return fmt.Sprintf("%v", out)
