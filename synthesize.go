@@ -218,6 +218,17 @@ func (s _synthesize) RandomBits(bitLength int, generator ...func(int) Bit) Phras
 //
 // NOTE: This will panic if you provide a measurement width of 0 or less, or greater than your architecture's bit width.
 func (s _synthesize) RandomPhrase(measurementCount int, measurementWidth ...int) (phrase Phrase) {
+	return s.RandomPhraseCustom(measurementCount, nil, measurementWidth...)
+}
+
+// RandomPhraseCustom creates a phrase of the provided number of measurements, each initialized with 8 random bits.
+//
+// This function allows you to provide your own generator function which is invoked for every bit.
+//
+// If you would prefer different width measurements, you may provide your own width.
+//
+// NOTE: This will panic if you provide a measurement width of 0 or less, or greater than your architecture's bit width.
+func (s _synthesize) RandomPhraseCustom(measurementCount int, generator func(int) Bit, measurementWidth ...int) (phrase Phrase) {
 	if measurementCount == 0 {
 		return phrase
 	}
@@ -232,7 +243,7 @@ func (s _synthesize) RandomPhrase(measurementCount int, measurementWidth ...int)
 		}
 	}
 	for i := 0; i < measurementCount; i++ {
-		phrase = append(phrase, s.RandomBits(width)...)
+		phrase = append(phrase, s.RandomBits(width, generator)...)
 	}
 	return phrase
 }

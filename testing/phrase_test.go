@@ -3,6 +3,7 @@ package testing
 import (
 	"github.com/ignite-laboratories/tiny"
 	"github.com/ignite-laboratories/tiny/relatively"
+	"math"
 	"math/big"
 	"testing"
 )
@@ -848,60 +849,44 @@ func Test_Phrase_LogicGates(t *testing.T) {
 	a := tiny.NewPhrase(77)
 	b := tiny.NewPhrase(88)
 
-	notA := a.NOT()
-
-	notAV := notA[0].Value()
-	if notAV != 178 {
-		t.Errorf("NOT a - Expected 178, got %d", notAV)
+	notA := a.NOT().Int()
+	if notA != 178 {
+		t.Errorf("NOT a - Expected 178, got %d", notA)
 	}
 
-	notB := b.NOT()
-
-	notBV := notB[0].Value()
-	if notBV != 167 {
-		t.Errorf("NOT b - Expected 167, got %d", notBV)
+	notB := b.NOT().Int()
+	if notB != 167 {
+		t.Errorf("NOT b - Expected 167, got %d", notB)
 	}
 
-	and := a.AND(b)
-
-	andV := and[0].Value()
-	if andV != 72 {
-		t.Errorf("a AND b - Expected 72, got %d", andV)
+	and := a.AND(b).Int()
+	if and != 72 {
+		t.Errorf("a AND b - Expected 72, got %d", and)
 	}
 
-	or := a.OR(b)
-
-	orV := or[0].Value()
-	if orV != 93 {
-		t.Errorf("a OR b - Expected 93, got %d", orV)
+	or := a.OR(b).Int()
+	if or != 93 {
+		t.Errorf("a OR b - Expected 93, got %d", or)
 	}
 
-	xor := a.XOR(b)
-
-	xorV := xor[0].Value()
-	if xorV != 21 {
-		t.Errorf("a XOR b - Expected 21, got %d", xorV)
+	xor := a.XOR(b).Int()
+	if xor != 21 {
+		t.Errorf("a XOR b - Expected 21, got %d", xor)
 	}
 
-	xnor := a.XNOR(b)
-
-	xnorV := xnor[0].Value()
-	if xnorV != 234 {
-		t.Errorf("a XNOR b - Expected 234, got %d", xnorV)
+	xnor := a.XNOR(b).Int()
+	if xnor != 234 {
+		t.Errorf("a XNOR b - Expected 234, got %d", xnor)
 	}
 
-	nand := a.NAND(b)
-
-	nandV := nand[0].Value()
-	if nandV != 183 {
-		t.Errorf("a NAND b - Expected 183, got %d", nandV)
+	nand := a.NAND(b).Int()
+	if nand != 183 {
+		t.Errorf("a NAND b - Expected 183, got %d", nand)
 	}
 
-	nor := a.NOR(b)
-
-	norV := nor[0].Value()
-	if norV != 162 {
-		t.Errorf("a NOR b - Expected 162, got %d", norV)
+	nor := a.NOR(b).Int()
+	if nor != 162 {
+		t.Errorf("a NOR b - Expected 162, got %d", nor)
 	}
 }
 
@@ -911,42 +896,86 @@ func Test_Phrase_CompareTo(t *testing.T) {
 	c := tiny.NewPhrase(88)
 
 	aa := a.CompareTo(a)
-	ab := a.CompareTo(b)
-	ac := a.CompareTo(c)
 	if aa != relatively.Same {
 		t.Errorf("Expected %d, got %d", relatively.Same, aa)
 	}
+
+	ab := a.CompareTo(b)
 	if ab != relatively.Before {
 		t.Errorf("Expected %d, got %d", relatively.Before, ab)
 	}
+
+	ac := a.CompareTo(c)
 	if ac != relatively.Before {
 		t.Errorf("Expected %d, got %d", relatively.Before, ac)
 	}
 
 	ba := b.CompareTo(a)
-	bb := b.CompareTo(b)
-	bc := b.CompareTo(c)
 	if ba != relatively.After {
 		t.Errorf("Expected %d, got %d", relatively.After, ba)
 	}
+
+	bb := b.CompareTo(b)
 	if bb != relatively.Same {
 		t.Errorf("Expected %d, got %d", relatively.Same, bb)
 	}
+
+	bc := b.CompareTo(c)
 	if bc != relatively.Before {
 		t.Errorf("Expected %d, got %d", relatively.Before, bc)
 	}
 
 	ca := c.CompareTo(a)
-	cb := c.CompareTo(b)
-	cc := c.CompareTo(c)
 	if ca != relatively.After {
 		t.Errorf("Expected %d, got %d", relatively.After, ca)
 	}
+
+	cb := c.CompareTo(b)
 	if cb != relatively.After {
 		t.Errorf("Expected %d, got %d", relatively.After, cb)
 	}
+
+	cc := c.CompareTo(c)
 	if cc != relatively.Same {
 		t.Errorf("Expected %d, got %d", relatively.Same, cc)
 	}
+}
 
+func Test_Phrase_Int_IgnoresBitsAboveArchitectureBitWidth(t *testing.T) {
+	data := tiny.Synthesize.RandomBits(tiny.GetArchitectureBitWidth())
+	valBefore := data.Int()
+
+	data.AppendBytes(77)
+	valAfter := data.Int()
+
+	if valBefore != valAfter {
+		t.Errorf("Expected %d, got %d", valBefore, valAfter)
+	}
+}
+
+func Test_Phrase_Int_StressTest(t *testing.T) {
+	for i := 0; i <= tiny.GetArchitectureBitWidth(); i++ {
+		oversize := i - tiny.GetArchitectureBitWidth()
+		if oversize < 0 {
+			oversize = 0
+		}
+
+		for ii := 0; ii < 1<<11; ii++ {
+			data := tiny.Synthesize.RandomBits(int(math.Min(float64(tiny.GetArchitectureBitWidth()), float64(i))))
+			data = append(data, tiny.Synthesize.RandomBits(oversize)...)
+
+			val := data.Int()
+			valBigInt := int(data.AsBigInt().Int64())
+
+			if val != valBigInt {
+				t.Errorf("Expected %d, got %d", valBigInt, val)
+			}
+		}
+	}
+
+	data := tiny.NewPhraseFromBytesAndBits([]byte{77, 33}, 0, 1)
+	val := data.Int()
+	if val != 78981 {
+		t.Errorf("Expected 77, got %d", val)
+	}
 }

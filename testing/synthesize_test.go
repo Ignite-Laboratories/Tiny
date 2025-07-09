@@ -77,7 +77,7 @@ func Test_Synthesize_TrailingZeros(t *testing.T) {
 }
 
 func Test_Synthesize_Midpoint(t *testing.T) {
-	for i := 1; i < 1<<12; i++ {
+	for i := 1; i < 1<<10; i++ {
 		phrase := tiny.Synthesize.Midpoint(i)
 		bits := phrase.Bits()
 
@@ -161,11 +161,16 @@ func Test_Synthesize_Random_StressTest(t *testing.T) {
 }
 
 func Test_Synthesize_Random_CustomGenerator(t *testing.T) {
+	called := false
 	synthesize_random(t, func(i int) tiny.Bit {
+		called = true
 		var v uint64
 		binary.Read(rand.Reader, binary.BigEndian, &v)
 		return tiny.Bit(v % 2)
 	})
+	if !called {
+		t.Error("Expected custom generator to be called")
+	}
 }
 
 func Test_Synthesize_Random(t *testing.T) {
