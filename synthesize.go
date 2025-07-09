@@ -169,7 +169,7 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Phrase {
 	})
 }
 
-// Random creates a basic random sequence of 1s and 0s as a phrase.
+// RandomBits creates a random sequence of 1s and 0s as a phrase of the desired bit length.
 //
 // If you would prefer to implement your own bit-for-bit randomness, you may optionally provide
 // a function that dynamically generates each Bit.
@@ -177,7 +177,7 @@ func (s _synthesize) Pattern(length int, pattern ...Bit) Phrase {
 // NOTE: This ensures it will never return all 1s, 0s, or repeating [ 1 0 ] [ 0 1 ].
 //
 // NOTE: This will panic if given a length greater than your architecture's bit width.
-func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
+func (s _synthesize) RandomBits(bitLength int, generator ...func(int) Bit) Phrase {
 	g := func(_ int) Bit {
 		var b [1]byte
 		_, _ = rand.Read(b[:])
@@ -187,14 +187,14 @@ func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 		g = generator[0]
 	}
 
-	if length == 0 {
+	if bitLength == 0 {
 		return NewPhrase()
 	}
-	if length > GetArchitectureBitWidth() {
+	if bitLength > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 	for {
-		result := s.ForEach(length, g)
+		result := s.ForEach(bitLength, g)
 		bits := result.Bits()
 		if len(bits) > 2 {
 			ones := Analyze.Repetition(bits, 1)
@@ -212,15 +212,13 @@ func (s _synthesize) Random(length int, generator ...func(int) Bit) Phrase {
 	}
 }
 
-// RandomPhrase creates a random phrase containing the provided number of measurements, each initialized
-// with 8 random bits.
+// RandomPhrase creates a phrase of the provided number of measurements, each initialized with 8 random bits.
 //
-// If you would prefer different sized measurements, you may optionally provide the measurement width.
+// If you would prefer different width measurements, you may provide your own width.
 //
-// NOTE: This will panic if you provide a measurement width of 0 or less, or greater
-// than your architecture's bit width.
-func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase Phrase) {
-	if length == 0 {
+// NOTE: This will panic if you provide a measurement width of 0 or less, or greater than your architecture's bit width.
+func (s _synthesize) RandomPhrase(measurementCount int, measurementWidth ...int) (phrase Phrase) {
+	if measurementCount == 0 {
 		return phrase
 	}
 	width := 8
@@ -233,8 +231,8 @@ func (s _synthesize) RandomPhrase(length int, measurementWidth ...int) (phrase P
 			panic("cannot synthesize measurements of 0 or negative bit lengths")
 		}
 	}
-	for i := 0; i < length; i++ {
-		phrase = append(phrase, s.Random(width)...)
+	for i := 0; i < measurementCount; i++ {
+		phrase = append(phrase, s.RandomBits(width)...)
 	}
 	return phrase
 }

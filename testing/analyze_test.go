@@ -6,7 +6,7 @@ import (
 )
 
 func Test_Operate_GetAverage(t *testing.T) {
-	data := tiny.Synthesize.Random(32)
+	data := tiny.Synthesize.RandomBits(32)
 	average := 0
 	for _, d := range data {
 		average += int(d.Value())
@@ -306,7 +306,7 @@ func Test_Analyze_HasPrefix_Static(t *testing.T) {
 }
 
 func Test_Analyze_HasPrefix_Random(t *testing.T) {
-	random := tiny.Synthesize.Random(8)
+	random := tiny.Synthesize.RandomBits(8)
 	bits := random.Bits()
 	prefix := bits[:5]
 	if !tiny.Analyze.HasPrefix(bits, prefix...) {

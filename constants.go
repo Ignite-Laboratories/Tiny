@@ -1,5 +1,7 @@
 package tiny
 
+import "fmt"
+
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0
 
@@ -105,7 +107,9 @@ const errorMeasurementLimit = "measurements are limited to the bit-width of your
 
 const errorPassageLimit = "passages are limited to 256 bits in length"
 
-const ErrorEndOfBits = "no more bits to read"
+const ErrorMsgEndOfBits = "no more bits to read"
+
+var ErrorEndOfBits = fmt.Errorf(ErrorMsgEndOfBits)
 
 /**
 Passages
@@ -132,35 +136,40 @@ const MovementPathway = "pathway"
 const MovementSeed = "seed"
 
 /**
-RelativeSize
+Relativity
 */
 
-// RelativeSize represents the relationship of two values (A and B).
+// Relativity represents the abstract logical relationship of two entities, 𝑎 and 𝑏.
 //
-// See Smaller, Equal, Larger
-type RelativeSize int
+// Rather than imbuing 'size', 'value', or 'position', this aims to describe that '𝑎' has
+// a logical relationship with '𝑏' that's understood contextually by the caller.  Whether
+// in an ordered list, comparing the physical dimensionality, or general timing - this provides
+// a common language for describing the relationship between both entities.
+//
+// See Before, Same, After
+type Relativity int
 
 const (
-	// Smaller indicates that A is smaller than B.
-	Smaller RelativeSize = -1
-	// Equal indicates that A and B are equal.
-	Equal = 0
-	// Larger indicates that A is larger than B.
-	Larger RelativeSize = 1
+	// Before indicates that 𝑎 logically comes before 𝑏.
+	Before Relativity = -1
+	// Same indicates that 𝑎 and 𝑏 are logically equal.
+	Same = 0
+	// After indicates that 𝑎 logically comes after 𝑏.
+	After Relativity = 1
 )
 
-// NewRelativeSize creates a new RelativeSize structure.
+// NewRelativeSize creates a new Relativity structure.
 //
-// If the value is 0, Equal is returned.
-// If the value is positive, Larger is returned.
-// If the value is negative, Smaller is returned.
-func NewRelativeSize(value int) RelativeSize {
+// If the value is 0, Same is returned.
+// If the value is positive, After is returned.
+// If the value is negative, Before is returned.
+func NewRelativeSize(value int) Relativity {
 	switch {
 	case value > 0:
-		return Larger
+		return After
 	case value < 0:
-		return Smaller
+		return Before
 	default:
-		return Equal
+		return Same
 	}
 }

@@ -2,6 +2,7 @@ package testing
 
 import (
 	"github.com/ignite-laboratories/tiny"
+	"math/big"
 	"testing"
 )
 
@@ -692,21 +693,6 @@ func Test_Phrase_WalkBits_ShouldPanicIfStrideIsZero(t *testing.T) {
 }
 
 /**
-Invert
-*/
-
-func Test_Phrase_Invert(t *testing.T) {
-	expected := tiny.NewPhraseFromBytesAndBits([]byte{178, 233, 222}, 0, 1, 1, 0)
-	phrase := tiny.NewPhraseFromBytesAndBits([]byte{77, 22, 33}, 1, 0, 0, 1)
-	// |        77       |         22      |        33       |    9    | ← Input Values
-	// | 0 1 0 0 1 1 0 1 | 0 0 0 1 0 1 1 0 | 0 0 1 0 0 0 0 1 | 1 0 0 1 |  Input
-	// | 1 0 1 1 0 0 1 0 | 1 1 1 0 1 0 0 1 | 1 1 0 1 1 1 1 0 | 0 1 1 0 |  Inverted
-	// |       178       |        233      |       222       |    6    |  Inverted Values
-	phrase = phrase.Invert()
-	ComparePhrases(phrase, expected, t)
-}
-
-/**
 Padding
 */
 
@@ -794,5 +780,172 @@ func Test_Phrase_PadRightToLength(t *testing.T) {
 }
 
 /**
-Arithmetic
+Arithmetic and Logic Gates
 */
+
+func Test_Phrase_Add_StressTest(t *testing.T) {
+	for i := 0; i < 1<<16; i++ {
+		a := tiny.Synthesize.RandomBits(11)
+		b := tiny.Synthesize.RandomBits(11)
+
+		c := a.Add(b)
+		cStr := c.StringBinary()
+
+		cBigInt := new(big.Int).Add(a.AsBigInt(), b.AsBigInt())
+		cBigIntStr := cBigInt.Text(2)
+
+		if cStr != cBigIntStr {
+			t.Errorf("Expected %s, got %s", cBigIntStr, cStr)
+		}
+	}
+}
+
+func Test_Phrase_Subtract_StressTest(t *testing.T) {
+	for i := 0; i < 1<<16; i++ {
+		a := tiny.Synthesize.RandomBits(11)
+		b := tiny.Synthesize.RandomBits(11)
+
+		c, sign := a.Subtract(b)
+		cStr := c.StringBinary()
+
+		if sign {
+			cStr = "-" + cStr
+		}
+
+		if len(cStr) <= 0 {
+			cStr = "0"
+		}
+
+		cBigInt := new(big.Int).Sub(a.AsBigInt(), b.AsBigInt())
+		cBigIntStr := cBigInt.Text(2)
+
+		if cStr != cBigIntStr {
+			t.Errorf("Expected %s - %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
+		}
+	}
+}
+
+func Test_Phrase_LogicGates(t *testing.T) {
+	// Test logic:
+	//     We will test that a and b yield the following identities
+	//
+	// | 0 1 0 0 1 1 0 1 |  (77) ← a
+	// | 0 1 0 1 1 0 0 0 |  (88) ← b
+	//
+	// Unary Identities -
+	// | 1 0 1 1 0 0 1 0 | (178) ← NOT a
+	// | 1 0 1 0 0 1 1 1 | (167) ← NOT b
+	//
+	// Binary Identities -
+	// | 0 1 0 0 1 0 0 0 |  (72) ← a  AND b
+	// | 0 1 0 1 1 1 0 1 |  (93) ← a   OR b
+	// | 0 0 0 1 0 1 0 1 |  (21) ← a  XOR b
+	// | 1 1 1 0 1 0 1 0 | (234) ← a XNOR b
+	// | 1 0 1 1 0 1 1 1 | (183) ← a NAND b
+	// | 1 0 1 0 0 0 1 0 | (162) ← a  NOR b
+
+	a := tiny.NewPhrase(77)
+	b := tiny.NewPhrase(88)
+
+	notA := a.NOT()
+
+	notAV := notA[0].Value()
+	if notAV != 178 {
+		t.Errorf("NOT a - Expected 178, got %d", notAV)
+	}
+
+	notB := b.NOT()
+
+	notBV := notB[0].Value()
+	if notBV != 167 {
+		t.Errorf("NOT b - Expected 167, got %d", notBV)
+	}
+
+	and := a.AND(b)
+
+	andV := and[0].Value()
+	if andV != 72 {
+		t.Errorf("a AND b - Expected 72, got %d", andV)
+	}
+
+	or := a.OR(b)
+
+	orV := or[0].Value()
+	if orV != 93 {
+		t.Errorf("a OR b - Expected 93, got %d", orV)
+	}
+
+	xor := a.XOR(b)
+
+	xorV := xor[0].Value()
+	if xorV != 21 {
+		t.Errorf("a XOR b - Expected 21, got %d", xorV)
+	}
+
+	xnor := a.XNOR(b)
+
+	xnorV := xnor[0].Value()
+	if xnorV != 234 {
+		t.Errorf("a XNOR b - Expected 234, got %d", xnorV)
+	}
+
+	nand := a.NAND(b)
+
+	nandV := nand[0].Value()
+	if nandV != 183 {
+		t.Errorf("a NAND b - Expected 183, got %d", nandV)
+	}
+
+	nor := a.NOR(b)
+
+	norV := nor[0].Value()
+	if norV != 162 {
+		t.Errorf("a NOR b - Expected 162, got %d", norV)
+	}
+}
+
+func Test_Phrase_Compare(t *testing.T) {
+	a := tiny.NewPhrase(66)
+	b := tiny.NewPhrase(77)
+	c := tiny.NewPhrase(88)
+
+	aa := a.Compare(a)
+	ab := a.Compare(b)
+	ac := a.Compare(c)
+	if aa != tiny.Same {
+		t.Errorf("Expected %d, got %d", tiny.Same, aa)
+	}
+	if ab != tiny.Before {
+		t.Errorf("Expected %d, got %d", tiny.Before, ab)
+	}
+	if ac != tiny.Before {
+		t.Errorf("Expected %d, got %d", tiny.Before, ac)
+	}
+
+	ba := b.Compare(a)
+	bb := b.Compare(b)
+	bc := b.Compare(c)
+	if ba != tiny.After {
+		t.Errorf("Expected %d, got %d", tiny.After, ba)
+	}
+	if bb != tiny.Same {
+		t.Errorf("Expected %d, got %d", tiny.Same, bb)
+	}
+	if bc != tiny.Before {
+		t.Errorf("Expected %d, got %d", tiny.Before, bc)
+	}
+
+	ca := c.Compare(a)
+	cb := c.Compare(b)
+	cc := c.Compare(c)
+	if ca != tiny.After {
+		t.Errorf("Expected %d, got %d", tiny.After, ca)
+	}
+	if cb != tiny.After {
+		t.Errorf("Expected %d, got %d", tiny.After, cb)
+	}
+	if cc != tiny.Same {
+		t.Errorf("Expected %d, got %d", tiny.Same, cc)
+	}
+
+}

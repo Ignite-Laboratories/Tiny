@@ -415,11 +415,11 @@ func (a Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase)
 
 // ReadBit reads a single bit from the source phrase and returns the remainder as a Phrase.
 //
-// NOTE: This kindly returns an ErrorEndOfBits error if there are no more bits to read.
+// NOTE: This kindly returns an ErrorMsgEndOfBits error if there are no more bits to read.
 func (a Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
 	measure, remainder := a.ReadMeasurement(1)
 	if measure.BitLength() == 0 {
-		return 0, nil, fmt.Errorf(ErrorEndOfBits)
+		return 0, nil, fmt.Errorf(ErrorMsgEndOfBits)
 	}
 	return measure.GetAllBits()[0], remainder, nil
 }
@@ -582,19 +582,7 @@ func (a Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 	}
 }
 
-// Invert XORs every bit of every measurement against 1.
-//
-// NOTE: This does so iteratively, bit-by-bit.
-func (a Phrase) Invert() Phrase {
-	out := make(Phrase, len(a))
-	for i, m := range a {
-		m.Invert()
-		out[i] = m
-	}
-	return out
-}
-
-// NOT applies the logical operation `!𝑎` for every bit of phrase `𝑎` in order to produce phrase `𝑏`.
+// NOT applies the logical operation `𝑎 ^ 1` for every bit of phrase `𝑎` in order to produce phrase `𝑏`.
 // If the phrase bit lengths are uneven, the shorter phrase is left-padded with 0s to match the longer length.
 // The results are guaranteed to always follow the below truth table -
 //
@@ -603,8 +591,15 @@ func (a Phrase) Invert() Phrase {
 //	        𝑎 | 𝑏
 //	        0 | 1
 //	        1 | 0
-func (a Phrase) NOT() Phrase {
+func (a Phrase) NOT() (b Phrase) {
+	b = NewPhrase()
 
+	var bit Bit
+	var err error
+	for bit, a, err = a.ReadBit(); err == nil; bit, a, err = a.ReadBit() {
+		b = b.AppendBits(bit ^ 1)
+	}
+	return b.Align()
 }
 
 // AND applies the logical operation `𝑎 & 𝑏` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
@@ -618,8 +613,18 @@ func (a Phrase) NOT() Phrase {
 //	     0 | 1 | 0
 //	     1 | 0 | 0
 //	     1 | 1 | 1
-func (a Phrase) AND(b Phrase) Phrase {
+func (a Phrase) AND(b Phrase) (c Phrase) {
+	a, b = padToSameLength(a, b)
 
+	c = NewPhrase()
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+		result := bitA & bitB
+
+		c = c.AppendBits(result)
+	}
+	return c.Align()
 }
 
 // OR applies the logical operation `𝑎 | 𝑏` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
@@ -633,8 +638,18 @@ func (a Phrase) AND(b Phrase) Phrase {
 //	     0 | 1 | 1
 //	     1 | 0 | 1
 //	     1 | 1 | 1
-func (a Phrase) OR(b Phrase) Phrase {
+func (a Phrase) OR(b Phrase) (c Phrase) {
+	a, b = padToSameLength(a, b)
 
+	c = NewPhrase()
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+		result := bitA | bitB
+
+		c = c.AppendBits(result)
+	}
+	return c.Align()
 }
 
 // XOR applies the logical operation `𝑎 ^ 𝑏` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
@@ -648,8 +663,18 @@ func (a Phrase) OR(b Phrase) Phrase {
 //	     0 | 1 | 1
 //	     1 | 0 | 1
 //	     1 | 1 | 0
-func (a Phrase) XOR(b Phrase) Phrase {
+func (a Phrase) XOR(b Phrase) (c Phrase) {
+	a, b = padToSameLength(a, b)
 
+	c = NewPhrase()
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+		result := bitA ^ bitB
+
+		c = c.AppendBits(result)
+	}
+	return c.Align()
 }
 
 // XNOR applies the logical operation `^(𝑎 ^ 𝑏)` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
@@ -663,8 +688,18 @@ func (a Phrase) XOR(b Phrase) Phrase {
 //	     0 | 1 | 0
 //	     1 | 0 | 0
 //	     1 | 1 | 1
-func (a Phrase) OR(b Phrase) Phrase {
+func (a Phrase) XNOR(b Phrase) (c Phrase) {
+	a, b = padToSameLength(a, b)
 
+	c = NewPhrase()
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+		result := 1 ^ (bitA ^ bitB)
+
+		c = c.AppendBits(result)
+	}
+	return c.Align()
 }
 
 // NAND applies the logical operation `^(𝑎 & 𝑏)` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
@@ -674,12 +709,22 @@ func (a Phrase) OR(b Phrase) Phrase {
 //	"The NAND Truth Table"
 //
 //	     𝑎 | 𝑏 | 𝑐
-//	     0 | 0 | 0
+//	     0 | 0 | 1
 //	     0 | 1 | 1
 //	     1 | 0 | 1
-//	     1 | 1 | 1
-func (a Phrase) NAND(b Phrase) Phrase {
+//	     1 | 1 | 0
+func (a Phrase) NAND(b Phrase) (c Phrase) {
+	a, b = padToSameLength(a, b)
 
+	c = NewPhrase()
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+		result := 1 ^ (bitA & bitB)
+
+		c = c.AppendBits(result)
+	}
+	return c.Align()
 }
 
 // NOR applies the logical operation `^(𝑎 | 𝑏)` for every bit of phrases `𝑎` and `𝑏` in order to produce phrase `𝑐`.
@@ -693,34 +738,30 @@ func (a Phrase) NAND(b Phrase) Phrase {
 //	     0 | 1 | 0
 //	     1 | 0 | 0
 //	     1 | 1 | 0
-func (a Phrase) NOR(b Phrase) Phrase {
+func (a Phrase) NOR(b Phrase) (c Phrase) {
+	a, b = padToSameLength(a, b)
 
+	c = NewPhrase()
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+		result := 1 ^ (bitA | bitB)
+
+		c = c.AppendBits(result)
+	}
+	return c.Align()
 }
 
 // Add performs binary addition between the source and provided phrases.
 // The result will be at least as wide as the largest operand to be added.
 func (a Phrase) Add(b Phrase) Phrase {
-	aLen := a.BitLength()
-	bLen := b.BitLength()
-	length := int(math.Max(float64(aLen), float64(bLen)))
-
-	if aLen < bLen {
-		a = a.PadLeftToLength(length)
-	} else {
-		b = b.PadLeftToLength(length)
-	}
-
-	reader := func() (pA, pB Phrase) {
-		pA, a = a.ReadFromEnd(1)
-		pB, b = b.ReadFromEnd(1)
-		return pA, pB
-	}
+	a, b = padToSameLength(a, b)
 
 	carry := Zero
 	out := NewPhrase()
-	for pA, pB := reader(); pA.BitLength() > 0; pA, pB = reader() {
-		bitA := pA.Bits()[0]
-		bitB := pB.Bits()[0]
+	for bitA, bitB, pA, pB, err := readTwoPhrasesLastBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesLastBit(a, b) {
+		a = pA
+		b = pB
 
 		c := bitA + bitB + carry
 		if carry == One {
@@ -735,74 +776,39 @@ func (a Phrase) Add(b Phrase) Phrase {
 	if carry == One {
 		out = out.PrependBits(One)
 	}
-	return out
+	return out.ToNumericForm().Align()
 }
 
-// Sub performs absolute binary subtraction between the source phrase and the provided phrase.
-func (a Phrase) Sub(b Phrase) (result Phrase, negative bool) {
-	aLen := a.BitLength()
-	bLen := b.BitLength()
-	length := int(math.Max(float64(aLen), float64(bLen)))
+// Subtract performs absolute binary subtraction between the source phrase and the provided phrase.
+func (a Phrase) Subtract(b Phrase) (result Phrase, negative bool) {
+	a, b = padToSameLength(a, b)
 
-	if aLen < bLen {
-		a = a.PadLeftToLength(length)
-	} else {
-		b = b.PadLeftToLength(length)
-	}
-
-	startP := a
-	startB := b
-	startReader := func() (pA, pB Phrase) {
-		pA, startP = startP.Read(1)
-		pB, startB = startB.Read(1)
-		return pA, pB
-	}
-	endReader := func() (pA, pB Phrase) {
-		pA, a = a.ReadFromEnd(1)
-		pB, b = b.ReadFromEnd(1)
-		return pA, pB
-	}
-
-	// For subtraction, we first must find which value is larger.
-	// So we walk from the beginning until we find the first position
-	// where one side is larger than the other
-	for pA, pB := startReader(); true; pA, pB = startReader() {
-		bitA := pA.Bits()[0]
-		bitB := pB.Bits()[0]
-
-		if bitA > bitB {
-			// a is bigger
-			break
-		}
-		if bitB > bitA {
-			// b is bigger
-			negative = true
-			break
-		}
-	}
-
-	if negative {
+	// We are performing -absolute- subtraction, so we the minuend must be greater than the subtrahend.
+	if a.Compare(b) == Before {
 		a, b = b, a
+		negative = true
 	}
 
 	borrow := Zero
 	out := NewPhrase()
-	for pA, pB := endReader(); pA.BitLength() > 0; pA, pB = endReader() {
-		bitA := int(pA.Bits()[0])
-		bitB := int(pB.Bits()[0])
+	for bitA, bitB, pA, pB, err := readTwoPhrasesLastBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesLastBit(a, b) {
+		a = pA
+		b = pB
 
 		if borrow == One {
 			borrow = Zero
 			bitA -= 1
 
-			if bitA < 0 {
+			// Check for general byte underflow
+			if bitA > 11 {
 				borrow = One
 				bitA += 2
 			}
 		}
 
 		c := bitA - bitB
-		if c < 0 {
+		// Check for general byte underflow
+		if c > 11 {
 			c += 2
 			borrow = One
 		}
@@ -811,7 +817,31 @@ func (a Phrase) Sub(b Phrase) (result Phrase, negative bool) {
 	if borrow == One {
 		out = out.PrependBits(One)
 	}
-	return out, negative
+	return out.ToNumericForm().Align(), negative
+}
+
+// ToNumericForm removes any leading zeros from the phrase's bits, representing the digits in their
+// smallest possible form.  This is the same as calling ReadUntilOne() and ignoring the zero count.
+func (a Phrase) ToNumericForm() Phrase {
+	_, remainder := a.ReadUntilOne()
+	return remainder
+}
+
+// Compare determines if the numeric value of 𝑎 comes Before, is the Same as, or comes After the numeric value of 𝑏.
+func (a Phrase) Compare(b Phrase) Relativity {
+	a, b = padToSameLength(a, b)
+
+	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
+		a = pA
+		b = pB
+
+		if bitA > bitB {
+			return After
+		} else if bitA < bitB {
+			return Before
+		}
+	}
+	return Same
 }
 
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.
@@ -829,4 +859,71 @@ func (a Phrase) String() string {
 		out[i] = m.StringBinary()
 	}
 	return fmt.Sprintf("%v", out)
+}
+
+/**
+CONVENIENCE METHODS
+*/
+
+// readTwoPhrasesFromEnd is a convenience method to keep the code DRY.  It offers no gaurantees, by design.
+// Please do not expose this method.
+//
+//	Functionality: This reads 'l' positions from the end of both phrases.
+func readTwoPhrasesFromEnd(l int, a Phrase, b Phrase) (bitsA, bitsB []Bit, phraseA, phraseB Phrase) {
+	var pA, pB Phrase
+	pA, a = a.ReadFromEnd(l)
+	pB, b = b.ReadFromEnd(l)
+	return pA.Bits(), pB.Bits(), a, b
+}
+
+// readTwoPhrasesFromEnd is a convenience method to keep the code DRY.  It offers no gaurantees, by design.
+// Please do not expose this method.
+//
+//	Functionality: This reads the rightmost bit from both phrases.
+func readTwoPhrasesLastBit(a Phrase, b Phrase) (bitA, bitB Bit, phraseA, phraseB Phrase, err error) {
+	bitsA, bitsB, a, b := readTwoPhrasesFromEnd(1, a, b)
+	if len(bitsA) == 0 {
+		return Zero, Zero, a, b, ErrorEndOfBits
+	}
+	return bitsA[0], bitsB[0], a, b, nil
+}
+
+// readTwoPhrases is a convenience method to keep the code DRY.  It offers no gaurantees, by design.
+// Please do not expose this method.
+//
+//	Functionality: This reads 'l' positions from the start of both phrases.
+func readTwoPhrases(l int, a Phrase, b Phrase) (bitsA, bitsB []Bit, phraseA, phraseB Phrase) {
+	var pA, pB Phrase
+	pA, a = a.Read(l)
+	pB, b = b.Read(l)
+	return pA.Bits(), pB.Bits(), a, b
+}
+
+// readTwoPhrasesFromEnd is a convenience method to keep the code DRY.  It offers no gaurantees, by design.
+// Please do not expose this method.
+//
+//	Functionality: This reads the leftmost bit from both phrases.
+func readTwoPhrasesNextBit(a Phrase, b Phrase) (bitA, bitB Bit, phraseA, phraseB Phrase, err error) {
+	bitsA, bitsB, a, b := readTwoPhrases(1, a, b)
+	if len(bitsA) == 0 {
+		return Zero, Zero, a, b, ErrorEndOfBits
+	}
+	return bitsA[0], bitsB[0], a, b, nil
+}
+
+// padToSameLength is a convenience method to keep the code DRY.  It offers no gaurantees, by design.
+// Please do not expose this method.
+//
+//	Functionality: This left pads the shorter phrase with 0s to match the length of the longer phrase.
+func padToSameLength(a, b Phrase) (Phrase, Phrase) {
+	aLen := a.BitLength()
+	bLen := b.BitLength()
+	length := int(math.Max(float64(aLen), float64(bLen)))
+
+	if aLen < bLen {
+		a = a.PadLeftToLength(length)
+	} else {
+		b = b.PadLeftToLength(length)
+	}
+	return a, b
 }

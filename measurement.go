@@ -245,7 +245,6 @@ func (m *Measurement) BreakApart(index int) (Measurement, Measurement) {
 
 // Invert XORs every bit of the measurement against 1.
 func (m *Measurement) Invert() {
-
 	m.ForEachBit(func(_ int, bit Bit) Bit { return bit ^ One })
 }
 

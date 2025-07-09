@@ -3,7 +3,6 @@ package testing
 import (
 	"crypto/rand"
 	"encoding/binary"
-	"fmt"
 	"github.com/ignite-laboratories/tiny"
 	"testing"
 )
@@ -78,10 +77,9 @@ func Test_Synthesize_TrailingZeros(t *testing.T) {
 }
 
 func Test_Synthesize_Midpoint(t *testing.T) {
-	for i := 1; i < 128; i++ {
+	for i := 1; i < 1<<12; i++ {
 		phrase := tiny.Synthesize.Midpoint(i)
 		bits := phrase.Bits()
-		fmt.Println(bits)
 
 		if bits[0] != 1 {
 			t.Error("Expected a one in the first position")
@@ -178,7 +176,7 @@ func synthesize_random(t *testing.T, g func(int) tiny.Bit) {
 	// There is no way to "test" that 1 or 2 digit binary sets are "random"...it's only four possible values =)
 	for lengthI := 3; lengthI < 10; lengthI++ {
 		for testI := 0; testI < 10; testI++ {
-			phrase := tiny.Synthesize.Random(lengthI, g)
+			phrase := tiny.Synthesize.RandomBits(lengthI, g)
 			bits := phrase.Bits()
 
 			allZero := true
