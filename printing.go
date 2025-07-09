@@ -56,6 +56,12 @@ func (_ _print) IndexWidth(width int, showWidth ...bool) string {
 	}
 }
 
+// BetweenPipes prints the provided bits between pipe characters.
+func (_ _print) BetweenPipes(bits ...Bit) string {
+	str := NewPhraseFromBits(bits...).StringBinary()
+	return fmt.Sprintf("|%s|", str)
+}
+
 // DeltaCharacter is used to build waveform visualizations in a vertically emitted text plot.
 // It calculates if the values have changed and then prints the appropriate pipe character to visualize it.
 //
