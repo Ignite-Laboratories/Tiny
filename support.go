@@ -32,5 +32,6 @@ func GetBitWidth(number int) int {
 
 // GetBase10MaxWidth gets the number of base-10 digits necessary to represent the limit of provided width index.
 func GetBase10MaxWidth(width int) int {
-	return int(math.Floor(math.Log10(float64(1<<width)))) + 1
+	limit := 1 << width
+	return int(math.Floor(math.Log10(float64(limit)))) + 1
 }
