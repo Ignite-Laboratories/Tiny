@@ -845,11 +845,13 @@ func (a Phrase) CompareTo(b Phrase) relatively.Relativity {
 	return relatively.Same
 }
 
-// Int returns a value up to 1 bit less than your architecture's bit width from the source phrase
-// and ignores the remaining bits entirely.  For fully featured binary arithmetic operations,
-// including easily converting between bases, please check out math.Big!  It's an EXCELLENT
-// library with a rigorous amount of testing by far smarter individuals than myself.  You can
-// convert between a phrase and a big.Int using Phrase.AsBigInt().
+// Int returns a value up to your architecture's bit width from the source phrase and ignores
+// the remaining bits entirely.
+//
+// For fully featured binary arithmetic operations, including easily converting between bases,
+// please check out math.Big!  It's an EXCELLENT library with a rigorous amount of testing by
+// far smarter individuals than myself.  You can convert between a phrase and a big.Int using
+// Phrase.AsBigInt().
 func (a Phrase) Int() int {
 	bitWidth := GetArchitectureBitWidth()
 	read, _ := a.Read(bitWidth)

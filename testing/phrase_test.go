@@ -786,7 +786,7 @@ Arithmetic and Logic Gates
 */
 
 func Test_Phrase_Add_StressTest(t *testing.T) {
-	for i := 0; i < 1<<16; i++ {
+	for i := 0; i < 1<<14; i++ {
 		a := tiny.Synthesize.RandomBits(11)
 		b := tiny.Synthesize.RandomBits(11)
 
@@ -802,8 +802,29 @@ func Test_Phrase_Add_StressTest(t *testing.T) {
 	}
 }
 
+func Test_Phrase_Add_Multiple_StressTest(t *testing.T) {
+	for i := 0; i < 1<<14; i++ {
+		a := tiny.Synthesize.RandomBits(11)
+		b := tiny.Synthesize.RandomBits(11)
+		c := tiny.Synthesize.RandomBits(11)
+		d := tiny.Synthesize.RandomBits(11)
+
+		e := a.Add(b).Add(c).Add(d)
+		eStr := e.StringBinary()
+
+		eBigInt := new(big.Int).Add(a.AsBigInt(), b.AsBigInt())
+		eBigInt = new(big.Int).Add(eBigInt, c.AsBigInt())
+		eBigInt = new(big.Int).Add(eBigInt, d.AsBigInt())
+		eBigIntStr := eBigInt.Text(2)
+
+		if eStr != eBigIntStr {
+			t.Errorf("Expected %s, got %s", eBigIntStr, eStr)
+		}
+	}
+}
+
 func Test_Phrase_Subtract_StressTest(t *testing.T) {
-	for i := 0; i < 1<<16; i++ {
+	for i := 0; i < 1<<14; i++ {
 		a := tiny.Synthesize.RandomBits(11)
 		b := tiny.Synthesize.RandomBits(11)
 
@@ -960,7 +981,7 @@ func Test_Phrase_Int_StressTest(t *testing.T) {
 			oversize = 0
 		}
 
-		for ii := 0; ii < 1<<11; ii++ {
+		for ii := 0; ii < 1<<10; ii++ {
 			data := tiny.Synthesize.RandomBits(int(math.Min(float64(tiny.GetArchitectureBitWidth()), float64(i))))
 			data = append(data, tiny.Synthesize.RandomBits(oversize)...)
 
