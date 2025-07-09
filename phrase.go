@@ -2,6 +2,7 @@ package tiny
 
 import (
 	"fmt"
+	relatively "github.com/ignite-laboratories/tiny/relatively"
 	"math"
 	"math/big"
 )
@@ -784,7 +785,7 @@ func (a Phrase) Subtract(b Phrase) (result Phrase, negative bool) {
 	a, b = padToSameLength(a, b)
 
 	// We are performing -absolute- subtraction, so we the minuend must be greater than the subtrahend.
-	if a.Compare(b) == Before {
+	if a.CompareTo(b) == relatively.Before {
 		a, b = b, a
 		negative = true
 	}
@@ -827,8 +828,8 @@ func (a Phrase) ToNumericForm() Phrase {
 	return remainder
 }
 
-// Compare determines if the numeric value of 𝑎 comes Before, is the Same as, or comes After the numeric value of 𝑏.
-func (a Phrase) Compare(b Phrase) Relativity {
+// CompareTo determines if the numeric value of 𝑎 comes relatively.Before, relatively.Same as, or relatively.After the numeric value of 𝑏.
+func (a Phrase) CompareTo(b Phrase) relatively.Relativity {
 	a, b = padToSameLength(a, b)
 
 	for bitA, bitB, pA, pB, err := readTwoPhrasesNextBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesNextBit(a, b) {
@@ -836,12 +837,12 @@ func (a Phrase) Compare(b Phrase) Relativity {
 		b = pB
 
 		if bitA > bitB {
-			return After
+			return relatively.After
 		} else if bitA < bitB {
-			return Before
+			return relatively.Before
 		}
 	}
-	return Same
+	return relatively.Same
 }
 
 // StringBinary returns the phrase's bits as a binary string of 1s and 0s.

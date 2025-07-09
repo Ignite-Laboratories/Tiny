@@ -2,6 +2,7 @@ package testing
 
 import (
 	"github.com/ignite-laboratories/tiny"
+	"github.com/ignite-laboratories/tiny/relatively"
 	"math/big"
 	"testing"
 )
@@ -904,48 +905,48 @@ func Test_Phrase_LogicGates(t *testing.T) {
 	}
 }
 
-func Test_Phrase_Compare(t *testing.T) {
+func Test_Phrase_CompareTo(t *testing.T) {
 	a := tiny.NewPhrase(66)
 	b := tiny.NewPhrase(77)
 	c := tiny.NewPhrase(88)
 
-	aa := a.Compare(a)
-	ab := a.Compare(b)
-	ac := a.Compare(c)
-	if aa != tiny.Same {
-		t.Errorf("Expected %d, got %d", tiny.Same, aa)
+	aa := a.CompareTo(a)
+	ab := a.CompareTo(b)
+	ac := a.CompareTo(c)
+	if aa != relatively.Same {
+		t.Errorf("Expected %d, got %d", relatively.Same, aa)
 	}
-	if ab != tiny.Before {
-		t.Errorf("Expected %d, got %d", tiny.Before, ab)
+	if ab != relatively.Before {
+		t.Errorf("Expected %d, got %d", relatively.Before, ab)
 	}
-	if ac != tiny.Before {
-		t.Errorf("Expected %d, got %d", tiny.Before, ac)
-	}
-
-	ba := b.Compare(a)
-	bb := b.Compare(b)
-	bc := b.Compare(c)
-	if ba != tiny.After {
-		t.Errorf("Expected %d, got %d", tiny.After, ba)
-	}
-	if bb != tiny.Same {
-		t.Errorf("Expected %d, got %d", tiny.Same, bb)
-	}
-	if bc != tiny.Before {
-		t.Errorf("Expected %d, got %d", tiny.Before, bc)
+	if ac != relatively.Before {
+		t.Errorf("Expected %d, got %d", relatively.Before, ac)
 	}
 
-	ca := c.Compare(a)
-	cb := c.Compare(b)
-	cc := c.Compare(c)
-	if ca != tiny.After {
-		t.Errorf("Expected %d, got %d", tiny.After, ca)
+	ba := b.CompareTo(a)
+	bb := b.CompareTo(b)
+	bc := b.CompareTo(c)
+	if ba != relatively.After {
+		t.Errorf("Expected %d, got %d", relatively.After, ba)
 	}
-	if cb != tiny.After {
-		t.Errorf("Expected %d, got %d", tiny.After, cb)
+	if bb != relatively.Same {
+		t.Errorf("Expected %d, got %d", relatively.Same, bb)
 	}
-	if cc != tiny.Same {
-		t.Errorf("Expected %d, got %d", tiny.Same, cc)
+	if bc != relatively.Before {
+		t.Errorf("Expected %d, got %d", relatively.Before, bc)
+	}
+
+	ca := c.CompareTo(a)
+	cb := c.CompareTo(b)
+	cc := c.CompareTo(c)
+	if ca != relatively.After {
+		t.Errorf("Expected %d, got %d", relatively.After, ca)
+	}
+	if cb != relatively.After {
+		t.Errorf("Expected %d, got %d", relatively.After, cb)
+	}
+	if cc != relatively.Same {
+		t.Errorf("Expected %d, got %d", relatively.Same, cc)
 	}
 
 }
