@@ -1,8 +1,8 @@
 package testing
 
 import (
+	"github.com/ignite-laboratories/core/relatively"
 	"github.com/ignite-laboratories/tiny"
-	"github.com/ignite-laboratories/tiny/relatively"
 	"math"
 	"math/big"
 	"testing"
@@ -917,8 +917,8 @@ func Test_Phrase_CompareTo(t *testing.T) {
 	c := tiny.NewPhrase(88)
 
 	aa := a.CompareTo(a)
-	if aa != relatively.Same {
-		t.Errorf("Expected %d, got %d", relatively.Same, aa)
+	if aa != relatively.Aligned {
+		t.Errorf("Expected %d, got %d", relatively.Aligned, aa)
 	}
 
 	ab := a.CompareTo(b)
@@ -937,8 +937,8 @@ func Test_Phrase_CompareTo(t *testing.T) {
 	}
 
 	bb := b.CompareTo(b)
-	if bb != relatively.Same {
-		t.Errorf("Expected %d, got %d", relatively.Same, bb)
+	if bb != relatively.Aligned {
+		t.Errorf("Expected %d, got %d", relatively.Aligned, bb)
 	}
 
 	bc := b.CompareTo(c)
@@ -957,8 +957,8 @@ func Test_Phrase_CompareTo(t *testing.T) {
 	}
 
 	cc := c.CompareTo(c)
-	if cc != relatively.Same {
-		t.Errorf("Expected %d, got %d", relatively.Same, cc)
+	if cc != relatively.Aligned {
+		t.Errorf("Expected %d, got %d", relatively.Aligned, cc)
 	}
 }
 

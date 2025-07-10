@@ -2,7 +2,7 @@ package tiny
 
 import (
 	"fmt"
-	relatively "github.com/ignite-laboratories/tiny/relatively"
+	"github.com/ignite-laboratories/core/relatively"
 	"math"
 	"math/big"
 )
@@ -842,7 +842,7 @@ func (a Phrase) CompareTo(b Phrase) relatively.Relativity {
 			return relatively.Before
 		}
 	}
-	return relatively.Same
+	return relatively.Aligned
 }
 
 // Int returns a value up to your architecture's bit width from the source phrase and ignores
