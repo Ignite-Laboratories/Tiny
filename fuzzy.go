@@ -59,7 +59,7 @@ func (_ _sixtyFour) Read(data Phrase) (value int, remainder Phrase) {
 		projectionRange = 64
 	}
 
-	projection, remainder := remainder.Read(projectionRange)
+	projection, remainder, _ := remainder.Read(projectionRange)
 	return To.Number(projectionRange, projection.Bits()...), remainder
 }
 
@@ -131,7 +131,7 @@ func (_ _five) Read(data Phrase) (value int, remainder Phrase) {
 		projectionRange = 5
 	}
 
-	projection, remainder := remainder.Read(projectionRange)
+	projection, remainder, _ := remainder.Read(projectionRange)
 	return To.Number(projectionRange, projection.Bits()...), remainder
 }
 
@@ -210,7 +210,7 @@ func (_ _fiveCumulative) Read(data Phrase) (value int, remainder Phrase) {
 		shim += 30
 	}
 
-	projection, remainder := remainder.Read(projectionRange)
+	projection, remainder, _ := remainder.Read(projectionRange)
 	return To.Number(projectionRange, projection.Bits()...) + shim, remainder
 }
 
@@ -287,7 +287,7 @@ func (_ _power) Read(data Phrase) (value int, remainder Phrase) {
 		projectionRange = 6
 	}
 
-	projection, remainder := remainder.Read(projectionRange)
+	projection, remainder, _ := remainder.Read(projectionRange)
 	power := To.Number(projectionRange, projection.Bits()...)
 	power += 1
 	return 1<<power - 1, remainder
@@ -356,7 +356,7 @@ func (_ _power) Encode(power int) (key Phrase, projection Phrase) {
 func (_ _zle) Read(data Phrase) (value int, remainder Phrase) {
 	zeros, remainder := data.ReadUntilOne()
 	projectionRange := 1 << zeros
-	projection, remainder := remainder.Read(projectionRange)
+	projection, remainder, _ := remainder.Read(projectionRange)
 	return To.Number(projectionRange, projection.Bits()...), remainder
 }
 
@@ -410,7 +410,7 @@ func (_ _byte) Read(data Phrase) (value int, remainder Phrase) {
 		projectionRange = 8
 	}
 
-	projection, remainder := remainder.Read(projectionRange)
+	projection, remainder, _ := remainder.Read(projectionRange)
 	return To.Number(projectionRange, projection.Bits()...), remainder
 }
 

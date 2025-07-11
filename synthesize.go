@@ -140,7 +140,9 @@ func (s _synthesize) Point(i int, index int) Phrase {
 }
 
 // Repeating repeats the provided pattern the desired number of times.
+//
 // Use Repeating when you want the entire pattern emitted a fixed number of times.
+//
 // Use Pattern when you want the pattern to fit within a specified length.
 func (s _synthesize) Repeating(count int, pattern ...Bit) Phrase {
 	patternI := 0

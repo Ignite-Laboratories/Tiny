@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"fmt"
 	"github.com/ignite-laboratories/core/relatively"
 	"github.com/ignite-laboratories/tiny"
 	"math"
@@ -11,7 +12,7 @@ import (
 func Test_Phrase_NewPhraseFromBits(t *testing.T) {
 	bits := []tiny.Bit{0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1}
 	p := tiny.NewPhraseFromBits(bits...)
-	r, _ := p.Read(p.BitLength())
+	r, _, _ := p.Read(p.BitLength())
 	CompareSlices(bits, r.Bits(), t)
 }
 
@@ -263,7 +264,7 @@ Read
 func Test_Phrase_Read(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.Read(4)
+	read, remainder, _ := phrase.Read(4)
 
 	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
 	ComparePhrases(read, tiny.Phrase{left}, t)
@@ -275,7 +276,7 @@ func Test_Phrase_Read(t *testing.T) {
 func Test_Phrase_Read_Zero(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.Read(0)
+	read, remainder, _ := phrase.Read(0)
 
 	ComparePhrases(read, tiny.Phrase{}, t)
 	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
@@ -284,7 +285,7 @@ func Test_Phrase_Read_Zero(t *testing.T) {
 func Test_Phrase_Read_Negative(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.Read(-5)
+	read, remainder, _ := phrase.Read(-5)
 
 	ComparePhrases(read, tiny.Phrase{}, t)
 	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
@@ -293,7 +294,7 @@ func Test_Phrase_Read_Negative(t *testing.T) {
 func Test_Phrase_Read_AcrossMeasurements(t *testing.T) {
 	phrase := tiny.NewPhrase(77, 22)
 
-	read, remainder := phrase.Read(10)
+	read, remainder, _ := phrase.Read(10)
 
 	left1 := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)
 	left2 := tiny.NewMeasurement([]byte{}, 0, 0)
@@ -303,6 +304,69 @@ func Test_Phrase_Read_AcrossMeasurements(t *testing.T) {
 	ComparePhrases(remainder, tiny.Phrase{right}, t)
 }
 
+func Test_Phrase_Read_ReadPhraseOperationsErrorAppropriately(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+	length := phrase.BitLength()
+
+	tester := func(operation func(int) (tiny.Phrase, tiny.Phrase, error)) {
+		d := 1
+		r, rr, err := operation(d)
+		fmt.Println(r, rr)
+		if err != nil {
+			t.Fatalf("Did not expect an error reading %d bits into an %d bit phrase", d, length)
+		}
+		_, _, err = operation(length + d)
+		if err == nil {
+			t.Fatalf("Expected an error reading %d bits into an %d bit phrase", length+d, length)
+		}
+	}
+
+	tester(phrase.Read)
+	tester(phrase.ReadFromEnd)
+}
+
+func Test_Phrase_Read_ReadMeasurementErrorsAppropriately(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+	length := phrase.BitLength()
+
+	d := 1
+	r, rr, err := phrase.ReadMeasurement(d)
+	fmt.Println(r, rr)
+	if err != nil {
+		t.Fatalf("Did not expect an error reading %d bits into an %d bit phrase", d, length)
+	}
+	_, _, err = phrase.ReadMeasurement(length + d)
+	if err == nil {
+		t.Fatalf("Expected an error reading %d bits into an %d bit phrase", length+d, length)
+	}
+}
+
+func Test_Phrase_Read_ReadBitOperationsErrorAppropriately(t *testing.T) {
+	phrase := tiny.NewPhrase(77)
+	_, _, err := phrase.ReadLastBit()
+	if err != nil {
+		t.Fatalf("Did not expect an error reading the last bit of a 1 bit phrase")
+	}
+
+	phrase = tiny.NewPhrase()
+	_, _, err = phrase.ReadLastBit()
+	if err == nil {
+		t.Fatalf("Expected an error reading the last bit of a 1 bit phrase")
+	}
+
+	phrase = tiny.NewPhrase(77)
+	_, _, err = phrase.ReadNextBit()
+	if err != nil {
+		t.Fatalf("Did not expect an error reading the next bit of a 1 bit phrase")
+	}
+
+	phrase = tiny.NewPhrase()
+	_, _, err = phrase.ReadNextBit()
+	if err == nil {
+		t.Fatalf("Expected an error reading the next bit of a 1 bit phrase")
+	}
+}
+
 /**
 ReadFromEnd
 */
@@ -310,7 +374,7 @@ ReadFromEnd
 func Test_Phrase_ReadFromEnd(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.ReadFromEnd(4)
+	read, remainder, _ := phrase.ReadFromEnd(4)
 
 	ComparePhrases(read, tiny.NewPhraseFromBits(1, 1, 0, 1), t)
 	ComparePhrases(remainder, tiny.NewPhraseFromBits(0, 1, 0, 0), t)
@@ -319,7 +383,7 @@ func Test_Phrase_ReadFromEnd(t *testing.T) {
 func Test_Phrase_ReadFromEnd_NoData(t *testing.T) {
 	phrase := tiny.NewPhrase()
 
-	read, remainder := phrase.ReadFromEnd(4)
+	read, remainder, _ := phrase.ReadFromEnd(4)
 
 	ComparePhrases(read, tiny.NewPhrase(), t)
 	ComparePhrases(remainder, tiny.NewPhrase(), t)
@@ -328,7 +392,7 @@ func Test_Phrase_ReadFromEnd_NoData(t *testing.T) {
 func Test_Phrase_ReadFromEnd_UndersizedData(t *testing.T) {
 	phrase := tiny.NewPhraseFromBits(1, 1)
 
-	read, remainder := phrase.ReadFromEnd(4)
+	read, remainder, _ := phrase.ReadFromEnd(4)
 
 	ComparePhrases(read, tiny.NewPhraseFromBits(1, 1), t)
 	ComparePhrases(remainder, tiny.NewPhrase(), t)
@@ -338,10 +402,24 @@ func Test_Phrase_ReadFromEnd_UndersizedData(t *testing.T) {
 ReadLastBit
 */
 
+func Test_Phrase_ReadLastBit_ErrorIfEmptyPhrase(t *testing.T) {
+	phrase := tiny.NewPhrase()
+	read, remainder, err := phrase.ReadLastBit()
+	if err == nil {
+		t.Fatalf("ReadLastBit should have returned an error with no bits left to read")
+	}
+	if read != tiny.Zero {
+		t.Fatalf("Expected the read bit to be zero when no bits are present")
+	}
+	if remainder.BitLength() > 0 {
+		t.Fatalf("Expected the remainder to be empty when no bits are present")
+	}
+}
+
 func Test_Phrase_ReadLastBit(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	bit, remainder := phrase.ReadLastBit()
+	bit, remainder, _ := phrase.ReadLastBit()
 
 	if bit != 1 {
 		t.Errorf("Expected bit to be 1, got %d", bit)
@@ -353,7 +431,7 @@ func Test_Phrase_ReadLastBit(t *testing.T) {
 func Test_Phrase_ReadLastBit_NoData(t *testing.T) {
 	phrase := tiny.NewPhrase()
 
-	bit, remainder := phrase.ReadLastBit()
+	bit, remainder, _ := phrase.ReadLastBit()
 
 	if bit != 0 {
 		t.Errorf("Expected bit to be 0, got %d", bit)
@@ -367,7 +445,7 @@ func Test_Phrase_ReadLastBit_NoData(t *testing.T) {
 func Test_Phrase_ReadLastBit_OneBit(t *testing.T) {
 	phrase := tiny.NewPhraseFromBits(1)
 
-	bit, remainder := phrase.ReadLastBit()
+	bit, remainder, _ := phrase.ReadLastBit()
 
 	if bit != 1 {
 		t.Errorf("Expected bit to be 0, got %d", bit)
@@ -385,7 +463,7 @@ ReadMeasurement
 func Test_Phrase_ReadMeasurement(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.ReadMeasurement(4)
+	read, remainder, _ := phrase.ReadMeasurement(4)
 
 	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)
 	CompareMeasurements(read, left, t)
@@ -397,7 +475,7 @@ func Test_Phrase_ReadMeasurement(t *testing.T) {
 func Test_Phrase_ReadMeasurement_Zero(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.ReadMeasurement(0)
+	read, remainder, _ := phrase.ReadMeasurement(0)
 
 	CompareMeasurements(read, tiny.NewMeasurement([]byte{}), t)
 	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
@@ -406,7 +484,7 @@ func Test_Phrase_ReadMeasurement_Zero(t *testing.T) {
 func Test_Phrase_ReadMeasurement_Negative(t *testing.T) {
 	phrase := tiny.NewPhrase(77)
 
-	read, remainder := phrase.ReadMeasurement(-5)
+	read, remainder, _ := phrase.ReadMeasurement(-5)
 
 	CompareMeasurements(read, tiny.NewMeasurement([]byte{}), t)
 	ComparePhrases(remainder, tiny.Phrase{tiny.NewMeasurement([]byte{77})}, t)
@@ -415,7 +493,7 @@ func Test_Phrase_ReadMeasurement_Negative(t *testing.T) {
 func Test_Phrase_ReadMeasurement_OverByte(t *testing.T) {
 	phrase := tiny.NewPhrase(77, 22, 33)
 
-	read, remainder := phrase.ReadMeasurement(10)
+	read, remainder, _ := phrase.ReadMeasurement(10)
 
 	left := tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0)
 	CompareMeasurements(read, left, t)
@@ -431,14 +509,14 @@ func Test_Phrase_ReadMeasurement_ShouldPanicIfOverArchitectureBitWidth(t *testin
 }
 
 /**
-ReadBit
+ReadNextBit
 */
 
-func Test_Phrase_ReadBit(t *testing.T) {
+func Test_Phrase_ReadNextBit(t *testing.T) {
 	for x := 0; x < 256; x++ {
 		for y := 0; y < 256; y++ {
 			phrase := tiny.NewPhrase(byte(x), byte(y))
-			bit, remainder, err := phrase.ReadBit()
+			bit, remainder, err := phrase.ReadNextBit()
 			remainder = remainder.Align()
 
 			expected := tiny.From.Number(x, 8)
@@ -457,11 +535,11 @@ func Test_Phrase_ReadBit(t *testing.T) {
 	}
 }
 
-func Test_Phrase_ReadBit_ShouldErrorWhenEndOfPhrase(t *testing.T) {
+func Test_Phrase_ReadNextBit_ShouldErrorWhenEndOfPhrase(t *testing.T) {
 	phrase := tiny.NewPhrase(33, 22)
 
 	for i := 0; i <= phrase.BitLength(); i++ {
-		_, remainder, err := phrase.ReadBit()
+		_, remainder, err := phrase.ReadNextBit()
 		phrase = remainder
 		if i == phrase.BitLength() && err == nil {
 			t.Fatalf("Expected an error when reading beyond the end of the phrase, got nil")
@@ -515,7 +593,7 @@ func Test_Phrase_Trifurcate(t *testing.T) {
 	//  |     Start      |     Middle      |      End       | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77, 22, 33)
 
-	s, m, e := phrase.Trifurcate(8, 8)
+	s, m, e, _ := phrase.Trifurcate(8, 8)
 	ComparePhrases(s, tiny.NewPhrase(77), t)
 	ComparePhrases(m, tiny.NewPhrase(22), t)
 	ComparePhrases(e, tiny.NewPhrase(33), t)
@@ -534,7 +612,7 @@ func Test_Phrase_Trifurcate_OddSize(t *testing.T) {
 	//  | Start  | Middle1 |     Middle2     | Middle3 |   End  | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77, 22, 33)
 
-	s, m, e := phrase.Trifurcate(4, 16)
+	s, m, e, _ := phrase.Trifurcate(4, 16)
 
 	eStart := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)}
 
@@ -561,7 +639,7 @@ func Test_Phrase_Trifurcate_ExcessiveMiddleLength(t *testing.T) {
 	//  | S  |   Middle   | E | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
-	s, m, e := phrase.Trifurcate(2, 8)
+	s, m, e, _ := phrase.Trifurcate(2, 8)
 
 	eStart := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1)}
 	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 0, 1, 1, 0, 1)}
@@ -583,7 +661,7 @@ func Test_Phrase_Trifurcate_ExcessiveStartLength(t *testing.T) {
 	//  |     Start     | M | E | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
-	s, m, e := phrase.Trifurcate(10, 8)
+	s, m, e, _ := phrase.Trifurcate(10, 8)
 
 	eStart := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}
 	eMiddle := tiny.Phrase{}
@@ -605,7 +683,7 @@ func Test_Phrase_Trifurcate_ZeroStartLength(t *testing.T) {
 	//  | S | Middle |  End   | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
-	s, m, e := phrase.Trifurcate(0, 4)
+	s, m, e, _ := phrase.Trifurcate(0, 4)
 
 	eStart := tiny.Phrase{}
 	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0)}
@@ -627,7 +705,7 @@ func Test_Phrase_Trifurcate_ZeroStartLengthAndNoEnd(t *testing.T) {
 	//  | S |    Middle     | E | ← "Trifurcated"
 	phrase := tiny.NewPhrase(77)
 
-	s, m, e := phrase.Trifurcate(0, 10)
+	s, m, e, _ := phrase.Trifurcate(0, 10)
 
 	eStart := tiny.Phrase{}
 	eMiddle := tiny.Phrase{tiny.NewMeasurement([]byte{}, 0, 1, 0, 0, 1, 1, 0, 1)}

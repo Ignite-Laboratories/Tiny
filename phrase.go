@@ -324,7 +324,7 @@ func (a Phrase) Align(width ...int) Phrase {
 	src := a
 	out := make(Phrase, 0, len(src))
 	for {
-		measure, remainder := src.ReadMeasurement(w)
+		measure, remainder, _ := src.ReadMeasurement(w)
 		if len(remainder) == 0 {
 			if measure.BitLength() > 0 {
 				out = append(out, measure)
@@ -346,7 +346,9 @@ func (a Phrase) Align(width ...int) Phrase {
 // NOTE: This is intended for reading long stretches of bits.
 // If you wish to read less than your architecture's bit width from the first measurement, using ReadMeasurement is a
 // little easier to work with.
-func (a Phrase) Read(length int) (read Phrase, remainder Phrase) {
+func (a Phrase) Read(length int) (read Phrase, remainder Phrase, err error) {
+	l := length
+
 	read = make(Phrase, 0, len(a))
 	remainder = make(Phrase, 0, len(a))
 
@@ -368,7 +370,11 @@ func (a Phrase) Read(length int) (read Phrase, remainder Phrase) {
 		length -= bitLen
 	}
 
-	return read, remainder
+	if read.BitLength() < l {
+		err = ErrorEndOfBits
+	}
+
+	return read, remainder, err
 }
 
 // ReadFromEnd reads the provided number of bits from the end of the source phrase, followed by the remainder,
@@ -383,16 +389,22 @@ func (a Phrase) Read(length int) (read Phrase, remainder Phrase) {
 //	                 ⬑  Bits are in same order ⬏
 //
 // NOTE: If you request more bits than are available, the slices will only contain the available bits =)
-func (a Phrase) ReadFromEnd(length int) (read Phrase, remainder Phrase) {
-	remainder, read = a.Read(a.BitLength() - length)
-	return read, remainder
+func (a Phrase) ReadFromEnd(length int) (read Phrase, remainder Phrase, err error) {
+	remainder, read, _ = a.Read(a.BitLength() - length)
+	if read.BitLength() < length {
+		err = ErrorEndOfBits
+	}
+	return read, remainder, err
 }
 
 // ReadLastBit reads the last bit of the source phrase, followed by the remainder.
-func (a Phrase) ReadLastBit() (last Bit, remainder Phrase) {
-	end, remainder := a.ReadFromEnd(1)
-	last, _, _ = end.ReadBit()
-	return last, remainder
+func (a Phrase) ReadLastBit() (last Bit, remainder Phrase, err error) {
+	read, remainder, _ := a.ReadFromEnd(1)
+	last, _, _ = read.ReadNextBit()
+	if read.BitLength() < 1 {
+		err = ErrorEndOfBits
+	}
+	return last, remainder, err
 }
 
 // ReadMeasurement reads the provided number of bits from the source phrase as a Measurement and provides the
@@ -400,27 +412,31 @@ func (a Phrase) ReadLastBit() (last Bit, remainder Phrase) {
 //
 // NOTE: This will panic if you attempt to read more than your architecture's bit width.
 // For that, please use Read.
-func (a Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase) {
+func (a Phrase) ReadMeasurement(length int) (read Measurement, remainder Phrase, err error) {
 	if length > GetArchitectureBitWidth() {
 		panic(errorMeasurementLimit)
 	}
 
 	read = NewMeasurement([]byte{})
-	readMeasures, remainder := a.Read(length)
+	readMeasures, remainder, _ := a.Read(length)
 	for _, m := range readMeasures {
 		read.Append(m)
 	}
 
-	return read, remainder
+	if read.BitLength() < length {
+		err = ErrorEndOfBits
+	}
+
+	return read, remainder, err
 }
 
-// ReadBit reads a single bit from the source phrase and returns the remainder as a Phrase.
+// ReadNextBit reads a single bit from the source phrase and returns the remainder as a Phrase.
 //
 // NOTE: This kindly returns an ErrorMsgEndOfBits error if there are no more bits to read.
-func (a Phrase) ReadBit() (read Bit, remainder Phrase, err error) {
-	measure, remainder := a.ReadMeasurement(1)
-	if measure.BitLength() == 0 {
-		return 0, nil, fmt.Errorf(ErrorMsgEndOfBits)
+func (a Phrase) ReadNextBit() (read Bit, remainder Phrase, err error) {
+	measure, remainder, err := a.ReadMeasurement(1)
+	if measure.BitLength() <= 0 {
+		return 0, remainder, ErrorEndOfBits
 	}
 	return measure.GetAllBits()[0], remainder, nil
 }
@@ -435,7 +451,7 @@ func (a Phrase) ReadUntilOne(limit ...int) (zeros int, remainder Phrase) {
 	}
 
 	remainder = a
-	for b, r, err := remainder.ReadBit(); err == nil; b, r, err = r.ReadBit() {
+	for b, r, err := remainder.ReadNextBit(); err == nil; b, r, err = r.ReadNextBit() {
 		if l >= 0 && zeros >= l {
 			break
 		}
@@ -519,10 +535,15 @@ func (a Phrase) PadRightToLength(overall int, char ...Bit) Phrase {
 //		|  Start  |     Middle0     -     Middle1     |   End   | ← Aligned Phrase Measurements
 //
 // @formatter:on
-func (a Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase) {
-	start, end = a.Read(startLen)
-	middle, end = end.Read(middleLen)
-	return start, middle, end
+func (a Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Phrase, end Phrase, err error) {
+	start, end, _ = a.Read(startLen)
+	middle, end, _ = end.Read(middleLen)
+
+	if start.BitLength()+middle.BitLength() < startLen+middleLen {
+		err = ErrorEndOfBits
+	}
+
+	return start, middle, end, err
 }
 
 // Bifurcate takes the source phrase and subdivides it in twain - start and end.
@@ -553,7 +574,7 @@ func (a Phrase) Trifurcate(startLen int, middleLen int) (start Phrase, middle Ph
 //	|     Start 0     -  Start 1  |       End 0       -     End 1     |  ← Aligned Measurements
 //
 // @formatter:on
-func (a Phrase) Bifurcate() (start Phrase, end Phrase) {
+func (a Phrase) Bifurcate() (start Phrase, end Phrase, err error) {
 	return a.Read(a.BitLength() / 2)
 }
 
@@ -572,7 +593,7 @@ func (a Phrase) WalkBits(stride int, fn func(int, Measurement)) {
 	remainder := a
 	var bitM Measurement
 	i := 0
-	for bitM, remainder = remainder.ReadMeasurement(stride); len(remainder) > 0; bitM, remainder = remainder.ReadMeasurement(stride) {
+	for bitM, remainder, _ = remainder.ReadMeasurement(stride); len(remainder) > 0; bitM, remainder, _ = remainder.ReadMeasurement(stride) {
 		if bitM.BitLength() > 0 {
 			fn(i, bitM)
 			i++
@@ -597,7 +618,7 @@ func (a Phrase) NOT() (b Phrase) {
 
 	var bit Bit
 	var err error
-	for bit, a, err = a.ReadBit(); err == nil; bit, a, err = a.ReadBit() {
+	for bit, a, err = a.ReadNextBit(); err == nil; bit, a, err = a.ReadNextBit() {
 		b = b.AppendBits(bit ^ 1)
 	}
 	return b.Align()
@@ -780,7 +801,7 @@ func (a Phrase) Add(b Phrase) Phrase {
 	return out.ToNumericForm().Align()
 }
 
-// Subtract performs absolute binary subtraction between the source phrase and the provided phrase.
+// Subtract performs absolute binary subtraction between the source and provided phrases.
 func (a Phrase) Subtract(b Phrase) (result Phrase, negative bool) {
 	a, b = padToSameLength(a, b)
 
@@ -854,7 +875,7 @@ func (a Phrase) CompareTo(b Phrase) relatively.Relativity {
 // Phrase.AsBigInt().
 func (a Phrase) Int() int {
 	bitWidth := GetArchitectureBitWidth()
-	read, _ := a.Read(bitWidth)
+	read, _, _ := a.Read(bitWidth)
 	bits := read.Bits()
 	return To.Number(len(bits), bits...)
 }
@@ -886,8 +907,8 @@ CONVENIENCE METHODS
 //	Functionality: This reads 'l' positions from the end of both phrases.
 func readTwoPhrasesFromEnd(l int, a Phrase, b Phrase) (bitsA, bitsB []Bit, phraseA, phraseB Phrase) {
 	var pA, pB Phrase
-	pA, a = a.ReadFromEnd(l)
-	pB, b = b.ReadFromEnd(l)
+	pA, a, _ = a.ReadFromEnd(l)
+	pB, b, _ = b.ReadFromEnd(l)
 	return pA.Bits(), pB.Bits(), a, b
 }
 
@@ -909,8 +930,8 @@ func readTwoPhrasesLastBit(a Phrase, b Phrase) (bitA, bitB Bit, phraseA, phraseB
 //	Functionality: This reads 'l' positions from the start of both phrases.
 func readTwoPhrases(l int, a Phrase, b Phrase) (bitsA, bitsB []Bit, phraseA, phraseB Phrase) {
 	var pA, pB Phrase
-	pA, a = a.Read(l)
-	pB, b = b.Read(l)
+	pA, a, _ = a.Read(l)
+	pB, b, _ = b.Read(l)
 	return pA.Bits(), pB.Bits(), a, b
 }
 

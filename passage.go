@@ -21,7 +21,7 @@ func (p Passage) Perform() Phrase {
 
 	for i := p.DeltaWidth; i < bitLength+1; i++ {
 		var sign Bit
-		sign, signature = signature.ReadLastBit()
+		sign, signature, _ = signature.ReadLastBit()
 
 		midpoint := Synthesize.Midpoint(i)
 		fmt.Println(midpoint)
