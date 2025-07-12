@@ -10,43 +10,6 @@ import (
 // Phrase represents a Measurement slice and provides clustered measurement functionality.
 type Phrase []Measurement
 
-// SignedPhrase represents a phrase where the first measurement is a sign and the remaining bits are the data.
-type SignedPhrase Phrase
-
-/**
-SignedPhrase
-*/
-
-// NewSignedPhrase creates a new SignedPhrase.
-func NewSignedPhrase(sign Bit, data Phrase) SignedPhrase {
-	return SignedPhrase(NewPhraseFromBits(sign).Append(data))
-}
-
-// NewSignedPhraseFromBool creates a new SignedPhrase using a boolean for the sign.
-func NewSignedPhraseFromBool(sign bool, data Phrase) SignedPhrase {
-	if sign {
-		return SignedPhrase(NewPhraseFromBits(1).Append(data))
-	}
-	return SignedPhrase(NewPhraseFromBits(0).Append(data))
-}
-
-// GetSign returns the first bit as the sign bit.
-func (a SignedPhrase) GetSign() Bit {
-	if len(a) > 0 {
-		sign, _, _ := Phrase(a).ReadNextBit()
-		return sign
-	}
-	return 0
-}
-
-// GetData returns everything after the initial sign bit.
-func (a SignedPhrase) GetData() Phrase {
-	if len(a) > 0 {
-		return Phrase(a[1:])
-	}
-	return NewPhrase()
-}
-
 /**
 NewPhrase Functions
 */
@@ -843,7 +806,7 @@ func (a Phrase) Add(b Phrase) (c Phrase) {
 }
 
 // Minus performs binary subtraction between the source and provided phrases.
-func (a Phrase) Minus(b Phrase) (c SignedPhrase) {
+func (a Phrase) Minus(b Phrase) (c SignedInteger) {
 	a, b = padToSameLength(a, b)
 
 	// We are performing -absolute- subtraction, so we the minuend must be greater than the subtrahend.
@@ -882,7 +845,7 @@ func (a Phrase) Minus(b Phrase) (c SignedPhrase) {
 		out = out.PrependBits(One)
 	}
 
-	return NewSignedPhraseFromBool(signed, out.ToNumericForm().Align())
+	return NewIntegerFromBool(signed, out.ToNumericForm().Align())
 }
 
 // Times performs absolute binary multiplication between the source and provided phrases.
@@ -919,7 +882,7 @@ func (a Phrase) Times(b Phrase) (c Phrase) {
 }
 
 // ToThePowerOf performs binary exponentiation between the source and provided phrases using recursive squaring.
-//func (a Phrase) ToThePowerOf(neg Signed, b Phrase) (c Phrase, signed Signed) {
+//func (a Phrase) ToThePowerOf(b SignedInteger) (c Phrase, signed Signed) {
 //	if neg {
 //		return NewPhrase(1).DividedBy(a).ToThePowerOf(!neg, b)
 //	} else if b.CompareTo(NewPhrase(0)) == 0 {
@@ -947,7 +910,7 @@ func (a Phrase) DividedBy(b Phrase) (c Phrase) {
 		if b.CompareTo(remainder) > 0 {
 			c = c.AppendBits(0)
 		} else {
-			remainder = remainder.Minus(b).GetData()
+			remainder = remainder.Minus(b).GetValue()
 			c = c.AppendBits(1)
 		}
 	}
@@ -964,7 +927,7 @@ func (a Phrase) Modulo(b Phrase) (remainder Phrase) {
 		remainder = remainder.AppendBits(bitA)
 
 		if b.CompareTo(remainder) <= 0 {
-			remainder = remainder.Minus(b).GetData()
+			remainder = remainder.Minus(b).GetValue()
 		}
 	}
 

@@ -907,7 +907,7 @@ func Test_Phrase_Minus_StressTest(t *testing.T) {
 		b := tiny.Synthesize.RandomBits(11)
 
 		c := a.Minus(b)
-		data := c.GetData()
+		data := c.GetValue()
 		sign := c.GetSign()
 		cStr := data.StringBinary()
 
