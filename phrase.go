@@ -776,33 +776,33 @@ func (a Phrase) NOR(b Phrase) (c Phrase) {
 
 // Add performs binary addition between the source and provided phrases.
 // The result will be at least as wide as the largest operand to be added.
-func (a Phrase) Add(b Phrase) Phrase {
+func (a Phrase) Add(b Phrase) (c Phrase) {
 	a, b = padToSameLength(a, b)
 
 	carry := Zero
-	out := NewPhrase()
+	c = NewPhrase()
 	for bitA, bitB, pA, pB, err := readTwoPhrasesLastBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesLastBit(a, b) {
 		a = pA
 		b = pB
 
-		c := bitA + bitB + carry
+		ab := bitA + bitB + carry
 		if carry == One {
 			carry = Zero
 		}
-		if c > 1 {
-			c -= 2
+		if ab > 1 {
+			ab -= 2
 			carry = One
 		}
-		out = out.PrependBits(c)
+		c = c.PrependBits(ab)
 	}
 	if carry == One {
-		out = out.PrependBits(One)
+		c = c.PrependBits(One)
 	}
-	return out.ToNumericForm().Align()
+	return c.ToNumericForm().Align()
 }
 
-// Subtract performs absolute binary subtraction between the source and provided phrases.
-func (a Phrase) Subtract(b Phrase) (result Phrase, negative bool) {
+// Minus performs absolute binary subtraction between the source and provided phrases.
+func (a Phrase) Minus(b Phrase) (c Phrase, negative bool) {
 	a, b = padToSameLength(a, b)
 
 	// We are performing -absolute- subtraction, so we the minuend must be greater than the subtrahend.
@@ -812,7 +812,7 @@ func (a Phrase) Subtract(b Phrase) (result Phrase, negative bool) {
 	}
 
 	borrow := Zero
-	out := NewPhrase()
+	c = NewPhrase()
 	for bitA, bitB, pA, pB, err := readTwoPhrasesLastBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesLastBit(a, b) {
 		a = pA
 		b = pB
@@ -828,18 +828,51 @@ func (a Phrase) Subtract(b Phrase) (result Phrase, negative bool) {
 			}
 		}
 
-		c := bitA - bitB
+		ab := bitA - bitB
 		// Check for general byte underflow
-		if c > 11 {
-			c += 2
+		if ab > 11 {
+			ab += 2
 			borrow = One
 		}
-		out = out.PrependBits(Bit(c))
+		c = c.PrependBits(Bit(ab))
 	}
 	if borrow == One {
-		out = out.PrependBits(One)
+		c = c.PrependBits(One)
 	}
-	return out.ToNumericForm().Align(), negative
+	return c.ToNumericForm().Align(), negative
+}
+
+// Times performs absolute binary multiplication between the source and provided phrases.
+func (a Phrase) Times(b Phrase) (c Phrase) {
+	c = NewPhrase()
+
+	d := make([]Phrase, 0, b.BitLength())
+	shift := 0
+
+	for bitB, pB, errB := b.ReadLastBit(); errB == nil; bitB, pB, errB = b.ReadLastBit() {
+		b = pB
+		e := Synthesize.Zeros(shift)
+
+		tempA := a
+		for bitA, pA, errA := tempA.ReadLastBit(); errA == nil; bitA, pA, errA = tempA.ReadLastBit() {
+			tempA = pA
+
+			if bitA == 1 && bitB == 1 {
+				e = e.PrependBits(1)
+			} else {
+				e = e.PrependBits(0)
+			}
+		}
+
+		d = append(d, e)
+		shift++
+	}
+
+	for _, p := range d {
+		c = c.Add(p)
+	}
+
+	return c.ToNumericForm().Align()
 }
 
 // ToNumericForm removes any leading zeros from the phrase's bits, representing the digits in their

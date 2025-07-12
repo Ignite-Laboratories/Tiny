@@ -901,12 +901,12 @@ func Test_Phrase_Add_Multiple_StressTest(t *testing.T) {
 	}
 }
 
-func Test_Phrase_Subtract_StressTest(t *testing.T) {
+func Test_Phrase_Minus_StressTest(t *testing.T) {
 	for i := 0; i < 1<<14; i++ {
 		a := tiny.Synthesize.RandomBits(11)
 		b := tiny.Synthesize.RandomBits(11)
 
-		c, sign := a.Subtract(b)
+		c, sign := a.Minus(b)
 		cStr := c.StringBinary()
 
 		if sign {
@@ -918,6 +918,23 @@ func Test_Phrase_Subtract_StressTest(t *testing.T) {
 		}
 
 		cBigInt := new(big.Int).Sub(a.AsBigInt(), b.AsBigInt())
+		cBigIntStr := cBigInt.Text(2)
+
+		if cStr != cBigIntStr {
+			t.Errorf("Expected %s - %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
+		}
+	}
+}
+
+func Test_Phrase_Times_StressTest(t *testing.T) {
+	for i := 0; i < 1<<13; i++ {
+		a := tiny.Synthesize.RandomBits(11)
+		b := tiny.Synthesize.RandomBits(11)
+
+		c := a.Times(b)
+		cStr := c.StringBinary()
+
+		cBigInt := new(big.Int).Mul(a.AsBigInt(), b.AsBigInt())
 		cBigIntStr := cBigInt.Text(2)
 
 		if cStr != cBigIntStr {
