@@ -875,7 +875,7 @@ func Test_Phrase_Add_StressTest(t *testing.T) {
 		cBigIntStr := cBigInt.Text(2)
 
 		if cStr != cBigIntStr {
-			t.Errorf("Expected %s, got %s", cBigIntStr, cStr)
+			t.Errorf("Expected %s + %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
 		}
 	}
 }
@@ -902,14 +902,16 @@ func Test_Phrase_Add_Multiple_StressTest(t *testing.T) {
 }
 
 func Test_Phrase_Minus_StressTest(t *testing.T) {
-	for i := 0; i < 1<<14; i++ {
+	for i := 0; i < 1<<16; i++ {
 		a := tiny.Synthesize.RandomBits(11)
 		b := tiny.Synthesize.RandomBits(11)
 
-		c, sign := a.Minus(b)
-		cStr := c.StringBinary()
+		c := a.Minus(b)
+		data := c.GetData()
+		sign := c.GetSign()
+		cStr := data.StringBinary()
 
-		if sign {
+		if sign == 1 {
 			cStr = "-" + cStr
 		}
 
@@ -938,10 +940,73 @@ func Test_Phrase_Times_StressTest(t *testing.T) {
 		cBigIntStr := cBigInt.Text(2)
 
 		if cStr != cBigIntStr {
-			t.Errorf("Expected %s - %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
+			t.Errorf("Expected %s * %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
 		}
 	}
 }
+
+func Test_Phrase_DividedBy_StressTest(t *testing.T) {
+	for i := 0; i < 1<<15; i++ {
+		a := tiny.Synthesize.RandomBits(11)
+		b := tiny.Synthesize.RandomBits(3)
+
+		c := a.DividedBy(b)
+		cStr := c.StringBinary()
+
+		if len(cStr) == 0 {
+			cStr = "0"
+		}
+
+		cBigInt := new(big.Int).Div(a.AsBigInt(), b.AsBigInt())
+		cBigIntStr := cBigInt.Text(2)
+
+		if cStr != cBigIntStr {
+			t.Errorf("Expected %s / %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
+		}
+	}
+}
+
+func Test_Phrase_Modulo_StressTest(t *testing.T) {
+	for i := 0; i < 1<<16; i++ {
+		a := tiny.Synthesize.RandomBits(11)
+		b := tiny.Synthesize.RandomBits(3)
+
+		c := a.Modulo(b)
+		cStr := c.StringBinary()
+
+		if len(cStr) == 0 {
+			cStr = "0"
+		}
+
+		cBigInt := new(big.Int).Mod(a.AsBigInt(), b.AsBigInt())
+		cBigIntStr := cBigInt.Text(2)
+
+		if cStr != cBigIntStr {
+			t.Errorf("Expected %s %% %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
+		}
+	}
+}
+
+//func Test_Phrase_ToThePowerOf_StressTest(t *testing.T) {
+//	for i := 0; i < 1<<16; i++ {
+//		a := tiny.Synthesize.RandomBits(11)
+//		b := tiny.Synthesize.RandomBits(3)
+//
+//		c, _ := a.ToThePowerOf(false, b)
+//		cStr := c.StringBinary()
+//
+//		if len(cStr) == 0 {
+//			cStr = "0"
+//		}
+//
+//		cBigInt := new(big.Int).Exp(a.AsBigInt(), b.AsBigInt(), nil)
+//		cBigIntStr := cBigInt.Text(2)
+//
+//		if cStr != cBigIntStr {
+//			t.Errorf("Expected %s %% %s = %s, got %s", a.StringBinary(), b.StringBinary(), cBigIntStr, cStr)
+//		}
+//	}
+//}
 
 func Test_Phrase_LogicGates(t *testing.T) {
 	// Test logic:

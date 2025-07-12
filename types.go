@@ -1,5 +1,8 @@
 package tiny
 
+// Signed indicates if the paired value is negative (true) or positive (false).
+type Signed bool
+
 /**
 ZLE
 */

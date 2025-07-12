@@ -10,6 +10,47 @@ import (
 // Phrase represents a Measurement slice and provides clustered measurement functionality.
 type Phrase []Measurement
 
+// SignedPhrase represents a phrase where the first measurement is a sign and the remaining bits are the data.
+type SignedPhrase Phrase
+
+/**
+SignedPhrase
+*/
+
+// NewSignedPhrase creates a new SignedPhrase.
+func NewSignedPhrase(sign Bit, data Phrase) SignedPhrase {
+	return SignedPhrase(NewPhraseFromBits(sign).Append(data))
+}
+
+// NewSignedPhraseFromBool creates a new SignedPhrase using a boolean for the sign.
+func NewSignedPhraseFromBool(sign bool, data Phrase) SignedPhrase {
+	if sign {
+		return SignedPhrase(NewPhraseFromBits(1).Append(data))
+	}
+	return SignedPhrase(NewPhraseFromBits(0).Append(data))
+}
+
+// GetSign returns the first bit as the sign bit.
+func (a SignedPhrase) GetSign() Bit {
+	if len(a) > 0 {
+		sign, _, _ := Phrase(a).ReadNextBit()
+		return sign
+	}
+	return 0
+}
+
+// GetData returns everything after the initial sign bit.
+func (a SignedPhrase) GetData() Phrase {
+	if len(a) > 0 {
+		return Phrase(a[1:])
+	}
+	return NewPhrase()
+}
+
+/**
+NewPhrase Functions
+*/
+
 // NewPhrase calls NewMeasurement for each input byte and returns a Phrase of the results.
 func NewPhrase(data ...byte) Phrase {
 	out := make(Phrase, len(data))
@@ -801,18 +842,19 @@ func (a Phrase) Add(b Phrase) (c Phrase) {
 	return c.ToNumericForm().Align()
 }
 
-// Minus performs absolute binary subtraction between the source and provided phrases.
-func (a Phrase) Minus(b Phrase) (c Phrase, negative bool) {
+// Minus performs binary subtraction between the source and provided phrases.
+func (a Phrase) Minus(b Phrase) (c SignedPhrase) {
 	a, b = padToSameLength(a, b)
 
 	// We are performing -absolute- subtraction, so we the minuend must be greater than the subtrahend.
+	signed := false
 	if a.CompareTo(b) == relatively.Before {
 		a, b = b, a
-		negative = true
+		signed = true
 	}
 
 	borrow := Zero
-	c = NewPhrase()
+	out := NewPhrase()
 	for bitA, bitB, pA, pB, err := readTwoPhrasesLastBit(a, b); err == nil; bitA, bitB, pA, pB, err = readTwoPhrasesLastBit(a, b) {
 		a = pA
 		b = pB
@@ -834,12 +876,13 @@ func (a Phrase) Minus(b Phrase) (c Phrase, negative bool) {
 			ab += 2
 			borrow = One
 		}
-		c = c.PrependBits(Bit(ab))
+		out = out.PrependBits(Bit(ab))
 	}
 	if borrow == One {
-		c = c.PrependBits(One)
+		out = out.PrependBits(One)
 	}
-	return c.ToNumericForm().Align(), negative
+
+	return NewSignedPhraseFromBool(signed, out.ToNumericForm().Align())
 }
 
 // Times performs absolute binary multiplication between the source and provided phrases.
@@ -873,6 +916,59 @@ func (a Phrase) Times(b Phrase) (c Phrase) {
 	}
 
 	return c.ToNumericForm().Align()
+}
+
+// ToThePowerOf performs binary exponentiation between the source and provided phrases using recursive squaring.
+//func (a Phrase) ToThePowerOf(neg Signed, b Phrase) (c Phrase, signed Signed) {
+//	if neg {
+//		return NewPhrase(1).DividedBy(a).ToThePowerOf(!neg, b)
+//	} else if b.CompareTo(NewPhrase(0)) == 0 {
+//		return NewPhrase(1), false
+//	} else {
+//		lastBit, _, _ := b.ReadLastBit()
+//		if lastBit == 0 { // Even
+//			return a.Times(a).ToThePowerOf(signed, b.DividedBy(NewPhrase(2)))
+//		} else { // Odd
+//			b, neg = b.Minus(NewPhrase(1))
+//			return a.Times(a).ToThePowerOf(signed, b.DividedBy(NewPhrase(2)))
+//		}
+//	}
+//}
+
+// DividedBy performs absolute binary division between the source and provided phrases, truncating all precision.
+func (a Phrase) DividedBy(b Phrase) (c Phrase) {
+	c = NewPhrase()
+	remainder := NewPhrase()
+
+	for bitA, pA, errA := a.ReadNextBit(); errA == nil; bitA, pA, errA = a.ReadNextBit() {
+		a = pA
+		remainder = remainder.AppendBits(bitA)
+
+		if b.CompareTo(remainder) > 0 {
+			c = c.AppendBits(0)
+		} else {
+			remainder = remainder.Minus(b).GetData()
+			c = c.AppendBits(1)
+		}
+	}
+
+	return c.ToNumericForm().Align()
+}
+
+// Modulo performs absolute binary division between the source and provided phrases and returns the remainder.
+func (a Phrase) Modulo(b Phrase) (remainder Phrase) {
+	remainder = NewPhrase()
+
+	for bitA, pA, errA := a.ReadNextBit(); errA == nil; bitA, pA, errA = a.ReadNextBit() {
+		a = pA
+		remainder = remainder.AppendBits(bitA)
+
+		if b.CompareTo(remainder) <= 0 {
+			remainder = remainder.Minus(b).GetData()
+		}
+	}
+
+	return remainder.ToNumericForm().Align()
 }
 
 // ToNumericForm removes any leading zeros from the phrase's bits, representing the digits in their
