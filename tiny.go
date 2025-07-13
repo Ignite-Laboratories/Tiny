@@ -30,10 +30,9 @@ func GetEndianness() Endianness {
 	}
 }
 
-// GetBits extracts bits from any sized object at runtime.  This automatically will determine
+// Measure extracts bits from any sized object at runtime.  This automatically will determine
 // the host architecture's endianness, but you may override that if desired.
-func GetBits[T any](value T, endian ...Endianness) []Bit {
-	// Default to little endian if not specified
+func Measure[T any](value T, endian ...Endianness) Measurement {
 	targetEndian := GetEndianness()
 	if len(endian) > 0 {
 		targetEndian = endian[0]
@@ -45,7 +44,6 @@ func GetBits[T any](value T, endian ...Endianness) []Bit {
 	result := make([]Bit, size*8)
 
 	for byteIdx := 0; byteIdx < len(bytes); byteIdx++ {
-		// For big endian, read bytes from the end
 		var currentByte byte
 		if targetEndian == BigEndian {
 			currentByte = bytes[len(bytes)-1-byteIdx]
@@ -53,7 +51,6 @@ func GetBits[T any](value T, endian ...Endianness) []Bit {
 			currentByte = bytes[byteIdx]
 		}
 
-		// Extract bits from each byte, MSB to LSB
 		for bitIdx := 0; bitIdx < 8; bitIdx++ {
 			resultIdx := (byteIdx * 8) + bitIdx
 			bit := (currentByte >> (7 - bitIdx)) & 1
@@ -61,11 +58,15 @@ func GetBits[T any](value T, endian ...Endianness) []Bit {
 		}
 	}
 
-	return result
+	m := Measurement{}
+	m = m.Append(result...)
+	return m
 }
 
-// BitsToType converts a slice of bits into the specified type T, respecting endianness
-func BitsToType[T any](bits []Bit, endian ...Endianness) T {
+// ToType converts a slice of bits into the specified type T, respecting endianness
+func ToType[T any](m Measurement, endian ...Endianness) T {
+	bits := m.GetAllBits()
+
 	var zero T
 	size := reflect.TypeOf(zero).Size()
 	if len(bits) > int(size)*8 {

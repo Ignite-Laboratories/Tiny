@@ -26,7 +26,7 @@ func (a Measurement) BitLength() int {
 // GetAllBits returns a slice of the Measurement's individual bits.
 func (m *Measurement) GetAllBits() []Bit {
 	var byteBits []Bit
-	for _, v := range m.Bytes {
+	for _, b := range m.Bytes {
 		bits := make([]Bit, 8)
 		for i := byte(7); i < 8; i-- {
 			bits[i] = Bit((b >> i) & 1)
