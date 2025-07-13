@@ -21,6 +21,13 @@ func NewMeasurement(bits ...Bit) Measurement {
 	}
 }
 
+// NewMeasurementFromBytes creates a new Measurement of the provided byte slice.
+func NewMeasurementFromBytes(bytes ...byte) Measurement {
+	m := Measurement{}
+	m.AppendBytes(bytes...)
+	return m
+}
+
 // BitLength gets the total bit length of this Measurement's recorded data.
 func (a Measurement) BitLength() int {
 	return (len(a.Bytes) * 8) + len(a.Bits)

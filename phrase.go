@@ -31,6 +31,8 @@ func (a Phrase) GetBits(expr ...Expression) []Bit {
 	if len(expr) == 0 {
 		measurements = Express(Read.All(), a.Data)
 	} else {
+		// TODO: Implement reading a range of bits out of the phrase
+
 		measurements = Express(expr[0], a.Data)
 	}
 
@@ -50,6 +52,52 @@ func (a Phrase) BitLength() int {
 		total += m.BitLength()
 	}
 	return total
+}
+
+// Append places the provided bits at the end of the Phrase.
+func (a Phrase) Append(bits ...Bit) Phrase {
+	if len(a.Data) == 0 {
+		a.Data = append(a.Data, NewMeasurement(bits...))
+		return a
+	}
+
+	last := len(a.Data) - 1
+	a.Data[last] = a.Data[last].Append(bits...)
+	return a.RollUp()
+}
+
+// AppendBytes places the provided bits at the end of the Phrase.
+func (a Phrase) AppendBytes(bytes ...byte) Phrase {
+	if len(a.Data) == 0 {
+		a.Data = append(a.Data, NewMeasurementFromBytes(bytes...))
+		return a
+	}
+
+	last := len(a.Data) - 1
+	a.Data[last] = a.Data[last].AppendBytes(bytes...)
+	return a.RollUp()
+}
+
+// Prepend places the provided bits at the start of the Phrase.
+func (a Phrase) Prepend(bits ...Bit) Phrase {
+	if len(a.Data) == 0 {
+		a.Data = append(a.Data, NewMeasurement(bits...))
+		return a
+	}
+
+	a.Data[0] = a.Data[0].Prepend(bits...)
+	return a.RollUp()
+}
+
+// PrependBytes places the provided bytes at the start of the Phrase.
+func (a Phrase) PrependBytes(bytes ...byte) Phrase {
+	if len(a.Data) == 0 {
+		a.Data = append(a.Data, NewMeasurementFromBytes(bytes...))
+		return a
+	}
+
+	a.Data[0] = a.Data[0].PrependBytes(bytes...)
+	return a.RollUp()
 }
 
 // Align ensures all Measurements are of the same width, with the last being smaller if measuring an uneven bit-width.
