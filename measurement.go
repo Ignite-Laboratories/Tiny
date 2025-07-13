@@ -1,16 +1,12 @@
 package tiny
 
-import "fmt"
+import (
+	"strings"
+)
 
 // Measurement is a variable-width slice of bits and is used to efficiently store them in operating memory.
 // As most languages inherently require at least 8 bits to store custom types, storing each bit individually
 // would need 8 times the size of every bit - thus, the measurement was born.
-//
-//	 tl;dr: This holds bits in byte form, leaving anything less than a byte
-//		       at the end of the binary information as a remainder of bits.
-//
-// NOTE: A measurement can only hold up to a WordWidth of bits and will panic with ErrorMeasurementLimit if you
-// attempt to store beyond that limit.  For working with longer stretches of binary information, please see the Phrase.
 type Measurement struct {
 	// Bytes holds complete byte data.
 	Bytes []byte
@@ -31,7 +27,7 @@ func (a Measurement) BitLength() int {
 }
 
 // GetAllBits returns a slice of the Measurement's individual bits.
-func (m *Measurement) GetAllBits() []Bit {
+func (m Measurement) GetAllBits() []Bit {
 	var byteBits []Bit
 	for _, b := range m.Bytes {
 		bits := make([]Bit, 8)
@@ -48,7 +44,7 @@ func (a Measurement) Append(bits ...Bit) Measurement {
 	a = a.sanityCheck(bits...)
 
 	a.Bits = append(a.Bits, bits...)
-	return a.rollup()
+	return a.RollUp()
 }
 
 // AppendBytes places the provided bits at the end of the Measurement.
@@ -75,7 +71,7 @@ func (a Measurement) AppendBytes(bytes ...byte) Measurement {
 	}
 
 	a.Bits = lastBits
-	return a.rollup()
+	return a.RollUp()
 }
 
 // Prepend places the provided bits at the start of the Measurement.
@@ -89,7 +85,7 @@ func (a Measurement) Prepend(bits ...Bit) Measurement {
 	a = a.Append(bits...)
 	a = a.AppendBytes(oldBytes...)
 	a = a.Append(oldBits...)
-	return a.rollup()
+	return a.RollUp()
 }
 
 // PrependBytes places the provided bytes at the start of the Measurement.
@@ -102,21 +98,11 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 	a.Bits = []Bit{}
 	a = a.AppendBytes(oldBytes...)
 	a = a.Append(oldBits...)
-	return a.rollup()
+	return a.RollUp()
 }
 
-/**
-Utilities
-*/
-
-// sanityCheck ensures the provided bits are all 1s and 0s and rolls the currently measured bits into bytes, if possible.
-func (a Measurement) sanityCheck(bits ...Bit) Measurement {
-	SanityCheck(bits...)
-	return a.rollup()
-}
-
-// rollup combines the currently measured bits into bytes, if possible.
-func (a Measurement) rollup() Measurement {
+// RollUp combines the currently measured bits into the measured bytes if there is enough recorded.
+func (a Measurement) RollUp() Measurement {
 	for len(a.Bits) >= 8 {
 		var b byte
 		for i := byte(7); i < 8; i-- {
@@ -130,6 +116,35 @@ func (a Measurement) rollup() Measurement {
 	return a
 }
 
+/**
+Utilities
+*/
+
+// sanityCheck ensures the provided bits are all 1s and 0s and rolls the currently measured bits into bytes, if possible.
+func (a Measurement) sanityCheck(bits ...Bit) Measurement {
+	SanityCheck(bits...)
+	return a.RollUp()
+}
+
+// String converts the measurement to a binary string,
 func (a Measurement) String() string {
-	return fmt.Sprintf("%v", m.StringBinary())
+	bits := a.GetAllBits()
+
+	if len(bits) == 0 {
+		return ""
+	}
+
+	builder := strings.Builder{}
+	builder.Grow(len(bits)*2 - 1)
+
+	builder.WriteByte('0' + byte(bits[0]))
+
+	if len(bits) > 1 {
+		for _, bit := range bits[1:] {
+			builder.WriteByte(' ')
+			builder.WriteByte('0' + byte(bit))
+		}
+	}
+
+	return builder.String()
 }
