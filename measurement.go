@@ -18,6 +18,13 @@ type Measurement struct {
 	Bits []Bit
 }
 
+// NewMeasurement creates a new Measurement of the provided Bit slice.
+func NewMeasurement(bits ...Bit) Measurement {
+	return Measurement{
+		Bits: bits,
+	}
+}
+
 // BitLength gets the total bit length of this Measurement's recorded data.
 func (a Measurement) BitLength() int {
 	return (len(a.Bytes) * 8) + len(a.Bits)
@@ -41,12 +48,12 @@ func (a Measurement) Append(bits ...Bit) Measurement {
 	a = a.sanityCheck(bits...)
 
 	a.Bits = append(a.Bits, bits...)
-	return a.rollupBits()
+	return a.rollup()
 }
 
 // AppendBytes places the provided bits at the end of the Measurement.
 func (a Measurement) AppendBytes(bytes ...byte) Measurement {
-	a = a.sanityCheckBytes(bytes...)
+	a = a.sanityCheck()
 
 	lastBits := a.Bits
 	for _, b := range bytes {
@@ -68,7 +75,7 @@ func (a Measurement) AppendBytes(bytes ...byte) Measurement {
 	}
 
 	a.Bits = lastBits
-	return a.rollupBits()
+	return a.rollup()
 }
 
 // Prepend places the provided bits at the start of the Measurement.
@@ -82,12 +89,12 @@ func (a Measurement) Prepend(bits ...Bit) Measurement {
 	a = a.Append(bits...)
 	a = a.AppendBytes(oldBytes...)
 	a = a.Append(oldBits...)
-	return a.rollupBits()
+	return a.rollup()
 }
 
 // PrependBytes places the provided bytes at the start of the Measurement.
 func (a Measurement) PrependBytes(bytes ...byte) Measurement {
-	a = a.sanityCheckBytes(bytes...)
+	a = a.sanityCheck()
 
 	oldBits := a.Bits
 	oldBytes := a.Bytes
@@ -95,42 +102,21 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 	a.Bits = []Bit{}
 	a = a.AppendBytes(oldBytes...)
 	a = a.Append(oldBits...)
-	return a.rollupBits()
+	return a.rollup()
 }
 
 /**
 Utilities
 */
 
-// sanityCheck does three things:
-//
-// 1. Ensures the provided bits are all 1s and 0s.
-//
-// 2. Ensures the resulting bit length will not exceed the WordWidth.
-//
-// 3. Rolls up the currently measured bits into bytes, if possible.
+// sanityCheck ensures the provided bits are all 1s and 0s and rolls the currently measured bits into bytes, if possible.
 func (a Measurement) sanityCheck(bits ...Bit) Measurement {
 	SanityCheck(bits...)
-	if a.BitLength()+len(bits) > WordWidth {
-		panic(ErrorMeasurementLimit)
-	}
-	return a.rollupBits()
+	return a.rollup()
 }
 
-// sanityCheckBytes does two things:
-//
-// 1. Ensures the resulting bit length will not exceed the WordWidth.
-//
-// 2. Rolls up the currently measured bits to bytes, if possible.
-func (a Measurement) sanityCheckBytes(bytes ...byte) Measurement {
-	if a.BitLength()+(len(bytes)*8) > WordWidth {
-		panic(ErrorMeasurementLimit)
-	}
-	return a.rollupBits()
-}
-
-// rollupBits rolls the currently measured bits into bytes, if possible.
-func (a Measurement) rollupBits() Measurement {
+// rollup combines the currently measured bits into bytes, if possible.
+func (a Measurement) rollup() Measurement {
 	for len(a.Bits) >= 8 {
 		var b byte
 		for i := byte(7); i < 8; i-- {
@@ -145,6 +131,5 @@ func (a Measurement) rollupBits() Measurement {
 }
 
 func (a Measurement) String() string {
-
 	return fmt.Sprintf("%v", m.StringBinary())
 }

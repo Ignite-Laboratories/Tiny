@@ -18,6 +18,23 @@ const Zero Bit = 0
 // One is an implicit Bit{1}.
 const One Bit = 1
 
+// Encoding represents the encoding scheme of a Phrase of Measurement points.
+type Encoding int
+
+const (
+	// Logical indicates this phrase entirely consists of arbitrary length logical binary data.
+	Logical Encoding = iota
+
+	// Signed indicates the first measurement is a sign, followed by the value.
+	Signed
+
+	// Float indicates the first measurement is a sign, followed by an exponent, and lastly a mantissa.
+	Float
+
+	// Index indicates the phrase entirely consists of logical binary data bound to a fixed width.
+	Index
+)
+
 // WordWidth is the bit width of a standard int, which for all reasonable intents and purposes matches the architecture's word width.
 const WordWidth = strconv.IntSize // NOTE: While this could mismatch the architecture's word in some cases, the performance implications are minimal.
 
@@ -48,11 +65,6 @@ const (
 /**
 Errors
 */
-
-const errorMsgMeasurementLimit = "measurements are limited to the bit width of an int"
-
-// ErrorMeasurementLimit is emitted whenever a Measurement attempts to hold more than a WordWidth of binary information.
-var ErrorMeasurementLimit = fmt.Errorf(errorMsgMeasurementLimit)
 
 const errorMsgEndOfBits = "no more bits to read"
 

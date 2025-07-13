@@ -32,7 +32,7 @@ func GetEndianness() Endianness {
 
 // Measure extracts bits from any sized object at runtime.  This automatically will determine
 // the host architecture's endianness, but you may override that if desired.
-func Measure[T any](value T, endian ...Endianness) Measurement {
+func Measure[T any](value T, endian ...Endianness) Phrase {
 	targetEndian := GetEndianness()
 	if len(endian) > 0 {
 		targetEndian = endian[0]
@@ -57,15 +57,12 @@ func Measure[T any](value T, endian ...Endianness) Measurement {
 			result[resultIdx] = Bit(bit)
 		}
 	}
-
-	m := Measurement{}
-	m = m.Append(result...)
-	return m
+	return NewLogicalPhrase(NewMeasurement(result...))
 }
 
 // ToType converts a slice of bits into the specified type T, respecting endianness
-func ToType[T any](m Measurement, endian ...Endianness) T {
-	bits := m.GetAllBits()
+func ToType[T any](p Phrase, endian ...Endianness) T {
+	bits := p.GetBits()
 
 	var zero T
 	size := reflect.TypeOf(zero).Size()
