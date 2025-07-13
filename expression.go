@@ -14,10 +14,12 @@ package tiny
 //
 // Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
 type Expression struct {
-	pos  *uint
-	low  *uint
-	high *uint
-	max  *uint
+	pos   *uint
+	low   *uint
+	high  *uint
+	max   *uint
+	first *bool
+	last  *bool
 }
 
 // Read provides access to slice index accessor expressions.
@@ -42,6 +44,10 @@ func Express[T any](expr Expression, slice []T) []T {
 	}
 
 	switch {
+	case expr.first != nil:
+		return []T{slice[0]}
+	case expr.last != nil:
+		return []T{slice[len(slice)-1]}
 	case expr.pos != nil:
 		return []T{slice[*expr.pos]}
 	case expr.low == nil && expr.high == nil:
@@ -60,33 +66,63 @@ func Express[T any](expr Expression, slice []T) []T {
 	}
 }
 
+// First - yourSlice[0] - Reads the first index position of your slice.
+func (_ Expression) First(pos uint) Expression {
+	return Expression{
+		pos:   nil,
+		low:   nil,
+		high:  nil,
+		max:   nil,
+		first: &True,
+		last:  nil,
+	}
+}
+
+// Last - yourSlice[𝑛 - 1] - Reads the last index position of your slice.
+func (_ Expression) Last(pos uint) Expression {
+	return Expression{
+		pos:   nil,
+		low:   nil,
+		high:  nil,
+		max:   nil,
+		first: nil,
+		last:  &True,
+	}
+}
+
 // Position - yourSlice[pos] - Reads the provided index position of your slice.
 func (_ Expression) Position(pos uint) Expression {
 	return Expression{
-		pos:  &pos,
-		low:  nil,
-		high: nil,
-		max:  nil,
+		pos:   &pos,
+		low:   nil,
+		high:  nil,
+		max:   nil,
+		first: nil,
+		last:  nil,
 	}
 }
 
 // From - yourSlice[low:] - Reads from the provided index to the end of your slice.
 func (_ Expression) From(low uint) Expression {
 	return Expression{
-		pos:  nil,
-		low:  &low,
-		high: nil,
-		max:  nil,
+		pos:   nil,
+		low:   &low,
+		high:  nil,
+		max:   nil,
+		first: nil,
+		last:  nil,
 	}
 }
 
 // To - yourSlice[:high] - Reads to the provided index from the start of your slice.
 func (_ Expression) To(high uint) Expression {
 	return Expression{
-		pos:  nil,
-		low:  nil,
-		high: &high,
-		max:  nil,
+		pos:   nil,
+		low:   nil,
+		high:  &high,
+		max:   nil,
+		first: nil,
+		last:  nil,
 	}
 }
 
@@ -100,19 +136,23 @@ func (_ Expression) Between(low uint, high uint, max ...uint) Expression {
 	}
 
 	return Expression{
-		pos:  nil,
-		low:  &low,
-		high: &high,
-		max:  m,
+		pos:   nil,
+		low:   &low,
+		high:  &high,
+		max:   m,
+		first: nil,
+		last:  nil,
 	}
 }
 
 // All - yourSlice[:] - Reads the entirety of your slice.
 func (_ Expression) All() Expression {
 	return Expression{
-		pos:  nil,
-		low:  nil,
-		high: nil,
-		max:  nil,
+		pos:   nil,
+		low:   nil,
+		high:  nil,
+		max:   nil,
+		first: nil,
+		last:  nil,
 	}
 }

@@ -31,6 +31,12 @@ const Zero Bit = 0
 // One is an implicit Bit{1}.
 const One Bit = 1
 
+// True is a constantly referencable true.
+var True bool = true
+
+// False is a constantly referencable false.
+var False bool = false
+
 // Encoding represents the encoding scheme of a Phrase of Measurement points.
 type Encoding int
 
