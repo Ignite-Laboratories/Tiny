@@ -13,6 +13,18 @@ Constants
 // Bit represents one binary place. [0 - 1]
 type Bit byte
 
+// String converts the provided Bit to a string 1 or 0, or panics if the found value is anything else
+func (b Bit) String() string {
+	if b > 1 {
+		// PLEASE inform us if there is an issue whenever possible!!!
+		panic(ErrorNotABit)
+	}
+	if b == 0 {
+		return "0"
+	}
+	return "1"
+}
+
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0
 

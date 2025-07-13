@@ -1,6 +1,6 @@
 package tiny
 
-import "fmt"
+import "strings"
 
 type Phrase struct {
 	Data []Measurement
@@ -56,7 +56,7 @@ func (a Phrase) BitLength() int {
 //
 // If no width is provided, a standard alignment of 8-bits-per-byte will be used.
 //
-// For example-
+// For example -
 //
 //	let a = an un-aligned logical Phrase
 //
@@ -78,13 +78,77 @@ func (a Phrase) Align(width ...uint) Phrase {
 		w = int(width[0])
 	}
 
-	out := make([]Measurement, 0, a.BitLength()/8)
+	out := make([]Measurement, 0, a.BitLength()/w)
+	current := make([]Bit, 0, 8)
+	i := 0
+
 	for _, m := range a.Data {
-		out = append(out, m)
+		for _, b := range m.GetAllBits() {
+			current = append(current, b)
+			i++
+			if i == 8 {
+				i = 0
+				out = append(out, NewMeasurement(current...))
+			}
+		}
+	}
+
+	if len(current) > 0 {
+		out = append(out, NewMeasurement(current...))
 	}
 
 	return Phrase{
 		Data:     out,
 		Encoding: a.Encoding,
 	}
+}
+
+// RollUp calls Measurement.RollUp for every measurement in the phrase.
+func (a Phrase) RollUp() Phrase {
+	for i, m := range a.Data {
+		a.Data[i] = m.RollUp()
+	}
+	return a
+}
+
+// String returns a string consisting entirely of 1s and 0s.
+func (a Phrase) String() string {
+	builder := strings.Builder{}
+	builder.Grow(a.BitLength())
+
+	for _, m := range a.Data {
+		builder.WriteString(m.String())
+	}
+
+	return builder.String()
+}
+
+// StringPretty returns a phrase-formatted string of the current measurements.
+//
+// This means the bits will be placed between pipes and with dashes between measurements.
+func (a Phrase) StringPretty() string {
+	if len(a.Data) == 0 {
+		return "||"
+	}
+
+	totalSize := 4 + (len(a.Data)-1)*3
+	for _, m := range a.Data {
+		totalSize += m.BitLength() * 2 // ← Approximately account for Measurement's StringPretty() spacing
+	}
+
+	builder := strings.Builder{}
+	builder.Grow(totalSize)
+
+	builder.WriteString("| ")
+
+	builder.WriteString(a.Data[0].StringPretty())
+
+	for _, m := range a.Data[1:] {
+		builder.WriteString(" - ")
+		builder.WriteString(m.StringPretty())
+	}
+
+	builder.WriteString("| ")
+
+	return builder.String()
 }

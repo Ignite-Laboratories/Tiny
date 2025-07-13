@@ -126,8 +126,21 @@ func (a Measurement) sanityCheck(bits ...Bit) Measurement {
 	return a.RollUp()
 }
 
-// String converts the measurement to a binary string,
+// String converts the measurement to a binary string entirely consisting of 1s and 0s.
 func (a Measurement) String() string {
+	bits := a.GetAllBits()
+
+	builder := strings.Builder{}
+	builder.Grow(len(bits))
+	for _, b := range bits {
+		builder.WriteString(b.String())
+	}
+	return builder.String()
+}
+
+// StringPretty converts the measurement to a binary string with a single space character
+// between each 1 and 0.
+func (a Measurement) StringPretty() string {
 	bits := a.GetAllBits()
 
 	if len(bits) == 0 {
@@ -137,12 +150,12 @@ func (a Measurement) String() string {
 	builder := strings.Builder{}
 	builder.Grow(len(bits)*2 - 1)
 
-	builder.WriteByte('0' + byte(bits[0]))
+	builder.WriteString(bits[0].String())
 
 	if len(bits) > 1 {
 		for _, bit := range bits[1:] {
-			builder.WriteByte(' ')
-			builder.WriteByte('0' + byte(bit))
+			builder.WriteString(" ")
+			builder.WriteString(bit.String())
 		}
 	}
 
