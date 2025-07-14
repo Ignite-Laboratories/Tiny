@@ -6,9 +6,7 @@ import (
 )
 
 // Emit expresses the underlying bits of the provided binary data according to logical rules and returns
-// the logical bit length of the result.  For linear expressions, this will yield the total bit length
-// of the returned data - for matrix expressions, this will yield the aligned bit width of each row in
-// the returned data.
+// the logical bit length of the result and the number of width-aligned operands contained within it.
 func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 	if expr._max != nil && (expr._low == nil || expr._high == nil) {
 		panic("invalid slice expression: max requires both low and high to be set")
@@ -40,7 +38,7 @@ func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 	}
 
 	yield := make([]Bit, 0, int(math.Min(1<<10, float64(expected))))
-	var count uint
+	count := uint(1)
 
 	if expr._matrix != nil && *expr._matrix {
 		/**
@@ -67,32 +65,33 @@ func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 		subExpr := expr
 		subExpr._matrix = &False
 
-		bits := make([][]Bit, longest)
+		// The underlying table is ordered [Col][Row]Bit
+		table := make([][]Bit, longest)
 		for i, raw := range data {
 			data[i] = AlignOperand(raw, longest, *expr._alignment)
-			bits[i], _ = Emit[T](subExpr, raw)
+			table[i], _ = Emit[T](subExpr, raw)
 		}
 
-		matrix := make([][]Bit, longest)
+		// TODO: We can't walk using longest because longest will grow as we carry - instead we need to just walk until we are out of bits to walk and pass the walk count to the matrix func
 
 		for i := 0; i < longest; i++ {
-			ii := i
+			colId := i
 			if reverse {
-				ii = longest - i - 1
+				colId = longest - i - 1
 			}
 
-			column := make([]Bit, len(bits))
-			for _, row := range bits {
-				column[ii] = row[ii]
+			column := make([]Bit, len(table))
+			for rowId, row := range table {
+				column[rowId] = row[colId]
 			}
-			column = calculate(ii, column...)
+			calculated, overflow := calculate(colId, column...)
 
-			for _, b := range column {
-				if reverse {
-					matrix[ii] = append(matrix[ii], b[i])
-				} else {
-					matrix[ii] = append([]Bit{b[i]}, matrix[ii]...)
-				}
+			// TODO: Insert the overflow binary value BELOW the upcoming columns in the direction of calculation
+
+			if reverse {
+				yield = append(yield, calculated)
+			} else {
+				yield = append([]Bit{b}, yield...)
 			}
 		}
 
@@ -102,7 +101,7 @@ func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 		}
 
 		yield = linear
-		count = uint(longest)
+		count = uint(longest) // TODO: Align all the operands and set this to the number of returned operands
 	} else {
 		/**
 		Linear Logic
@@ -168,28 +167,28 @@ func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 					for i, b := range operand {
 						out = append(out, (*expr._logic)(i, b))
 					}
-					return getSliceCount(out)
+					return out, count
 				case expr._first != nil:
-					return getSliceCount([]Bit{operand[0]})
+					return []Bit{operand[0]}, count
 				case expr._last != nil:
-					return getSliceCount([]Bit{operand[len(operand)-1]})
+					return []Bit{operand[len(operand)-1]}, count
 				case expr._pos != nil:
-					return getSliceCount([]Bit{operand[*expr._pos]})
+					return []Bit{operand[*expr._pos]}, count
 				case expr._low == nil && expr._high == nil:
-					return getSliceCount(operand[:])
+					return operand[:], count
 				case expr._low == nil && expr._high != nil:
 					high := int(math.Min(float64(capacity), float64(*expr._high)))
-					return getSliceCount(operand[:high])
+					return operand[:high], count
 				case expr._low != nil && expr._high == nil:
 					low := int(math.Min(float64(capacity), float64(*expr._low)))
-					return getSliceCount(operand[low:])
+					return operand[low:], count
 				case expr._low != nil && expr._high != nil:
 					high := int(math.Min(float64(capacity), float64(*expr._high)))
 					low := int(math.Min(float64(capacity), float64(*expr._low)))
 					if expr._max == nil {
 						return getSliceCount(operand[low:high])
 					}
-					return getSliceCount(operand[low:high:*expr._max])
+					return operand[low:high:*expr._max], count
 				default:
 					panic("invalid slice expression")
 				}
@@ -201,11 +200,9 @@ func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 
 			if len(yield) >= expected {
 				// Bailout when the requested range has accrued
-				return getSliceCount(yield[:expected])
+				return yield[:expected], count
 			}
 		}
-
-		count = uint(len(yield))
 	}
 
 	return yield, count

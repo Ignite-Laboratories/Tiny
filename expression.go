@@ -18,33 +18,20 @@ package tiny
 var Bits Expression
 
 // Expression represents the standard slice index accessor pattern, and expressions can be generated from the global Read variable.
-//
-// Position - yourSlice[pos] - Reads the provided index position of your slice.
-//
-// All - yourSlice[:] - Reads the entirety of your slice.
-//
-// From - yourSlice[low:] - Reads from the provided index to the end of your slice.
-//
-// To - yourSlice[:high] - Reads to the provided index from the start of your slice.
-//
-// Between - yourSlice[low:high] - Reads between the provided indexes of your slice.
-//
-// Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
-//
-// Gate - Performs a logical operation for every bit of your slice.
 type Expression struct {
-	_pos         *uint
-	_low         *uint
-	_high        *uint
-	_max         *uint
-	_first       *bool
-	_last        *bool
-	_reverse     *bool
-	_matrix      *bool
-	_logic       *func(int, Bit) Bit
-	_matrixLogic *func(int, ...Bit) []Bit
-	_alignment   *Align
+	_pos     *uint
+	_low     *uint
+	_high    *uint
+	_max     *uint
+	_first   *bool
+	_last    *bool
+	_reverse *bool
+	_matrix  *bool
+	_logic   *LogicFunc
 }
+
+// LogicFunc takes in a single bit, and its index, and returns an output bit.
+type LogicFunc func(int, Bit) Bit
 
 // First - yourSlice[0] - Reads the first index position of your slice.
 //

@@ -78,11 +78,11 @@ func ReverseByte(b byte) byte {
 	return (b&0xAA)>>1 | (b&0x55)<<1
 }
 
-// SanityCheck ensures the provided bits are all either one or zero, as Bit is a byte underneath.  In the land of binary,
-// that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
+// SanityCheck ensures the provided bits are all either Zero, One, or Nil - as Bit is a byte underneath.  In the land of
+// binary, that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
 func SanityCheck(bits ...Bit) {
 	for _, b := range bits {
-		if b > 1 {
+		if b != Zero && b != One && b != Nil {
 			panic(ErrorNotABit)
 		}
 	}

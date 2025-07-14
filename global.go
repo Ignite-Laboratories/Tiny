@@ -21,6 +21,10 @@ const Zero Bit = 0
 // One is an implicit Bit{1}.
 const One Bit = 1
 
+// Nil is an implicit Bit{219} - this allows missing bits to implicitly be visible amongst zero and one bytes as [ 1 1 0 1 1 0 1 1 ].
+// This also ensures that Nil isn't inadvertently accepted because of an accidental underflow of 1 by using a fully dark representation.
+const Nil Bit = 219
+
 // True is a constantly referenceable true.
 var True bool = true
 
@@ -158,7 +162,7 @@ func GetEndianness() Endianness {
 Errors
 */
 
-const errorMsgNotABit = "bits must be 0 or 1"
+const errorMsgNotABit = "bits must be 0, 1, or 128 (nil)"
 
-// ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1 or 0, as Bit is a byte underneath.
+// ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 255 (nil) - as Bit is a byte underneath.
 var ErrorNotABit = fmt.Errorf(errorMsgNotABit)

@@ -20,8 +20,8 @@ var Table Matrix
 // Matrix is a type of Expression that indicates to Emit that its variadic input is a collection of binary rows, rather than linear information.
 type Matrix Expression
 
-var matrixRead = func(i int, column ...Bit) []Bit {
-	return column
+var matrixRead = func(i int, column ...Bit) ([]Bit, int) {
+	return column, 0
 }
 
 // First - yourSlice[0] - Reads the first index position of your slice.
@@ -141,7 +141,7 @@ func (_ Matrix) All(reverse ...bool) Expression {
 // Gate - Pads all operands to equal length and calls the provided logic gate function for every column of bits to produce an output column.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func (_ Matrix) Gate(logic func(int, ...Bit) []Bit, reverse ...bool) Expression {
+func (_ Matrix) Gate(logic func(int, ...Bit) ([]Bit, int), reverse ...bool) Expression {
 	isReverse := len(reverse) > 0 && reverse[0]
 	return Expression{
 		_matrix:      &True,
