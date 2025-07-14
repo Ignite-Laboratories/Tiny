@@ -6,8 +6,29 @@ import (
 	"unsafe"
 )
 
+// binary represents the types that tiny supports conversion to bits from.
+type binary interface {
+	Measurement | Phrase | byte | Bit
+}
+
 /**
-Constants
+Global Constants
+*/
+
+// Zero is an implicit Bit{0}.
+const Zero Bit = 0
+
+// One is an implicit Bit{1}.
+const One Bit = 1
+
+// True is a constantly referencable true.
+var True bool = true
+
+// False is a constantly referencable false.
+var False bool = false
+
+/**
+Bit
 */
 
 // Bit represents one binary place. [0 - 1]
@@ -25,17 +46,9 @@ func (b Bit) String() string {
 	return "1"
 }
 
-// Zero is an implicit Bit{0}.
-const Zero Bit = 0
-
-// One is an implicit Bit{1}.
-const One Bit = 1
-
-// True is a constantly referencable true.
-var True bool = true
-
-// False is a constantly referencable false.
-var False bool = false
+/**
+Encoding
+*/
 
 // Encoding represents the encoding scheme of a Phrase of Measurement points.
 type Encoding int
@@ -56,6 +69,10 @@ const (
 	// Index indicates the phrase entirely consists of logical binary data bound to a fixed width.
 	Index
 )
+
+/**
+Endianness and Words
+*/
 
 // WordWidth is the bit width of a standard int, which for all reasonable intents and purposes matches the architecture's word width.
 const WordWidth = strconv.IntSize // NOTE: While this could mismatch the architecture's word in some cases, the performance implications are minimal.

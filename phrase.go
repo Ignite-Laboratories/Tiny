@@ -23,13 +23,13 @@ func (a Phrase) GetData() []Measurement {
 
 // GetBits returns a Bit slice of all the Phrase's underlying bits.
 //
-// If you'd prefer to Read specific measurements, you may provide an Expression.
-func (a Phrase) GetBits(expr ...Expression) []Bit {
+// If you'd prefer to Read specific measurements, you may provide a ReadPhraseBits UnaryExpression.
+func (a Phrase) GetBits(expr ...UnaryExpression) []Bit {
 	bits := make([]Bit, a.BitLength())
 
-	var measurements []Measurement
+	var measurements []Bit
 	if len(expr) == 0 {
-		measurements = Express(Read.All(), a.Data)
+		measurements = ExpressMeasurements(ReadPhraseBits.All(), a)
 	} else {
 		// TODO: Implement reading a range of bits out of the phrase
 
