@@ -5,6 +5,55 @@ import (
 	"unsafe"
 )
 
+// Bits provides access to slice index accessor expressions.
+//
+// UnaryExpression.Position - yourSlice[pos] - Reads the provided index position of your slice.
+//
+// UnaryExpression.All - yourSlice[:] - Reads the entirety of your slice.
+//
+// UnaryExpression.From - yourSlice[low:] - Reads from the provided index to the end of your slice.
+//
+// UnaryExpression.To - yourSlice[:high] - Reads to the provided index from the start of your slice.
+//
+// UnaryExpression.Between - yourSlice[low:high] - Reads between the provided indexes of your slice.
+//
+// UnaryExpression.Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
+//
+// UnaryExpression.LogicGate - Performs a logical operation for every bit of your slice.
+var Bits UnaryExpression
+
+// GetBitLength returns the bit length of the provided binary operand.
+func GetBitLength[T binary](operand T) int {
+	switch concrete := any(operand).(type) {
+	case Phrase:
+		return concrete.BitLength()
+	case Measurement:
+		return concrete.BitLength()
+	case []byte:
+		return len(concrete) * 8
+	case []Bit:
+		return len(concrete)
+	case byte:
+		return 8
+	case Bit:
+		return 1
+	default:
+		panic("invalid binary type: " + reflect.TypeOf(concrete).String())
+	}
+}
+
+// GetWidestOperand returns the bit length widest of the provided operands.
+func GetWidestOperand[T binary](operands ...T) int {
+	var largest int
+	for _, o := range operands {
+		length := GetBitLength(o)
+		if length > largest {
+			largest = length
+		}
+	}
+	return largest
+}
+
 // SanityCheck ensures the provided bits are all either one or zero, as Bit is a byte underneath.  In the land of binary,
 // that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
 func SanityCheck(bits ...Bit) {

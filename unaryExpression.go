@@ -19,7 +19,7 @@ import (
 //
 // Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
 //
-// Logic - Performs a logical operation for every bit of your slice.
+// LogicGate - Performs a logical operation for every bit of your slice.
 type UnaryExpression struct {
 	pos   *uint
 	low   *uint
@@ -30,22 +30,8 @@ type UnaryExpression struct {
 	logic *func(int, Bit) Bit
 }
 
-// Bits provides access to slice index accessor expressions.
-//
-// UnaryExpression.Position - yourSlice[pos] - Reads the provided index position of your slice.
-//
-// UnaryExpression.All - yourSlice[:] - Reads the entirety of your slice.
-//
-// UnaryExpression.From - yourSlice[low:] - Reads from the provided index to the end of your slice.
-//
-// UnaryExpression.To - yourSlice[:high] - Reads to the provided index from the start of your slice.
-//
-// UnaryExpression.Between - yourSlice[low:high] - Reads between the provided indexes of your slice.
-//
-// UnaryExpression.Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
-var Bits UnaryExpression
-
-// UnaryEmit expresses bits from binary information according to logical rules.
+// UnaryEmit expresses the bits of binary information according to logical rules.  A unary expression
+// will only operate against a single operand of data.
 func UnaryEmit[T binary](expr UnaryExpression, data ...T) []Bit {
 	if expr.max != nil && (expr.low == nil || expr.high == nil) {
 		panic("invalid slice expression: max requires both low and high to be set")
@@ -199,8 +185,8 @@ func (_ UnaryExpression) All() UnaryExpression {
 	return UnaryExpression{}
 }
 
-// Logic - Reads every bit and calls the provided logic function to manipulate the binary output.
-func (_ UnaryExpression) Logic(logic func(int, Bit) Bit) UnaryExpression {
+// LogicGate - Reads every bit and calls the provided logic gate function to manipulate the binary output.
+func (_ UnaryExpression) LogicGate(logic func(int, Bit) Bit) UnaryExpression {
 	return UnaryExpression{
 		logic: &logic,
 	}

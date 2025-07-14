@@ -21,10 +21,10 @@ const Zero Bit = 0
 // One is an implicit Bit{1}.
 const One Bit = 1
 
-// True is a constantly referencable true.
+// True is a constantly referenceable true.
 var True bool = true
 
-// False is a constantly referencable false.
+// False is a constantly referenceable false.
 var False bool = false
 
 /**
@@ -70,6 +70,23 @@ const (
 	Index
 )
 
+func (e Encoding) String() string {
+	switch e {
+	case Raw:
+		return "Raw"
+	case Logical:
+		return "Logical"
+	case Signed:
+		return "Signed"
+	case Float:
+		return "Float"
+	case Index:
+		return "Index"
+	default:
+		return "Unknown"
+	}
+}
+
 /**
 Endianness and Words
 */
@@ -111,6 +128,17 @@ const (
 	BigEndian
 )
 
+func (e Endianness) String() string {
+	switch e {
+	case LittleEndian:
+		return "LittleEndian"
+	case BigEndian:
+		return "BigEndian"
+	default:
+		return "Unknown"
+	}
+}
+
 // GetEndianness returns the Endianness of the currently executing hardware.
 func GetEndianness() Endianness {
 	buf := [2]byte{}
@@ -129,12 +157,6 @@ func GetEndianness() Endianness {
 /**
 Errors
 */
-
-const errorMsgEndOfBits = "no more bits to read"
-
-// ErrorEndOfBits is emitted whenever a read operation has requested to read beyond the available binary data's width.
-// This error can absolutely be ignored, but also allows one to implicitly read until the end of bits has been reached.
-var ErrorEndOfBits = fmt.Errorf(errorMsgEndOfBits)
 
 const errorMsgNotABit = "bits must be 0 or 1"
 
