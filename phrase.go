@@ -21,28 +21,13 @@ func (a Phrase) GetData() []Measurement {
 	return a.Data
 }
 
-// GetBits returns a Bit slice of all the Phrase's underlying bits.
-//
-// If you'd prefer to Read specific measurements, you may provide a ReadPhraseBits UnaryExpression.
-func (a Phrase) GetBits(expr ...UnaryExpression) []Bit {
-	bits := make([]Bit, a.BitLength())
-
-	var measurements []Bit
-	if len(expr) == 0 {
-		measurements = ExpressMeasurements(ReadPhraseBits.All(), a)
-	} else {
-		// TODO: Implement reading a range of bits out of the phrase
-
-		measurements = Express(expr[0], a.Data)
+// GetAllBits returns a slice of the Phrase's individual bits.
+func (a Phrase) GetAllBits() []Bit {
+	out := make([]Bit, 0, a.BitLength())
+	for _, m := range a.Data {
+		out = append(out, m.GetAllBits()...)
 	}
-
-	for _, m := range measurements {
-		for ii, b := range m.GetAllBits() {
-			bits[ii] = b
-		}
-	}
-
-	return bits
+	return out
 }
 
 // BitLength gets the total bit length of this Phrase's recorded data.
@@ -162,6 +147,7 @@ func (a Phrase) RollUp() Phrase {
 // Reverse reverses the order of all bits in the phrase.
 func (a Phrase) Reverse() Phrase {
 	// TODO: Reverse the phrase
+	return Phrase{}
 }
 
 // String returns a string consisting entirely of 1s and 0s.

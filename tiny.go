@@ -5,23 +5,6 @@ import (
 	"unsafe"
 )
 
-// Bits provides access to slice index accessor expressions.
-//
-// UnaryExpression.Position - yourSlice[pos] - Reads the provided index position of your slice.
-//
-// UnaryExpression.All - yourSlice[:] - Reads the entirety of your slice.
-//
-// UnaryExpression.From - yourSlice[low:] - Reads from the provided index to the end of your slice.
-//
-// UnaryExpression.To - yourSlice[:high] - Reads to the provided index from the start of your slice.
-//
-// UnaryExpression.Between - yourSlice[low:high] - Reads between the provided indexes of your slice.
-//
-// UnaryExpression.Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
-//
-// UnaryExpression.LogicGate - Performs a logical operation for every bit of your slice.
-var Bits UnaryExpression
-
 // GetBitLength returns the bit length of the provided binary operand.
 func GetBitLength[T binary](operand T) int {
 	switch concrete := any(operand).(type) {
@@ -42,16 +25,50 @@ func GetBitLength[T binary](operand T) int {
 	}
 }
 
-// GetWidestOperand returns the bit length widest of the provided operands.
-func GetWidestOperand[T binary](operands ...T) int {
-	var largest int
+// GetLongestOperand returns the longest bit length of the provided operands.
+func GetLongestOperand[T binary](operands ...T) int {
+	var longest int
 	for _, o := range operands {
 		length := GetBitLength(o)
-		if length > largest {
-			largest = length
+		if length > longest {
+			longest = length
 		}
 	}
-	return largest
+	return longest
+}
+
+// GetMatrixElementCount returns the number of elements within a 2D slice.
+func GetMatrixElementCount[T any](matrix [][]T) int {
+	total := 0
+	for _, row := range matrix {
+		total += len(row)
+	}
+	return total
+}
+
+// getSliceCount returns the slice and the number of elements within a slice.
+func getSliceCount[T any](data []T) ([]T, uint) {
+	return data, uint(len(data))
+}
+
+// AlignOperand applies the provided Align scheme against the operand to place it relative to the provided length.
+func AlignOperand[T binary](operand T, length int, scheme Align) T {
+	switch scheme {
+	case PadLeftSideWithZeros:
+		return any(padLeftSideWithZeros(length, operand)[0]).(T)
+	case PadLeftSideWithOnes:
+		return any(padLeftSideWithOnes(length, operand)[0]).(T)
+	case PadRightSideWithZeros:
+		return any(padRightSideWithZeros(length, operand)[0]).(T)
+	case PadRightSideWithOnes:
+		return any(padRightSideWithOnes(length, operand)[0]).(T)
+	case PadToMiddleWithZeros:
+		return any(padToMiddleWithZeros(length, operand)[0]).(T)
+	case PadToMiddleWithOnes:
+		return any(padToMiddleWithOnes(length, operand)[0]).(T)
+	default:
+		panic("invalid alignment scheme")
+	}
 }
 
 // ReverseByte is a convenience method to quickly reverse the bits of a byte.
@@ -133,7 +150,7 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 
 // ToType converts a slice of bits into the specified type T, respecting endianness
 func ToType[T any](p Phrase, endian ...Endianness) T {
-	bits := p.GetBits()
+	bits := p.GetAllBits()
 	var zero T
 	typeOf := reflect.TypeOf(zero)
 

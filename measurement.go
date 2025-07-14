@@ -111,6 +111,7 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 // Reverse reverses the order of all bits in the measurement.
 func (a Measurement) Reverse() Measurement {
 	// TODO: Reverse Measurement
+	return Measurement{}
 }
 
 // RollUp combines the currently measured bits into the measured bytes if there is enough recorded.

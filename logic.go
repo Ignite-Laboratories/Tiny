@@ -1,5 +1,7 @@
 package tiny
 
+// TODO: Tile operations
+
 // _logic represents a factory for logic gate binary functions.
 type _logic int
 
