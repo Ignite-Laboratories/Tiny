@@ -54,6 +54,13 @@ func GetWidestOperand[T binary](operands ...T) int {
 	return largest
 }
 
+// ReverseByte is a convenience method to quickly reverse the bits of a byte.
+func ReverseByte(b byte) byte {
+	b = (b&0xF0)>>4 | (b&0x0F)<<4
+	b = (b&0xCC)>>2 | (b&0x33)<<2
+	return (b&0xAA)>>1 | (b&0x55)<<1
+}
+
 // SanityCheck ensures the provided bits are all either one or zero, as Bit is a byte underneath.  In the land of binary,
 // that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
 func SanityCheck(bits ...Bit) {

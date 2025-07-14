@@ -21,17 +21,17 @@ import (
 //
 // LogicGate - Performs a logical operation for every bit of your slice.
 type UnaryExpression struct {
-	pos   *uint
-	low   *uint
-	high  *uint
-	max   *uint
-	first *bool
-	last  *bool
-	logic *func(int, Bit) Bit
+	pos     *uint
+	low     *uint
+	high    *uint
+	max     *uint
+	first   *bool
+	last    *bool
+	reverse *bool
+	logic   *func(int, Bit) Bit
 }
 
-// UnaryEmit expresses the bits of binary information according to logical rules.  A unary expression
-// will only operate against a single operand of data.
+// UnaryEmit expresses the bits of binary information according to logical rules.
 func UnaryEmit[T binary](expr UnaryExpression, data ...T) []Bit {
 	if expr.max != nil && (expr.low == nil || expr.high == nil) {
 		panic("invalid slice expression: max requires both low and high to be set")
@@ -39,6 +39,32 @@ func UnaryEmit[T binary](expr UnaryExpression, data ...T) []Bit {
 
 	if len(data) == 0 {
 		return make([]Bit, 0)
+	}
+
+	if expr.reverse != nil && *expr.reverse {
+		out := make([]T, len(data))
+		count := len(data) - 1
+
+		for i := len(data) - 1; i >= 0; i-- {
+			switch concrete := any(data[i]).(type) {
+			case Measurement:
+				out[count-i] = any(concrete.Reverse()).(T)
+			case Phrase:
+				out[count-i] = any(concrete.Reverse()).(T)
+			case []byte:
+				for ii := len(concrete) - 1; ii >= 0; ii-- {
+					out[count-i] = any(ReverseByte(concrete[ii])).(T)
+				}
+			case []Bit:
+				for ii := len(concrete) - 1; ii >= 0; ii-- {
+					out[count-i] = any(concrete[ii]).(T)
+				}
+			case byte:
+				out[count-i] = any(ReverseByte(concrete)).(T)
+			}
+		}
+
+		data = out
 	}
 
 	expected := -1
@@ -93,7 +119,7 @@ func UnaryEmit[T binary](expr UnaryExpression, data ...T) []Bit {
 			case expr.first != nil:
 				return []Bit{concrete[0]}
 			case expr.last != nil:
-				return []Bit{concrete[len(slice)-1]}
+				return []Bit{concrete[len(concrete)-1]}
 			case expr.pos != nil:
 				return []Bit{concrete[*expr.pos]}
 			case expr.low == nil && expr.high == nil:
@@ -130,43 +156,53 @@ func UnaryEmit[T binary](expr UnaryExpression, data ...T) []Bit {
 }
 
 // First - yourSlice[0] - Reads the first index position of your slice.
-func (_ UnaryExpression) First(pos uint) UnaryExpression {
+func (_ UnaryExpression) First(reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return UnaryExpression{
-		first: &True,
+		first:   &True,
+		reverse: &isReverse,
 	}
 }
 
 // Last - yourSlice[𝑛 - 1] - Reads the last index position of your slice.
-func (_ UnaryExpression) Last(pos uint) UnaryExpression {
+func (_ UnaryExpression) Last(reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return UnaryExpression{
-		last: &True,
+		last:    &True,
+		reverse: &isReverse,
 	}
 }
 
 // Position - yourSlice[pos] - Reads the provided index position of your slice.
-func (_ UnaryExpression) Position(pos uint) UnaryExpression {
+func (_ UnaryExpression) Position(pos uint, reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return UnaryExpression{
-		pos: &pos,
+		pos:     &pos,
+		reverse: &isReverse,
 	}
 }
 
 // From - yourSlice[low:] - Reads from the provided index to the end of your slice.
-func (_ UnaryExpression) From(low uint) UnaryExpression {
+func (_ UnaryExpression) From(low uint, reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return UnaryExpression{
-		low: &low,
+		low:     &low,
+		reverse: &isReverse,
 	}
 }
 
 // To - yourSlice[:high] - Reads to the provided index from the start of your slice.
-func (_ UnaryExpression) To(high uint) UnaryExpression {
+func (_ UnaryExpression) To(high uint, reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return UnaryExpression{
-		high: &high,
+		high:    &high,
+		reverse: &isReverse,
 	}
 }
 
-// Between - yourSlice[low:high] - Reads between the provided indexes of your slice.
+// Between - yourSlice[low:high] - Reads between the provided indexes of your slice in most→to→least significant order.
 //
-// Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum.
+// Between - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum in most→to→least significant order.
 func (_ UnaryExpression) Between(low uint, high uint, max ...uint) UnaryExpression {
 	var m *uint
 	if len(max) > 0 {
@@ -180,14 +216,36 @@ func (_ UnaryExpression) Between(low uint, high uint, max ...uint) UnaryExpressi
 	}
 }
 
+// BetweenReverse - yourSlice[low:high] - Reads between the provided indexes of your slice in least←to←most significant order.
+//
+// BetweenReverse - yourSlice[low:high:mid] - Reads between the provided indexes of your slice up to the provided maximum in least←to←most significant order.
+func (_ UnaryExpression) BetweenReverse(low uint, high uint, max ...uint) UnaryExpression {
+	var m *uint
+	if len(max) > 0 {
+		m = &max[0]
+	}
+
+	return UnaryExpression{
+		low:     &low,
+		high:    &high,
+		max:     m,
+		reverse: &True,
+	}
+}
+
 // All - yourSlice[:] - Reads the entirety of your slice.
-func (_ UnaryExpression) All() UnaryExpression {
-	return UnaryExpression{}
+func (_ UnaryExpression) All(reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
+	return UnaryExpression{
+		reverse: &isReverse,
+	}
 }
 
 // LogicGate - Reads every bit and calls the provided logic gate function to manipulate the binary output.
-func (_ UnaryExpression) LogicGate(logic func(int, Bit) Bit) UnaryExpression {
+func (_ UnaryExpression) LogicGate(logic func(int, Bit) Bit, reverse ...bool) UnaryExpression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return UnaryExpression{
-		logic: &logic,
+		logic:   &logic,
+		reverse: &isReverse,
 	}
 }

@@ -159,6 +159,11 @@ func (a Phrase) RollUp() Phrase {
 	return a
 }
 
+// Reverse reverses the order of all bits in the phrase.
+func (a Phrase) Reverse() Phrase {
+	// TODO: Reverse the phrase
+}
+
 // String returns a string consisting entirely of 1s and 0s.
 func (a Phrase) String() string {
 	builder := strings.Builder{}

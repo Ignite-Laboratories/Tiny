@@ -1,5 +1,7 @@
 package tiny
 
+// TODO: Tile left to right and right to left using logical operations
+
 // LeftPadWithZeros will pad the left side of the smaller operands to the length of the largest with zeros.
 func LeftPadWithZeros[T binary](operands ...T) []T {
 	return pad[T](GetWidestOperand[T](operands...), false, Zero, operands...)
@@ -28,11 +30,6 @@ func MiddlePadWithZeros[T binary](operands ...T) []T {
 // MiddlePadWithOnes will equally pad both sides of the smaller operands to the length of the largest with ones, biased towards the left.
 func MiddlePadWithOnes[T binary](operands ...T) []T {
 	return middlePad(One, operands...)
-}
-
-// TileLeftToRight will repeat the provided pattern across a new operand as long as the longest operand, starting from the most significant side and working towards the least.
-func TileLeftToRight[T binary](pattern T, operands ...T) []T {
-
 }
 
 func middlePad[T binary](placeholder Bit, operands ...T) []T {
@@ -104,10 +101,3 @@ func pad[T binary](length int, right bool, bit Bit, operands ...T) []T {
 	}
 	return out
 }
-
-//
-//// TileLeftToRight will tile the smallest operand across the length of the largest starting from the left towards the right.
-//TileLeftToRight
-//
-//// TileRightToLeft will tile the smallest operand across the length of the largest starting from the right towards the left.
-//TileRightToLeft

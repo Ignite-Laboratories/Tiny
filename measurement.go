@@ -108,6 +108,11 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 	return a.RollUp()
 }
 
+// Reverse reverses the order of all bits in the measurement.
+func (a Measurement) Reverse() Measurement {
+	// TODO: Reverse Measurement
+}
+
 // RollUp combines the currently measured bits into the measured bytes if there is enough recorded.
 func (a Measurement) RollUp() Measurement {
 	for len(a.Bits) >= 8 {
