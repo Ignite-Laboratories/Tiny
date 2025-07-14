@@ -89,9 +89,9 @@ func Emit[T binary](expr Expression, data ...T) ([]Bit, uint) {
 
 			for _, b := range column {
 				if reverse {
-					matrix[ii] = append(matrix[ii], b)
+					matrix[ii] = append(matrix[ii], b[i])
 				} else {
-					matrix[ii] = append([]Bit{b}, matrix[ii]...)
+					matrix[ii] = append([]Bit{b[i]}, matrix[ii]...)
 				}
 			}
 		}
