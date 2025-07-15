@@ -59,7 +59,7 @@ func padToMiddleWithOnes[T binary](length int, operands ...T) []T {
 	return middlePad(length, One, operands...)
 }
 
-func middlePad[T binary](length int, placeholder Bit, operands ...T) []T {
+func middlePad[T binary](length int, digit Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 
 	for i, o := range operands {
@@ -68,14 +68,14 @@ func middlePad[T binary](length int, placeholder Bit, operands ...T) []T {
 		left := toPad / 2
 		right := toPad - left
 
-		out[i] = pad(left, false, placeholder, o)[0]
-		out[i] = pad(right, true, placeholder, out[i])[0]
+		out[i] = pad(left, false, digit, o)[0]
+		out[i] = pad(right, true, digit, out[i])[0]
 	}
 
 	return out
 }
 
-func pad[T binary](length int, right bool, bit Bit, operands ...T) []T {
+func pad[T binary](length int, right bool, digit Bit, operands ...T) []T {
 	if len(operands) == 0 {
 		return make([]T, 0)
 	}
@@ -83,18 +83,12 @@ func pad[T binary](length int, right bool, bit Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 	for i, o := range operands {
 		toPadLen := length - GetBitLength(o)
-		toPad := make([]Bit, toPadLen)
-
 		if toPadLen == 0 {
 			out[i] = o
 			continue
 		}
 
-		if bit == 1 {
-			for ii, _ := range toPad {
-				toPad[ii] = 1
-			}
-		}
+		toPad := NewMeasurementOfDigit(toPadLen, digit).GetAllBits()
 
 		switch concrete := any(o).(type) {
 		case Phrase:

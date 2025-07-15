@@ -14,6 +14,34 @@ type Measurement struct {
 	Bits []Bit
 }
 
+// NewMeasurementOfDigit creates a new Measurement of the provided length consisting entirely of the provided digit.
+func NewMeasurementOfDigit(length int, digit Bit) Measurement {
+	if digit == One {
+		return NewMeasurementOfOnes(length)
+	}
+	return NewMeasurementOfZeros(length)
+}
+
+// NewMeasurementOfZeros creates a new Measurement of the provided length consisting entirely of 0s.
+func NewMeasurementOfZeros(length int) Measurement {
+	return Measurement{
+		Bytes: make([]byte, length/8),
+		Bits:  make([]Bit, length%8),
+	}
+}
+
+// NewMeasurementOfOnes creates a new Measurement of the provided length consisting entirely of 1s.
+func NewMeasurementOfOnes(length int) Measurement {
+	zeros := NewMeasurementOfZeros(length)
+	for i := range zeros.Bytes {
+		zeros.Bytes[i] = 255
+	}
+	for i := range zeros.Bits {
+		zeros.Bits[i] = 1
+	}
+	return zeros
+}
+
 // NewMeasurement creates a new Measurement of the provided Bit slice.
 func NewMeasurement(bits ...Bit) Measurement {
 	return Measurement{

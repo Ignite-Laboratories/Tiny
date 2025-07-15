@@ -1,8 +1,8 @@
 package tiny
 
 // Bits provides access to bit expression from binary types. Bit Expression uses Go slice accessors under the hood,
-// so you can treat the operations as the same.  All operations are performed from most→to→least significant order,
-// but you may optionally reverse the order to use least←to←most.
+// so you can treat the operations as the same.  All operations are performed in most→to→least significant order,
+// but you may optionally reverse the order to least←to←most.
 //
 // Expression.Position[𝑛] - Reads the provided index position of your slice.
 //
@@ -23,21 +23,22 @@ var Bits Expression
 
 // Expression represents the standard slice index accessor pattern, and expressions can be generated from the global Read variable.
 type Expression struct {
-	_pos     *uint
-	_low     *uint
-	_high    *uint
-	_max     *uint
-	_first   *bool
-	_last    *bool
-	_reverse *bool
-	_unary   *UnaryFunc
+	_pos      *uint
+	_low      *uint
+	_high     *uint
+	_max      *uint
+	_first    *bool
+	_last     *bool
+	_reverse  *bool
+	_bitLogic *BitLogicFunc
+	_artifact *ArtifactFunc
 }
 
-// UnaryFunc takes in a single bit, and its index, and returns an output bit.
-type UnaryFunc func(int, Bit) Bit
+// BitLogicFunc takes in many bits and their collectively shared index and returns an output bit plus a nilable artifact.
+type BitLogicFunc func(int, ...Bit) ([]Bit, *Phrase)
 
-// MatrixFunc takes in many bits and their collectively shared index and returns an output bit plus an artifact.
-type MatrixFunc func(int, ...Bit) (Bit, any)
+// ArtifactFunc applies the artifact from a single round of calculation against the provided operand bits.
+type ArtifactFunc func(i int, artifact Phrase, operands ...Phrase) []Phrase
 
 // First [0] reads the first index position of your slice.
 //
@@ -140,10 +141,42 @@ func (_ Expression) All(reverse ...bool) Expression {
 // Gate - Reads every bit and calls the provided logic gate function to manipulate the output bit.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func (_ Expression) Gate(logic UnaryFunc, reverse ...bool) Expression {
+func (_ Expression) Gate(logic BitLogicFunc, reverse ...bool) Expression {
 	isReverse := len(reverse) > 0 && reverse[0]
 	return Expression{
-		_unary:   &logic,
-		_reverse: &isReverse,
+		_bitLogic: &logic,
+		_reverse:  &isReverse,
+	}
+}
+
+// Tile - XORs the provided pattern against the target bits in most→to→least significant order.
+func (_ Expression) Tile(pattern ...Bit) Expression {
+	logic := tileLogic(pattern...)
+	return Expression{
+		_bitLogic: &logic,
+	}
+}
+
+// TileReverse - XORs the provided pattern against the target bits in least←to←most significant order.
+func (_ Expression) TileReverse(pattern ...Bit) Expression {
+	logic := tileLogic(pattern...)
+	return Expression{
+		_bitLogic: &logic,
+		_reverse:  &True,
+	}
+}
+
+func tileLogic(pattern ...Bit) BitLogicFunc {
+	limit := len(pattern)
+	step := 0
+	return func(i int, operands ...Bit) ([]Bit, *Phrase) {
+		for _, b := range pattern {
+			operands[i] = b ^ pattern[i]
+		}
+		step++
+		if step >= limit {
+			step = 0
+		}
+		return operands, nil
 	}
 }

@@ -18,6 +18,14 @@ Global Constants
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0
 
+var SingleZero = []Bit{Zero}
+
+var DoubleZero = []Bit{Zero, Zero}
+
+var SingleOne = []Bit{One}
+
+var DoubleOne = []Bit{One, One}
+
 // One is an implicit Bit{1}.
 const One Bit = 1
 
@@ -55,13 +63,23 @@ Encoding
 */
 
 // Encoding represents the encoding scheme of a Phrase of Measurement points.
+//
+// Raw indicates this is simply a phrase of arbitrarily long binary information.
+//
+// Logical indicates this phrase entirely consists of data measurements.
+//
+// Signed indicates the first measurement is a sign, followed by the value.
+//
+// Float indicates the first measurement is a sign, followed by an exponent, and lastly a mantissa.
+//
+// Index indicates the phrase entirely consists of logical binary data bound to a fixed width.
 type Encoding int
 
 const (
 	// Raw indicates this is simply a phrase of arbitrarily long binary information.
 	Raw Encoding = iota
 
-	// Logical indicates this phrase entirely consists of byte measurements.
+	// Logical indicates this phrase entirely consists of data measurements.
 	Logical
 
 	// Signed indicates the first measurement is a sign, followed by the value.

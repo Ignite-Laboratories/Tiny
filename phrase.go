@@ -2,6 +2,7 @@ package tiny
 
 import "strings"
 
+// Phrase represents a collection of measurements, plus their Encoding scheme.
 type Phrase struct {
 	Data []Measurement
 	Encoding

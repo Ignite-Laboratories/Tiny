@@ -66,7 +66,7 @@ func AlignOperand[T binary](operand T, length int, scheme Align) T {
 	}
 }
 
-// ReverseByte is a convenience method to quickly reverse the bits of a byte.
+// ReverseByte reverses all the bits of a byte.
 func ReverseByte(b byte) byte {
 	b = (b&0xF0)>>4 | (b&0x0F)<<4
 	b = (b&0xCC)>>2 | (b&0x33)<<2
