@@ -46,11 +46,6 @@ func GetMatrixElementCount[T any](matrix [][]T) int {
 	return total
 }
 
-// getSliceCount returns the slice and the number of elements within a slice.
-func getSliceCount[T any](data []T) ([]T, uint) {
-	return data, uint(len(data))
-}
-
 // AlignOperand applies the provided Align scheme against the operand to place it relative to the provided length.
 func AlignOperand[T binary](operand T, length int, scheme Align) T {
 	switch scheme {
@@ -78,11 +73,11 @@ func ReverseByte(b byte) byte {
 	return (b&0xAA)>>1 | (b&0x55)<<1
 }
 
-// SanityCheck ensures the provided bits are all either Zero, One, or Nil - as Bit is a byte underneath.  In the land of
+// SanityCheck ensures the provided bits are all either Zero, One - as Bit is a byte underneath.  In the land of
 // binary, that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
 func SanityCheck(bits ...Bit) {
 	for _, b := range bits {
-		if b != Zero && b != One && b != Nil {
+		if b != Zero && b != One {
 			panic(ErrorNotABit)
 		}
 	}

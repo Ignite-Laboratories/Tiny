@@ -17,7 +17,7 @@ package tiny
 // Matrix.Gate - Performs a logical operation for every bit of your slice.
 var Table Matrix
 
-// Matrix is a type of Expression that indicates to Emit that its variadic input is a collection of binary rows, rather than linear information.
+// Matrix is a type of Expression that indicates to emit that its variadic input is a collection of binary rows, rather than linear information.
 type Matrix Expression
 
 var matrixRead = func(i int, column ...Bit) ([]Bit, int) {
