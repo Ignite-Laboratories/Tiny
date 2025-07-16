@@ -1,18 +1,23 @@
 package tiny
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Phrase represents a collection of measurements, plus their Encoding scheme.
 type Phrase struct {
+	Name string
 	Data []Measurement
 	Encoding
 }
 
-// NewLogicalPhrase creates a new Logical Phrase of the provided measurements.
-func NewLogicalPhrase(m ...Measurement) Phrase {
+// NewPhrase creates a named Phrase of the provided measurements and encoding scheme.
+func NewPhrase(name string, encoding Encoding, m ...Measurement) Phrase {
 	return Phrase{
+		Name:     name,
 		Data:     m,
-		Encoding: Logical,
+		Encoding: encoding,
 	}
 }
 
@@ -137,6 +142,32 @@ func (a Phrase) Align(width ...uint) Phrase {
 	}
 }
 
+// Consume returns the provided bit width from the start of the phrase.  If you'd like to read from the end, you may pass 'true' to fromEnd.
+//
+// NOTE: This is a destructive operation to the encoding scheme and produces Raw phrases, unless no bits are consumed
+// in which case the remainder retains its encoding scheme.
+func (a Phrase) Consume(width uint, fromEnd ...bool) (consumed Phrase, remainder Phrase) {
+	if width == 0 {
+		return EmptyPhrase, a
+	}
+
+	if len(fromEnd) > 0 && fromEnd[0] {
+		a = a.Reverse()
+	}
+
+	consumed = NewPhrase("", Raw)
+
+	for _, m := range a.Data {
+		c, r := m.Consume(width, fromEnd...)
+		consumed.Data = append(consumed.Data, c)
+		a = NewPhrase(a.Name, Raw, r)
+		width -= c.BitWidth()
+	}
+	consumed.Name = fmt.Sprintf("%v[:%d]", a.Name, consumed.BitWidth())
+	a.Name = fmt.Sprintf("%v[%d:]", a.Name, consumed.BitWidth())
+	return consumed, a
+}
+
 // RollUp calls Measurement.RollUp for every measurement in the phrase.
 func (a Phrase) RollUp() Phrase {
 	for i, m := range a.Data {
@@ -147,8 +178,12 @@ func (a Phrase) RollUp() Phrase {
 
 // Reverse reverses the order of all bits in the phrase.
 func (a Phrase) Reverse() Phrase {
-	// TODO: Reverse the phrase
-	return Phrase{}
+	rev := ReverseOperands(a)[0]
+	return Phrase{
+		Name:     fmt.Sprintf("reverse(%v)", a.Name),
+		Data:     rev.Data,
+		Encoding: a.Encoding,
+	}
 }
 
 // String returns a string consisting entirely of 1s and 0s.

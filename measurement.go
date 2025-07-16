@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"math"
 	"strings"
 )
 
@@ -8,6 +9,8 @@ import (
 // As most languages inherently require at least 8 bits to store custom types, storing each bit individually
 // would need 8 times the size of every bit - thus, the measurement was born.
 type Measurement struct {
+	// Name represents the name of this measurement.
+	Name string
 	// Bytes holds complete byte data.
 	Bytes []byte
 	// Bits holds any remaining bits.
@@ -16,6 +19,7 @@ type Measurement struct {
 
 // NewMeasurementOfDigit creates a new Measurement of the provided bit-width consisting entirely of the provided digit.
 func NewMeasurementOfDigit(width int, digit Bit) Measurement {
+	// TODO: Generate a random name
 	if digit == One {
 		return NewMeasurementOfOnes(width)
 	}
@@ -24,6 +28,7 @@ func NewMeasurementOfDigit(width int, digit Bit) Measurement {
 
 // NewMeasurementOfZeros creates a new Measurement of the provided bit-width consisting entirely of 0s.
 func NewMeasurementOfZeros(width int) Measurement {
+	// TODO: Generate a random name
 	return Measurement{
 		Bytes: make([]byte, width/8),
 		Bits:  make([]Bit, width%8),
@@ -32,6 +37,7 @@ func NewMeasurementOfZeros(width int) Measurement {
 
 // NewMeasurementOfOnes creates a new Measurement of the provided bit-width consisting entirely of 1s.
 func NewMeasurementOfOnes(width int) Measurement {
+	// TODO: Generate a random name
 	zeros := NewMeasurementOfZeros(width)
 	for i := range zeros.Bytes {
 		zeros.Bytes[i] = 255
@@ -44,6 +50,7 @@ func NewMeasurementOfOnes(width int) Measurement {
 
 // NewMeasurement creates a new Measurement of the provided Bit slice.
 func NewMeasurement(bits ...Bit) Measurement {
+	// TODO: Generate a random name
 	return Measurement{
 		Bits: bits,
 	}
@@ -51,6 +58,7 @@ func NewMeasurement(bits ...Bit) Measurement {
 
 // NewMeasurementFromBytes creates a new Measurement of the provided byte slice.
 func NewMeasurementFromBytes(bytes ...byte) Measurement {
+	// TODO: Generate a random name
 	m := Measurement{}
 	m.AppendBytes(bytes...)
 	return m
@@ -62,16 +70,16 @@ func (a Measurement) BitWidth() uint {
 }
 
 // GetAllBits returns a slice of the Measurement's individual bits.
-func (m Measurement) GetAllBits() []Bit {
+func (a Measurement) GetAllBits() []Bit {
 	var byteBits []Bit
-	for _, b := range m.Bytes {
+	for _, b := range a.Bytes {
 		bits := make([]Bit, 8)
 		for i := 7; i >= 0; i-- {
 			bits[i] = Bit((b >> i) & 1)
 		}
 		byteBits = append(byteBits, bits...)
 	}
-	return append(byteBits, m.Bits...)
+	return append(byteBits, a.Bits...)
 }
 
 // Append places the provided bits at the end of the Measurement.
@@ -138,8 +146,37 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 
 // Reverse reverses the order of all bits in the measurement.
 func (a Measurement) Reverse() Measurement {
-	// TODO: Reverse Measurement
-	return Measurement{}
+	return ReverseOperands(a)[0]
+}
+
+// Consume returns the provided bit width from the start of the measurement.  If you'd like to read from the end, you may pass 'true' to fromEnd.
+func (a Measurement) Consume(width uint, fromEnd ...bool) (consumed Measurement, remainder Measurement) {
+	if width == 0 {
+		return NewMeasurement(), a
+	}
+
+	consumed = NewMeasurement()
+	remainder = NewMeasurement()
+
+	// Flip the measurement if it needs to be reversed
+	if len(fromEnd) > 0 && fromEnd[0] {
+		a = a.Reverse()
+	}
+
+	// Grab the available whole byte values
+	limit := width / 8
+	limit = uint(math.Min(float64(len(a.Bytes)), float64(limit)))
+	if limit > 0 {
+		bytes := a.Bytes[:limit]
+		consumed = consumed.AppendBytes(bytes...)
+		width -= limit * 8
+	}
+
+	// Emit the rest
+	consumed = consumed.Append(Emit(Bits.To(width), Unlimited, a)...)
+	remainder = remainder.Append(Emit(Bits.From(width), Unlimited, a)...)
+
+	return consumed, remainder
 }
 
 // RollUp combines the currently measured bits into the measured bytes if there is enough recorded.

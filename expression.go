@@ -57,14 +57,25 @@ func (_ Expression) PositionsReverse(positions ...uint) Expression {
 	}
 }
 
+// Width [𝑛] reads the provided bit width.
+//
+// Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
+func (_ Expression) Width(width uint, reverse ...bool) Expression {
+	isReverse := len(reverse) > 0 && reverse[0]
+	return Expression{
+		_low:     &Start,
+		_high:    &width,
+		_reverse: &isReverse,
+	}
+}
+
 // First [0] reads the first index position of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) First(reverse ...bool) Expression {
 	isReverse := len(reverse) > 0 && reverse[0]
-	zero := []uint{0}
 	return Expression{
-		_positions: &zero,
+		_positions: &Initial,
 		_reverse:   &isReverse,
 	}
 }

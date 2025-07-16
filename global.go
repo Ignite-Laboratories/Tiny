@@ -15,8 +15,17 @@ type binary interface {
 Global Constants
 */
 
+// EmptyPhrase represents a Raw Phrase with no data.
+var EmptyPhrase = NewPhrase("3MP7Y", Raw)
+
 // Unlimited represents a constantly referencable integer value which can be considered a reasonably "unlimited" width.
 var Unlimited = ^uint(0)
+
+// Start is a constantly referencable uint{0}. For a slice, please use Initial.
+var Start uint = 0
+
+// Initial is a constantly referencable []uint{0}. For a non-slice, please use Start.
+var Initial []uint = []uint{0}
 
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0

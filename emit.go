@@ -58,34 +58,7 @@ func Emit[T binary](expr Expression, maximum uint, operands ...T) []Bit {
 	// Check if the data should be reversed at this point in recursion
 	if expr._reverse != nil && *expr._reverse {
 		// If so...put your thing down, flip it, and reverse it
-		reversed := make([]T, len(operands))
-		limit := len(operands) - 1
-
-		for i := limit; i >= 0; i-- {
-			switch operand := any(operands[i]).(type) {
-			case Measurement:
-				reversed[limit-i] = any(operand.Reverse()).(T)
-			case Phrase:
-				reversed[limit-i] = any(operand.Reverse()).(T)
-			case []byte:
-				r := make([]byte, len(operand))
-				for ii := len(operand) - 1; ii >= 0; ii-- {
-					r[limit-ii] = ReverseByte(operand[ii])
-				}
-				reversed[limit-i] = any(r).(T)
-			case []Bit:
-				r := make([]Bit, len(operand))
-				for ii := len(operand) - 1; ii >= 0; ii-- {
-					r[limit-ii] = operand[ii]
-				}
-				reversed[limit-i] = any(r).(T)
-			case byte:
-				reversed[limit-i] = any(ReverseByte(operand)).(T)
-			}
-		}
-
-		operands = reversed
-
+		operands = ReverseOperands(operands...)
 		expr._reverse = nil
 	}
 
@@ -106,25 +79,21 @@ func linearLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 
 	// Walk through the current operands one at a time
 	for _, raw := range operands {
+		if GetBitWidth(raw) == 0 {
+			continue
+		}
+
 		cycleBits := make([]Bit, 0, 1<<10)
 
 		// Decompose them through recursion
 		switch operand := any(raw).(type) {
 		case Phrase:
 			// Phrases recurse into their respective measurements
-			if operand.BitWidth() == 0 {
-				continue
-			}
-
 			var bits []Bit
 			bits, cursor = linearLogic(cursor, expr, operand.Data...)
 			cycleBits = append(cycleBits, bits...)
 		case Measurement:
 			// Measurements recurse into their respective bytes and then their bits
-			if operand.BitWidth() == 0 {
-				continue
-			}
-
 			var bits []Bit
 
 			bits, cursor = linearLogic(cursor, expr, operand.Bytes...)
@@ -134,10 +103,6 @@ func linearLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 			cycleBits = append(cycleBits, bits...)
 		case []byte:
 			// Byte slices break into their individual bytes
-			if len(operand) <= 0 {
-				continue
-			}
-
 			var bits []Bit
 			bits, cursor = linearLogic(cursor, expr, operand...)
 			cycleBits = append(cycleBits, bits...)
@@ -151,11 +116,6 @@ func linearLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 			cycleBits = append(cycleBits, bits...)
 		case []Bit:
 			// Bit slices step the cursor across the bits and select out data
-			if len(operand) <= 0 {
-				continue
-			}
-
-			// Walk through the bits
 			for _, bit := range operand {
 				if len(*expr._positions) > 0 {
 					// We are performing explicit position selection

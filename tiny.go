@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -61,6 +62,39 @@ func AlignOperand[T binary](operand T, width uint, scheme Alignment) T {
 	}
 }
 
+func ReverseOperands[T binary](operands ...T) []T {
+	// Put your thing down, flip it, and reverse it
+	reversed := make([]T, len(operands))
+	limit := len(operands) - 1
+
+	for i, raw := range operands {
+		switch operand := any(raw).(type) {
+		case Measurement:
+			reversed[limit-i] = any(operand.Reverse()).(T)
+		case Phrase:
+			reversed[limit-i] = any(operand.Reverse()).(T)
+		case []byte:
+			r := make([]byte, len(operand))
+			for ii := len(operand) - 1; ii >= 0; ii-- {
+				r[limit-ii] = ReverseByte(operand[ii])
+			}
+			reversed[limit-i] = any(r).(T)
+		case []Bit:
+			r := make([]Bit, len(operand))
+			for ii := len(operand) - 1; ii >= 0; ii-- {
+				r[limit-ii] = operand[ii]
+			}
+			reversed[limit-i] = any(r).(T)
+		case byte:
+			reversed[limit-i] = any(ReverseByte(operand)).(T)
+		default:
+			panic(fmt.Errorf("invalid binary type: %T", operand))
+		}
+	}
+
+	return reversed
+}
+
 // ReverseByte reverses all the bits of a byte.
 func ReverseByte(b byte) byte {
 	b = (b&0xF0)>>4 | (b&0x0F)<<4
@@ -109,7 +143,7 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 	}
 
 	if size == 0 {
-		return NewLogicalPhrase()
+		return NewPhrase(Logical)
 	}
 
 	bytes := unsafe.Slice((*byte)(dataPtr), size)
@@ -120,7 +154,7 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 		}
 	}
 
-	phrase := NewLogicalPhrase()
+	phrase := NewPhrase(Logical)
 	phrase.Data = []Measurement{NewMeasurementFromBytes(bytes...)}
 	return phrase
 }
