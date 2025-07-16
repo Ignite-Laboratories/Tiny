@@ -142,30 +142,32 @@ func (a Phrase) Align(width ...uint) Phrase {
 	}
 }
 
-// Consume returns the provided bit width from the start of the phrase.  If you'd like to read from the end, you may pass 'true' to fromEnd.
+// BleedLastBit returns the last bit of the phrase and a phrase missing that bit.
 //
-// NOTE: This is a destructive operation to the encoding scheme and produces Raw phrases, unless no bits are consumed
-// in which case the remainder retains its encoding scheme.
-func (a Phrase) Consume(width uint, fromEnd ...bool) (consumed Phrase, remainder Phrase) {
-	if width == 0 {
-		return EmptyPhrase, a
+// NOTE: This is a destructive operation to the phrase's encoding scheme and returns a Raw Phrase.
+func (a Phrase) BleedLastBit() (Bit, Phrase) {
+	if a.BitWidth() == 0 {
+		panic("cannot bleed the last bit of an empty phrase")
 	}
 
-	if len(fromEnd) > 0 && fromEnd[0] {
-		a = a.Reverse()
+	lastBit, lastMeasurement := a.Data[len(a.Data)-1].BleedLastBit()
+	a.Data[len(a.Data)-1] = lastMeasurement
+	a.Encoding = Raw
+	return lastBit, a
+}
+
+// BleedFirstBit returns the first bit of the phrase and a phrase missing that bit.
+//
+// NOTE: This is a destructive operation to the phrase's encoding scheme and returns a Raw Phrase.
+func (a Phrase) BleedFirstBit() (Bit, Phrase) {
+	if a.BitWidth() == 0 {
+		panic("cannot bleed the first bit of an empty phrase")
 	}
 
-	consumed = NewPhrase("", Raw)
-
-	for _, m := range a.Data {
-		c, r := m.Consume(width, fromEnd...)
-		consumed.Data = append(consumed.Data, c)
-		a = NewPhrase(a.Name, Raw, r)
-		width -= c.BitWidth()
-	}
-	consumed.Name = fmt.Sprintf("%v[:%d]", a.Name, consumed.BitWidth())
-	a.Name = fmt.Sprintf("%v[%d:]", a.Name, consumed.BitWidth())
-	return consumed, a
+	firstBit, firstMeasurement := a.Data[0].BleedFirstBit()
+	a.Data[0] = firstMeasurement
+	a.Encoding = Raw
+	return firstBit, a
 }
 
 // RollUp calls Measurement.RollUp for every measurement in the phrase.

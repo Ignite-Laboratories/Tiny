@@ -1,7 +1,6 @@
 package tiny
 
 import (
-	"math"
 	"strings"
 )
 
@@ -149,34 +148,42 @@ func (a Measurement) Reverse() Measurement {
 	return ReverseOperands(a)[0]
 }
 
-// Consume returns the provided bit width from the start of the measurement.  If you'd like to read from the end, you may pass 'true' to fromEnd.
-func (a Measurement) Consume(width uint, fromEnd ...bool) (consumed Measurement, remainder Measurement) {
-	if width == 0 {
-		return NewMeasurement(), a
+// BleedLastBit returns the last bit of the measurement and a measurement missing that bit.
+func (a Measurement) BleedLastBit() (Bit, Measurement) {
+	if a.BitWidth() == 0 {
+		panic("cannot bleed the last bit of an empty measurement")
 	}
 
-	consumed = NewMeasurement()
-	remainder = NewMeasurement()
-
-	// Flip the measurement if it needs to be reversed
-	if len(fromEnd) > 0 && fromEnd[0] {
-		a = a.Reverse()
+	if len(a.Bits) >= 0 {
+		a.Bits = a.Bits[:len(a.Bits)-1]
+		return a.Bits[len(a.Bits)-1], a.RollUp()
 	}
 
-	// Grab the available whole byte values
-	limit := width / 8
-	limit = uint(math.Min(float64(len(a.Bytes)), float64(limit)))
-	if limit > 0 {
-		bytes := a.Bytes[:limit]
-		consumed = consumed.AppendBytes(bytes...)
-		width -= limit * 8
+	bits := Emit(Bits.All(), 8, a.Bytes[len(a.Bytes)-1])
+	last := bits[7]
+	bits = bits[:7]
+	a.Bits = append(bits, a.Bits...)
+	return last, a.RollUp()
+}
+
+// BleedFirstBit returns the first bit of the measurement and a measurement missing that bit.
+func (a Measurement) BleedFirstBit() (Bit, Measurement) {
+	if a.BitWidth() == 0 {
+		panic("cannot bleed the first bit of an empty measurement")
 	}
 
-	// Emit the rest
-	consumed = consumed.Append(Emit(Bits.To(width), Unlimited, a)...)
-	remainder = remainder.Append(Emit(Bits.From(width), Unlimited, a)...)
-
-	return consumed, remainder
+	if len(a.Bytes) >= 0 {
+		bits := Emit(Bits.All(), 8, a.Bytes[0])
+		first := bits[0]
+		bits = bits[1:]
+		a.Bytes = a.Bytes[1:]
+		a = a.Prepend(bits...)
+		return first, a.RollUp()
+	} else {
+		bit := a.Bits[0]
+		a.Bits = a.Bits[1:]
+		return bit, a.RollUp()
+	}
 }
 
 // RollUp combines the currently measured bits into the measured bytes if there is enough recorded.

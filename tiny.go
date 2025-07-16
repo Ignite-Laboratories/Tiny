@@ -30,6 +30,78 @@ func GetBitWidth[T binary](operands ...T) uint {
 	return width
 }
 
+// BleedEnd returns the ending bits of the operands and the operands missing those bits.
+//
+// All bleed operations are always returned in their original most→to→least significant order.
+func BleedEnd[T binary](width uint, operands ...T) ([][]Bit, []T) {
+	bits := make([][]Bit, 0, len(operands))
+
+	for x := 0; x < int(width); x++ {
+		for i, raw := range operands {
+			if GetBitWidth(raw) == 0 {
+				continue
+			}
+
+			switch operand := any(raw).(type) {
+			case Phrase:
+			case Measurement:
+				var bit Bit
+				bit, operand = operand.BleedLastBit()
+				bits[i] = append([]Bit{bit}, bits[i]...)
+				operands[i] = any(operand).(T)
+			case []byte:
+				panic("cannot bleed bits from static width elements")
+			case []Bit:
+				bits[i] = append([]Bit{operand[len(operand)-1]}, bits[i]...)
+				operands[i] = any(operand[:len(operand)-1]).(T)
+			case byte:
+				panic("cannot bleed bits from static width elements")
+			case Bit:
+				panic("cannot bleed bits from static width elements")
+			default:
+				panic("invalid binary type: " + reflect.TypeOf(operand).String())
+			}
+		}
+	}
+	return bits, operands
+}
+
+// BleedStart returns the first bit of the operands and the operands missing that bit.
+//
+// All bleed operations are always returned in their original most→to→least significant order.
+func BleedStart[T binary](width uint, operands ...T) ([][]Bit, []T) {
+	bits := make([][]Bit, 0, len(operands))
+
+	for x := 0; x < int(width); x++ {
+		for i, raw := range operands {
+			if GetBitWidth(raw) == 0 {
+				continue
+			}
+
+			switch operand := any(raw).(type) {
+			case Phrase:
+			case Measurement:
+				var bit Bit
+				bit, operand = operand.BleedFirstBit()
+				bits[i] = append([]Bit{bit}, bits[i]...)
+				operands[i] = any(operand).(T)
+			case []byte:
+				panic("cannot bleed bits from static width elements")
+			case []Bit:
+				bits[i] = append([]Bit{operand[0]}, bits[i]...)
+				operands[i] = any(operand[1:]).(T)
+			case byte:
+				panic("cannot bleed bits from static width elements")
+			case Bit:
+				panic("cannot bleed bits from static width elements")
+			default:
+				panic("invalid binary type: " + reflect.TypeOf(operand).String())
+			}
+		}
+	}
+	return bits, operands
+}
+
 // GetWidestOperand returns the widest bit width of the provided operands.
 func GetWidestOperand[T binary](operands ...T) uint {
 	var widest uint
@@ -112,10 +184,10 @@ func SanityCheck(bits ...Bit) {
 	}
 }
 
-// Measure takes a Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.  This
+// Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.  This
 // automatically will determine the host architecture's endianness and reverse the bytes if they are found to be BigEndian.
 // This ensures all tiny operations happen in LittleEndian byte order, regardless of the underlying hardware.
-func Measure[T any](value T, endian ...Endianness) Phrase {
+func Measure[T any](name string, value T, endian ...Endianness) Phrase {
 	targetEndian := GetEndianness()
 	if len(endian) > 0 {
 		targetEndian = endian[0]
@@ -143,7 +215,7 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 	}
 
 	if size == 0 {
-		return NewPhrase(Logical)
+		return NewPhrase(name, Logical)
 	}
 
 	bytes := unsafe.Slice((*byte)(dataPtr), size)
@@ -154,7 +226,7 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 		}
 	}
 
-	phrase := NewPhrase(Logical)
+	phrase := NewPhrase(name, Logical)
 	phrase.Data = []Measurement{NewMeasurementFromBytes(bytes...)}
 	return phrase
 }
