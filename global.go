@@ -16,7 +16,7 @@ Global Constants
 */
 
 // EmptyPhrase represents a Raw Phrase with no data.
-var EmptyPhrase = NewPhrase("3MP7Y", Raw)
+var EmptyPhrase = NewPhrase("3MP7Y", Raw, BigEndian)
 
 // Unlimited represents a constantly referencable integer value which can be considered a reasonably "unlimited" width.
 var Unlimited = ^uint(0)
@@ -254,7 +254,7 @@ const (
 	// Raw indicates this is simply a phrase of arbitrarily long binary information.
 	Raw Encoding = iota
 
-	// Logical indicates this phrase entirely consists of data measurements.
+	// Logical indicates this phrase entirely consists of logically aligned measurements.
 	Logical
 
 	// Signed indicates the first measurement is a sign, followed by a value.
@@ -295,7 +295,7 @@ Endianness
 // be stored in least←to←most significant order while retaining the individual bit order of each byte.  There are two
 // types of endianness -
 //
-// BigEndian, where the most significant bytes come first - often used in network protocols:
+// BigEndian, where the most significant bytes come first - or "raw" binary:
 //
 //	| Most Sig. Byte  |   Middle Byte   | Least Sig. Byte |
 //	| 0 1 0 0 1 1 0 1 | 0 0 1 0 1 1 0 0 | 0 0 0 1 0 1 1 0 | (5,057,558)
@@ -303,10 +303,10 @@ Endianness
 //
 // LittleEndian, where the least significant bytes come first - used by x86, AMD64, ARM, and the general world over:
 //
-//		| Least Sig. Byte |   Middle Byte   |  Most Sig. Byte |
-//		| 0 0 0 1 0 1 1 0 | 0 0 1 0 1 1 0 0 | 0 1 0 0 1 1 0 1 | (5,057,558)
-//		|        16       |        2C       |        4D       |
-//	          ⬑  The byte's internal bits remain in most→to→least order
+//	| Least Sig. Byte |   Middle Byte   |  Most Sig. Byte |
+//	| 0 0 0 1 0 1 1 0 | 0 0 1 0 1 1 0 0 | 0 1 0 0 1 1 0 1 | (5,057,558)
+//	|        16       |        2C       |        4D       |
+//	         ⬑  The byte's internal bits remain in most→to→least order
 //
 // NOTE: While some hardware may physically store bits in least←to←most order internally, Go's shift operators (<< and >>)
 // are guaranteed by the language specification to always operate in most→to→least significant order. This, in turn, means

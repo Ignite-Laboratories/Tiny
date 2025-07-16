@@ -7,30 +7,32 @@ import (
 )
 
 func main() {
-	// #0 - Creating a binary measurement directly
+	fmt.Println("#0 - Creating a binary measurement directly -")
 	m := tiny.NewMeasurementOfBytes(77, 22)
-	fmt.Printf("%v ← Measurement of [byte{77}, byte{22}]\n", m.StringPretty())
+	fmt.Printf("%v ← Measurement of [byte{77}, byte{22}]\n\n", m.StringPretty())
 
-	// #1 - Measuring an object directly out of memory into a phrase
+	fmt.Println("#1 - Measuring an object directly out of memory into a phrase -")
 	random := rand.Int64()
 	p := tiny.Measure("data", random)
-	fmt.Printf("%v ← Phrase of [%v]\n", p.Align().StringPretty(), random)
+	fmt.Printf("%v ← Phrase of [%v]\n\n", p.Align().StringPretty(), random)
 
-	// #2 - Emitting specific bits from the phrase
+	fmt.Println("#2 - Emitting specific bits from the phrase")
 	bits := tiny.Emit(tiny.Bits.Between(11, 44), tiny.Unlimited, p)
-	fmt.Printf("%v ← Phrase[11:44]\n", bits)
+	fmt.Printf("%v ← Phrase[11:44]\n\n", bits)
 
-	// #3 -  Emitting the NOT of the emitted bits
+	fmt.Println("#3 -  Emitting the NOT of the emitted bits")
 	NOTbits := tiny.Emit(tiny.Bits.Gate(tiny.Logic.NOT), tiny.Unlimited, bits...)
-	fmt.Printf("%v ← !Phrase[11:44]\n", NOTbits)
+	fmt.Printf("%v ← !Phrase[11:44]\n\n", NOTbits)
 
-	// #4- Converting it back to its original type
+	fmt.Println("#4- Reconstructing the original phrase")
 	start := tiny.Emit(tiny.Bits.To(11), tiny.Unlimited, p)                         // Get the start range
 	NOTbits = tiny.Emit(tiny.Bits.Gate(tiny.Logic.NOT), tiny.Unlimited, NOTbits...) // NOT the NOT bits again
 	end := tiny.Emit(tiny.Bits.From(44), tiny.Unlimited, p)                         // Get the end range
 
 	reconstructed := append(start, NOTbits...)
 	reconstructed = append(reconstructed, end...)
-	p = tiny.NewPhraseFromBits("Reconstructed", tiny.Raw, reconstructed...)
-	fmt.Printf("%v ← Reconstructed Phrase\n", p.Align().StringPretty())
+	p = tiny.NewPhraseFromBits("Reconstructed", tiny.Raw, p.Endianness, reconstructed...)
+	fmt.Printf("%v ← Reconstructed Phrase\n\n", p.Align().StringPretty())
+
+	// TODO: ToType and handle slices
 }

@@ -184,15 +184,8 @@ func SanityCheck(bits ...Bit) {
 	}
 }
 
-// Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.  This
-// automatically will determine the host architecture's endianness and reverse the bytes if they are found to be BigEndian.
-// This ensures all tiny operations happen in LittleEndian byte order, regardless of the underlying hardware.
-func Measure[T any](name string, value T, endian ...Endianness) Phrase {
-	targetEndian := GetEndianness()
-	if len(endian) > 0 {
-		targetEndian = endian[0]
-	}
-
+// Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.
+func Measure[T any](name string, value T) Phrase {
 	valueType := reflect.TypeOf(value)
 	var size uintptr
 	var dataPtr unsafe.Pointer
@@ -215,18 +208,12 @@ func Measure[T any](name string, value T, endian ...Endianness) Phrase {
 	}
 
 	if size == 0 {
-		return NewPhrase(name, Logical)
+		return NewPhrase(name, Logical, GetEndianness())
 	}
 
 	bytes := unsafe.Slice((*byte)(dataPtr), size)
 
-	if targetEndian == BigEndian {
-		for i := 0; i < len(bytes); i++ {
-			bytes[i] = bytes[len(bytes)-1-i]
-		}
-	}
-
-	phrase := NewPhrase(name, Logical)
+	phrase := NewPhrase(name, Logical, GetEndianness())
 	phrase.Data = []Measurement{NewMeasurementOfBytes(bytes...)}
 	return phrase
 }

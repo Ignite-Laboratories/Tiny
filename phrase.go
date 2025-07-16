@@ -10,23 +10,26 @@ type Phrase struct {
 	Name string
 	Data []Measurement
 	Encoding
+	Endianness
 }
 
-// NewPhrase creates a named Phrase of the provided measurements and encoding scheme.
-func NewPhrase(name string, encoding Encoding, m ...Measurement) Phrase {
+// NewPhrase creates a named Phrase of the provided measurements, encoding scheme, and endianness.
+func NewPhrase(name string, encoding Encoding, endianness Endianness, m ...Measurement) Phrase {
 	return Phrase{
-		Name:     name,
-		Data:     m,
-		Encoding: encoding,
+		Name:       name,
+		Data:       m,
+		Encoding:   encoding,
+		Endianness: endianness,
 	}
 }
 
-// NewPhraseFromBits creates a named Phrase of the provided bits and encoding scheme.
-func NewPhraseFromBits(name string, encoding Encoding, bits ...Bit) Phrase {
+// NewPhraseFromBits creates a named Phrase of the provided bits, encoding scheme, and endianness.
+func NewPhraseFromBits(name string, encoding Encoding, endianness Endianness, bits ...Bit) Phrase {
 	return Phrase{
-		Name:     name,
-		Data:     []Measurement{NewMeasurement(bits...)},
-		Encoding: encoding,
+		Name:       name,
+		Data:       []Measurement{NewMeasurement(bits...)},
+		Encoding:   encoding,
+		Endianness: endianness,
 	}
 }
 
