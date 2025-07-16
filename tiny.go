@@ -5,62 +5,57 @@ import (
 	"unsafe"
 )
 
-// GetBitLength returns the bit length of the provided binary operand.
-func GetBitLength[T binary](operand T) int {
-	switch concrete := any(operand).(type) {
-	case Phrase:
-		return concrete.BitLength()
-	case Measurement:
-		return concrete.BitLength()
-	case []byte:
-		return len(concrete) * 8
-	case []Bit:
-		return len(concrete)
-	case byte:
-		return 8
-	case Bit:
-		return 1
-	default:
-		panic("invalid binary type: " + reflect.TypeOf(concrete).String())
-	}
-}
-
-// GetLongestOperand returns the longest bit length of the provided operands.
-func GetLongestOperand[T binary](operands ...T) int {
-	var longest int
-	for _, o := range operands {
-		length := GetBitLength(o)
-		if length > longest {
-			longest = length
+// GetBitWidth returns the bit width of the provided binary operand.
+func GetBitWidth[T binary](operands ...T) uint {
+	width := uint(0)
+	for _, raw := range operands {
+		switch operand := any(raw).(type) {
+		case Phrase:
+			width += operand.BitWidth()
+		case Measurement:
+			width += operand.BitWidth()
+		case []byte:
+			width += uint(len(operand) * 8)
+		case []Bit:
+			width += uint(len(operand))
+		case byte:
+			width += 8
+		case Bit:
+			width += 1
+		default:
+			panic("invalid binary type: " + reflect.TypeOf(operand).String())
 		}
 	}
-	return longest
+	return width
 }
 
-// GetMatrixElementCount returns the number of elements within a 2D slice.
-func GetMatrixElementCount[T any](matrix [][]T) int {
-	total := 0
-	for _, row := range matrix {
-		total += len(row)
+// GetWidestOperand returns the widest bit width of the provided operands.
+func GetWidestOperand[T binary](operands ...T) uint {
+	var widest uint
+	for _, o := range operands {
+		width := GetBitWidth(o)
+		if width > widest {
+			widest = width
+		}
 	}
-	return total
+	return widest
 }
 
-// AlignOperand applies the provided Align scheme against the operand to place it relative to the provided length.
-func AlignOperand[T binary](operand T, length int, scheme Align) T {
+// AlignOperand applies the provided Alignment scheme against the operand in order to place the measured binary information relative to the provided bit width.
+func AlignOperand[T binary](operand T, width uint, scheme Alignment) T {
 	switch scheme {
 	case PadLeftSideWithZeros:
-		return any(padLeftSideWithZeros(length, operand)[0]).(T)
+		return any(padLeftSideWithZeros(width, operand)[0]).(T)
 	case PadLeftSideWithOnes:
-		return any(padLeftSideWithOnes(length, operand)[0]).(T)
+		return any(padLeftSideWithOnes(width, operand)[0]).(T)
 	case PadRightSideWithZeros:
-		return any(padRightSideWithZeros(length, operand)[0]).(T)
+		return any(padRightSideWithZeros(width, operand)[0]).(T)
 	case PadRightSideWithOnes:
-		return any(padRightSideWithOnes(length, operand)[0]).(T)
+		return any(padRightSideWithOnes(width, operand)[0]).(T)
 	case PadToMiddleWithZeros:
-		return any(padToMiddleWithZeros(length, operand)[0]).(T)
+		return any(padToMiddleWithZeros(width, operand)[0]).(T)
 	case PadToMiddleWithOnes:
-		return any(padToMiddleWithOnes(length, operand)[0]).(T)
+		return any(padToMiddleWithOnes(width, operand)[0]).(T)
 	default:
 		panic("invalid alignment scheme")
 	}
@@ -73,18 +68,19 @@ func ReverseByte(b byte) byte {
 	return (b&0xAA)>>1 | (b&0x55)<<1
 }
 
-// SanityCheck ensures the provided bits are all either Zero, One - as Bit is a byte underneath.  In the land of
+// SanityCheck ensures the provided bits are all either Zero, One, or Nil - as Bit is a byte underneath.  In the land of
 // binary, that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
 func SanityCheck(bits ...Bit) {
 	for _, b := range bits {
-		if b != Zero && b != One {
+		if b != Zero && b != One && b != Nil {
 			panic(ErrorNotABit)
 		}
 	}
 }
 
-// Measure extracts bits from any sized object at runtime.  This automatically will determine
-// the host architecture's endianness, but you may override that if desired.
+// Measure takes a Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.  This
+// automatically will determine the host architecture's endianness and reverse the bytes if they are found to be BigEndian.
+// This ensures all tiny operations happen in LittleEndian byte order, regardless of the underlying hardware.
 func Measure[T any](value T, endian ...Endianness) Phrase {
 	targetEndian := GetEndianness()
 	if len(endian) > 0 {
@@ -97,15 +93,15 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 
 	// Handle slices differently from other types
 	if valueType.Kind() == reflect.Slice {
-		// Get slice length and element size
+		// Get slice width and element size
 		sliceVal := reflect.ValueOf(value)
 		elemSize := valueType.Elem().Size()
-		length := sliceVal.Len()
-		size = uintptr(length) * elemSize
+		width := sliceVal.Len()
+		size = uintptr(width) * elemSize
 
 		// Get pointer to first element
-		if length > 0 {
-			dataPtr = unsafe.Pointer(sliceVal.UnsafePointer())
+		if width > 0 {
+			dataPtr = sliceVal.UnsafePointer()
 		}
 	} else {
 		dataPtr = unsafe.Pointer(&value)
@@ -117,34 +113,21 @@ func Measure[T any](value T, endian ...Endianness) Phrase {
 	}
 
 	bytes := unsafe.Slice((*byte)(dataPtr), size)
-	result := make([]Bit, size*8)
 
-	for byteIdx := 0; byteIdx < len(bytes); byteIdx++ {
-		var currentByte byte
-		if targetEndian == BigEndian {
-			currentByte = bytes[len(bytes)-1-byteIdx]
-		} else {
-			currentByte = bytes[byteIdx]
-		}
-
-		for bitIdx := 0; bitIdx < 8; bitIdx++ {
-			resultIdx := (byteIdx * 8) + bitIdx
-			bit := (currentByte >> (7 - bitIdx)) & 1
-			result[resultIdx] = Bit(bit)
+	if targetEndian == BigEndian {
+		for i := 0; i < len(bytes); i++ {
+			bytes[i] = bytes[len(bytes)-1-i]
 		}
 	}
 
 	phrase := NewLogicalPhrase()
-	phrase.Data = make([]Measurement, len(result))
-	for i, b := range result {
-		phrase.Data[i] = NewMeasurement(b)
-	}
-
+	phrase.Data = []Measurement{NewMeasurementFromBytes(bytes...)}
 	return phrase
 }
 
-// ToType converts a slice of bits into the specified type T, respecting endianness
+// ToType converts a Phrase of binary information into the specified type T, respecting the architecture's Endianness.
 func ToType[T any](p Phrase, endian ...Endianness) T {
+	// TODO: Entirely re-write this to utilize Emit and read operations, that way we aren't actually expanding ALL the bits into a full byte in the process.
 	bits := p.GetAllBits()
 	var zero T
 	typeOf := reflect.TypeOf(zero)

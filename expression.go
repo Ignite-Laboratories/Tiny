@@ -1,37 +1,39 @@
 package tiny
 
-// Bits provides access to bit expression from binary types. Bit Expression uses Go slice accessors under the hood,
-// so you can treat the operations as the same.  All operations are performed in most→to→least significant order,
-// but you may optionally reverse the order to least←to←most.
+// Bits provides access to Bit Expression from binary types. This process walks a cursor across the binary information and selectively yields bits according to one of the below logical expressions.
 //
-// Expression.Position[𝑛] - Reads the provided index position of your slice.
+// NOTE: When calling Emit, you may also provide a maximum number of bits to be emitted with the expression.
 //
-// Expression.All[:] - Reads the entirety of your slice.
+// Expression.Positions[𝑛₀,𝑛₁,𝑛₂,𝑛₃] - reads the provided index positions of your binary information in most→to→least significant order - regardless of the provided variadic order.
 //
-// Expression.From[low:] - Reads from the provided index to the end of your slice.
+// Expression.PositionsReverse[𝑛₀,𝑛₁,𝑛₂,𝑛₃] - reads the provided index positions of your binary information in least←to←most significant order - regardless of the provided variadic order.
 //
-// Expression.To[:high] - Reads to the provided index from the start of your slice.
+// Expression.All[:] - Reads the entirety of your binary information.
 //
-// Expression.Between[low:high] - Reads between the provided indexes of your slice.
+// Expression.From[low:] - Reads from the provided index to the end of your binary information.
 //
-// Expression.Between[low:high:max] - Reads between the provided indexes of your slice up to the provided maximum.
+// Expression.To[:high] - Reads to the provided index from the start of your binary information.
 //
-// Expression.BetweenReverse[low:high:*] - Reads the same as "between" (up to an optional maximum) but from least←to←most significant order.
+// Expression.Between[low:high] - Reads between the provided indexes of your binary information.
 //
-// Expression.Gate - Performs a logical operation for every bit of your slice.
+// Expression.Gate - Performs a logical operation for every bit of your binary information.
+//
+// Expression.Pattern - XORs the provided pattern against the target bits in most→to→least significant order.
+//
+// Expression.PatternReverse - XORs the provided pattern against the target bits in least←to←most significant order.
 var Bits Expression
 
 // Expression represents the standard slice index accessor pattern, and expressions can be generated from the global Read variable.
 type Expression struct {
-	_pos      *uint
-	_low      *uint
-	_high     *uint
-	_max      *uint
-	_first    *bool
-	_last     *bool
-	_reverse  *bool
-	_bitLogic *BitLogicFunc
-	_artifact *ArtifactFunc
+	_positions *[]uint
+	_low       *uint
+	_high      *uint
+	_max       *uint
+	_last      *bool
+	_reverse   *bool
+	_bitLogic  *BitLogicFunc
+	_artifact  *ArtifactFunc
+	_limit     uint
 }
 
 // BitLogicFunc takes in many bits and their collectively shared index and returns an output bit plus a nilable artifact.
@@ -40,18 +42,34 @@ type BitLogicFunc func(int, ...Bit) ([]Bit, *Phrase)
 // ArtifactFunc applies the artifact from a single round of calculation against the provided operand bits.
 type ArtifactFunc func(i int, artifact Phrase, operands ...Phrase) []Phrase
 
-// First [0] reads the first index position of your slice.
+// Positions [𝑛₀,𝑛₁,𝑛₂...] reads the provided index positions of your binary information in most→to→least significant order - regardless of the provided variadic order.
+func (_ Expression) Positions(positions ...uint) Expression {
+	return Expression{
+		_positions: &positions,
+	}
+}
+
+// PositionsReverse [𝑛₀,𝑛₁,𝑛₂...] reads the provided index positions of your binary information in least←to←most significant order - regardless of the provided variadic order.
+func (_ Expression) PositionsReverse(positions ...uint) Expression {
+	return Expression{
+		_positions: &positions,
+		_reverse:   &True,
+	}
+}
+
+// First [0] reads the first index position of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) First(reverse ...bool) Expression {
 	isReverse := len(reverse) > 0 && reverse[0]
+	zero := []uint{0}
 	return Expression{
-		_first:   &True,
-		_reverse: &isReverse,
+		_positions: &zero,
+		_reverse:   &isReverse,
 	}
 }
 
-// Last [𝑛 - 1] reads the last index position of your slice.
+// Last [𝑛 - 1] reads the last index position of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) Last(reverse ...bool) Expression {
@@ -62,18 +80,7 @@ func (_ Expression) Last(reverse ...bool) Expression {
 	}
 }
 
-// Position [𝑛] reads the provided index position of your slice.
-//
-// Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func (_ Expression) Position(pos uint, reverse ...bool) Expression {
-	isReverse := len(reverse) > 0 && reverse[0]
-	return Expression{
-		_pos:     &pos,
-		_reverse: &isReverse,
-	}
-}
-
-// From [low:] reads from the provided index to the end of your slice.
+// From [low:] reads from the provided index to the end of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) From(low uint, reverse ...bool) Expression {
@@ -84,7 +91,7 @@ func (_ Expression) From(low uint, reverse ...bool) Expression {
 	}
 }
 
-// To [:high] reads to the provided index from the start of your slice.
+// To [:high] reads to the provided index from the start of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) To(high uint, reverse ...bool) Expression {
@@ -95,40 +102,19 @@ func (_ Expression) To(high uint, reverse ...bool) Expression {
 	}
 }
 
-// Between [low:high:*] reads between the provided indexes of your slice up to the provided maximum in most→to→least significant order.
+// Between [low:high:*] reads between the provided indexes of your binary information up to the provided maximum in most→to→least significant order.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func (_ Expression) Between(low uint, high uint, max ...uint) Expression {
-	var m *uint
-	if len(max) > 0 {
-		m = &max[0]
-	}
-
-	return Expression{
-		_low:  &low,
-		_high: &high,
-		_max:  m,
-	}
-}
-
-// BetweenReverse [low:high:*] reads between the provided indexes of your slice, up to an optional maximum, in least←to←most significant order.
-//
-// Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func (_ Expression) BetweenReverse(low uint, high uint, max ...uint) Expression {
-	var m *uint
-	if len(max) > 0 {
-		m = &max[0]
-	}
-
+func (_ Expression) Between(low uint, high uint, reverse ...bool) Expression {
+	isReverse := len(reverse) > 0 && reverse[0]
 	return Expression{
 		_low:     &low,
 		_high:    &high,
-		_max:     m,
-		_reverse: &True,
+		_reverse: &isReverse,
 	}
 }
 
-// All [:] reads the entirety of your slice.
+// All [:] reads the entirety of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) All(reverse ...bool) Expression {
@@ -138,7 +124,7 @@ func (_ Expression) All(reverse ...bool) Expression {
 	}
 }
 
-// Gate - Reads every bit and calls the provided logic gate function to manipulate the output bit.
+// Gate - Reads every bit of your binary information and calls the provided logic gate function to manipulate the output bit.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
 func (_ Expression) Gate(logic BitLogicFunc, reverse ...bool) Expression {
@@ -149,24 +135,24 @@ func (_ Expression) Gate(logic BitLogicFunc, reverse ...bool) Expression {
 	}
 }
 
-// Tile - XORs the provided pattern against the target bits in most→to→least significant order.
-func (_ Expression) Tile(pattern ...Bit) Expression {
-	logic := tileLogic(pattern...)
+// Pattern - XORs the provided pattern against the target bits of your binary information in most→to→least significant order.
+func (_ Expression) Pattern(pattern ...Bit) Expression {
+	logic := patternLogic(pattern...)
 	return Expression{
 		_bitLogic: &logic,
 	}
 }
 
-// TileReverse - XORs the provided pattern against the target bits in least←to←most significant order.
-func (_ Expression) TileReverse(pattern ...Bit) Expression {
-	logic := tileLogic(pattern...)
+// PatternReverse - XORs the provided pattern against the target bits of your binary information in least←to←most significant order.
+func (_ Expression) PatternReverse(pattern ...Bit) Expression {
+	logic := patternLogic(pattern...)
 	return Expression{
 		_bitLogic: &logic,
 		_reverse:  &True,
 	}
 }
 
-func tileLogic(pattern ...Bit) BitLogicFunc {
+func patternLogic(pattern ...Bit) BitLogicFunc {
 	limit := len(pattern)
 	step := 0
 	return func(i int, operands ...Bit) ([]Bit, *Phrase) {

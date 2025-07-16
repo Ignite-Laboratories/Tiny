@@ -24,20 +24,20 @@ func (a Phrase) GetData() []Measurement {
 
 // GetAllBits returns a slice of the Phrase's individual bits.
 func (a Phrase) GetAllBits() []Bit {
-	out := make([]Bit, 0, a.BitLength())
+	out := make([]Bit, 0, a.BitWidth())
 	for _, m := range a.Data {
 		out = append(out, m.GetAllBits()...)
 	}
 	return out
 }
 
-// BitLength gets the total bit length of this Phrase's recorded data.
-func (a Phrase) BitLength() int {
-	total := 0
+// BitWidth gets the total bit width of this Phrase's recorded data.
+func (a Phrase) BitWidth() uint {
+	total := uint(0)
 	for _, m := range a.Data {
-		total += m.BitLength()
+		total += m.BitWidth()
 	}
-	return total
+	return uint(total)
 }
 
 // Append places the provided bits at the end of the Phrase.
@@ -112,7 +112,7 @@ func (a Phrase) Align(width ...uint) Phrase {
 		w = int(width[0])
 	}
 
-	out := make([]Measurement, 0, a.BitLength()/w)
+	out := make([]Measurement, 0, int(a.BitWidth())/w)
 	current := make([]Bit, 0, 8)
 	i := 0
 
@@ -154,7 +154,7 @@ func (a Phrase) Reverse() Phrase {
 // String returns a string consisting entirely of 1s and 0s.
 func (a Phrase) String() string {
 	builder := strings.Builder{}
-	builder.Grow(a.BitLength())
+	builder.Grow(int(a.BitWidth()))
 
 	for _, m := range a.Data {
 		builder.WriteString(m.String())
@@ -173,7 +173,7 @@ func (a Phrase) StringPretty() string {
 
 	totalSize := 4 + (len(a.Data)-1)*3
 	for _, m := range a.Data {
-		totalSize += m.BitLength() * 2 // ← Approximately account for Measurement's StringPretty() spacing
+		totalSize += int(m.BitWidth()) * 2 // ← Approximately account for Measurement's StringPretty() spacing
 	}
 
 	builder := strings.Builder{}

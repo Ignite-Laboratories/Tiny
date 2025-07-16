@@ -1,70 +1,74 @@
 package tiny
 
-// Align represents a scheme of how to align operands relative to each other.
+// Alignment represents a scheme of how to align operands relative to each other - alignment operations are applied with
+// no respect to the reversal of bit emission and instead operate as "left" or "right" spatially.
 //
-// PadLeftSideWithZeros will pad the left side of the smaller operands to the length of the largest with zeros.
+// NOTE: You can only align variable width binary types - such as slices of bytes or bits, or measurements or phrases.
+// These will panic if you attempt to "pad a byte," for instance, as it's a static-width element.
 //
-// PadLeftSideWithOnes will pad the left side of the smaller operands to the length of the largest with ones.
+// PadLeftSideWithZeros will pad the left side of the smaller operands to the width of the largest with zeros.
 //
-// PadRightSideWithZeros will pad the right side of the smaller operands to the length of the largest with zeros.
+// PadLeftSideWithOnes will pad the left side of the smaller operands to the width of the largest with ones.
 //
-// PadRightSideWithOnes will pad the right side of the smaller operands to the length of the largest with ones.
+// PadRightSideWithZeros will pad the right side of the smaller operands to the width of the largest with zeros.
 //
-// PadToMiddleWithZeros will equally pad both sides of the smaller operands to the length of the largest with zeros, biased towards the left.
+// PadRightSideWithOnes will pad the right side of the smaller operands to the width of the largest with ones.
 //
-// PadToMiddleWithOnes will equally pad both sides of the smaller operands to the length of the largest with ones, biased towards the left.
-type Align int
+// PadToMiddleWithZeros will equally pad both sides of the smaller operands to the width of the largest with zeros, biased towards the left.
+//
+// PadToMiddleWithOnes will equally pad both sides of the smaller operands to the width of the largest with ones, biased towards the left.
+type Alignment int
 
 const (
-	// PadLeftSideWithZeros will pad the left side of the smaller operands to the length of the largest with zeros.
-	PadLeftSideWithZeros Align = iota
+	// PadLeftSideWithZeros will pad the left side of the smaller operands to the width of the largest with zeros.
+	PadLeftSideWithZeros Alignment = iota
 
-	// PadLeftSideWithOnes will pad the left side of the smaller operands to the length of the largest with ones.
+	// PadLeftSideWithOnes will pad the left side of the smaller operands to the width of the largest with ones.
 	PadLeftSideWithOnes
 
-	// PadRightSideWithZeros will pad the right side of the smaller operands to the length of the largest with zeros.
+	// PadRightSideWithZeros will pad the right side of the smaller operands to the width of the largest with zeros.
 	PadRightSideWithZeros
 
-	// PadRightSideWithOnes will pad the right side of the smaller operands to the length of the largest with ones.
+	// PadRightSideWithOnes will pad the right side of the smaller operands to the width of the largest with ones.
 	PadRightSideWithOnes
 
-	// PadToMiddleWithZeros will equally pad both sides of the smaller operands to the length of the largest with zeros, biased towards the left.
+	// PadToMiddleWithZeros will equally pad both sides of the smaller operands to the width of the largest with zeros, biased towards the left.
 	PadToMiddleWithZeros
 
-	// PadToMiddleWithOnes will equally pad both sides of the smaller operands to the length of the largest with ones, biased towards the left.
+	// PadToMiddleWithOnes will equally pad both sides of the smaller operands to the width of the largest with ones, biased towards the left.
 	PadToMiddleWithOnes
 )
 
-func padLeftSideWithZeros[T binary](length int, operands ...T) []T {
-	return pad[T](length, false, Zero, operands...)
+func padLeftSideWithZeros[T binary](width uint, operands ...T) []T {
+	return pad[T](width, false, Zero, operands...)
 }
 
-func padLeftSideWithOnes[T binary](length int, operands ...T) []T {
-	return pad[T](length, false, One, operands...)
+func padLeftSideWithOnes[T binary](width uint, operands ...T) []T {
+	return pad[T](width, false, One, operands...)
 }
 
-func padRightSideWithZeros[T binary](length int, operands ...T) []T {
-	return pad[T](length, true, Zero, operands...)
+func padRightSideWithZeros[T binary](width uint, operands ...T) []T {
+	return pad[T](width, true, Zero, operands...)
 }
 
-func padRightSideWithOnes[T binary](length int, operands ...T) []T {
-	return pad[T](length, true, One, operands...)
+func padRightSideWithOnes[T binary](width uint, operands ...T) []T {
+	return pad[T](width, true, One, operands...)
 }
 
-func padToMiddleWithZeros[T binary](length int, operands ...T) []T {
-	return middlePad(length, Zero, operands...)
+func padToMiddleWithZeros[T binary](width uint, operands ...T) []T {
+	return middlePad(width, Zero, operands...)
 }
 
-func padToMiddleWithOnes[T binary](length int, operands ...T) []T {
-	return middlePad(length, One, operands...)
+func padToMiddleWithOnes[T binary](width uint, operands ...T) []T {
+	return middlePad(width, One, operands...)
 }
 
-func middlePad[T binary](length int, digit Bit, operands ...T) []T {
+func middlePad[T binary](width uint, digit Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 
 	for i, o := range operands {
-		l := GetBitLength(o)
-		toPad := length - l
+		l := GetBitWidth(o)
+		toPad := width - l
 		left := toPad / 2
 		right := toPad - left
 
@@ -75,41 +79,37 @@ func middlePad[T binary](length int, digit Bit, operands ...T) []T {
 	return out
 }
 
-func pad[T binary](length int, right bool, digit Bit, operands ...T) []T {
-	if len(operands) == 0 {
-		return make([]T, 0)
-	}
-
+func pad[T binary](width uint, right bool, digit Bit, operands ...T) []T {
 	out := make([]T, len(operands))
-	for i, o := range operands {
-		toPadLen := length - GetBitLength(o)
-		if toPadLen == 0 {
-			out[i] = o
+	for i, raw := range operands {
+		paddingWidth := width - GetBitWidth(raw)
+		if paddingWidth == 0 {
+			out[i] = raw
 			continue
 		}
 
-		toPad := NewMeasurementOfDigit(toPadLen, digit).GetAllBits()
+		padding := NewMeasurementOfDigit(int(paddingWidth), digit).GetAllBits()
 
-		switch concrete := any(o).(type) {
+		switch operand := any(raw).(type) {
 		case Phrase:
 			if right {
-				out[i] = any(concrete.Append(toPad...)).(T)
+				out[i] = any(operand.Append(padding...)).(T)
 			} else {
-				out[i] = any(concrete.Prepend(toPad...)).(T)
+				out[i] = any(operand.Prepend(padding...)).(T)
 			}
 		case Measurement:
 			if right {
-				out[i] = any(concrete.Append(toPad...)).(T)
+				out[i] = any(operand.Append(padding...)).(T)
 			} else {
-				out[i] = any(concrete.Prepend(toPad...)).(T)
+				out[i] = any(operand.Prepend(padding...)).(T)
 			}
 		case []byte:
 			panic("cannot pad static width elements")
 		case []Bit:
 			if right {
-				out[i] = any(append(concrete, toPad...)).(T)
+				out[i] = any(append(operand, padding...)).(T)
 			} else {
-				out[i] = any(append(toPad, concrete...)).(T)
+				out[i] = any(append(padding, operand...)).(T)
 			}
 		case byte:
 			panic("cannot pad a static width element")

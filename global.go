@@ -15,22 +15,39 @@ type binary interface {
 Global Constants
 */
 
+// Unlimited represents a constantly referencable integer value which can be considered a reasonably "unlimited" width.
+var Unlimited = ^uint(0)
+
 // Zero is an implicit Bit{0}.
 const Zero Bit = 0
-
-var SingleZero = []Bit{Zero}
-
-var DoubleZero = []Bit{Zero, Zero}
-
-var SingleOne = []Bit{One}
-
-var DoubleOne = []Bit{One, One}
 
 // One is an implicit Bit{1}.
 const One Bit = 1
 
-// Nil is an implicit Bit{219} - this allows missing bits to implicitly be visible amongst zero and one bytes as [ 1 1 0 1 1 0 1 1 ].
-// This also ensures that Nil isn't inadvertently accepted because of an accidental underflow of 1 by using a fully dark representation.
+// SingleZero is an implicit []Bit{0}.
+var SingleZero = []Bit{Zero}
+
+// DoubleZero is an implicit []Bit{0, 0}.
+var DoubleZero = []Bit{Zero, Zero}
+
+// SingleOne is an implicit []Bit{1}.
+var SingleOne = []Bit{One}
+
+// DoubleOne is an implicit []Bit{1, 1}.
+var DoubleOne = []Bit{One, One}
+
+// Nil is an implicit Bit{219} - this allows bits to intentionally be left out of slices and still stand out visibly amongst
+// the other bits, as our Bit type is technically a byte in memory.  For example -
+//
+//	[ 0 0 0 0 0 0 0 0 ]   (0) ← A zero bit
+//	[ 0 0 0 0 0 0 0 1 ]   (1) ← A one bit
+//	[ 1 1 0 1 1 0 1 1 ] (219) ← A nil bit
+//	    ⬑ Darkness is instantly recognizable =)
+//
+// This also makes logical sense!  If you accidentally overflow or underflow your bit's value by ±1 or ±2, the system won't
+// consider it to be in a logically acceptable "nil" state - instead, it -should- panic immediately from a sanity check.
+//
+// NOTE: Nil is not used in low-level calculations, only in higher level abstractions.
 const Nil Bit = 219
 
 // True is a constantly referenceable true.
@@ -39,23 +56,172 @@ var True bool = true
 // False is a constantly referenceable false.
 var False bool = false
 
+// WordWidth is the bit width of a standard int, which for all reasonable intents and purposes matches the architecture's word width.
+const WordWidth = strconv.IntSize // NOTE: While this could mismatch on exotic hardware, this is just a convenience value.
+
 /**
 Bit
 */
 
 // Bit represents one binary place. [0 - 1]
+//
+// NOTE: This has a memory footprint of 8 bits.
 type Bit byte
 
-// String converts the provided Bit to a string 1 or 0, or panics if the found value is anything else
+// String converts the provided Bit to a string "1", "0", or "nil" - or panics if the found value is anything else.
 func (b Bit) String() string {
-	if b > 1 {
-		// PLEASE inform us if there is an issue whenever possible!!!
+	switch b {
+	case Zero:
+		return "0"
+	case One:
+		return "1"
+	case Nil:
+		return "nil"
+	default:
 		panic(ErrorNotABit)
 	}
-	if b == 0 {
-		return "0"
+}
+
+/**
+Directionality
+*/
+
+// Direction represents general directionality and includes both cardinal and abstract reference points in time and space.
+//
+// Cardinal references consider that the target (the result of calculation) is always relatively "down," or "towards the enemies gate,"
+// no matter YOUR orientation in space.  Mentally this may be the direction of "gravity" while standing up and writing calculations on
+// a whiteboard, but I think Ender described it best.
+//
+// Abstract references consider the target's relationality towards YOU as you float through the void of time and spatial calculation.
+//
+// Concrete references each have an implicit contextual purpose -
+//
+//	  South - Calculation
+//	   West - Scale
+//	  North - Accumulation
+//	   East - Reduction
+//	 Future - Anticipation
+//	Present - Experience
+//	   Past - Reflection
+//
+// See South, West, North, East, Future, Present, Past, Up, Up, Down, Down, Left, Right, Left, Right, B, A, Start
+type Direction int
+
+const (
+	// South represents the cardinal Direction "down" - which is the -target- of all calculation.
+	//
+	// See West, North, East.
+	South Direction = iota
+
+	// West represents the cardinal Direction "left" - which is the direction of scale.
+	//
+	// See South, North, East.
+	West
+
+	// North represents the cardinal Direction "up" - which is the direction of accumulation.
+	//
+	// See South, West, East.
+	North
+
+	// East represents the cardinal Direction "right" - which is the direction of reduction.
+	//
+	// See South, West, North.
+	East
+
+	// Future represents the abstract temporal Direction of "eminently" - which is the direction of anticipation.
+	//
+	// See Present, Past.
+	Future
+
+	// Present represents the abstract temporal Direction of "currently" - which is the direction of experience.
+	//
+	// See Future, Past.
+	Present
+
+	// Past represents the abstract temporal Direction of "historically" - which is the direction of reflection.
+	//
+	// See Future, Present.
+	Past
+
+	// Up represents the abstract Direction of presently relative "up."
+	//
+	// See Down, Left, Right, Forward, Backward.
+	Up // Up Down Down Left Right A B Start
+
+	// Down represents the abstract Direction of presently relative "down."
+	//
+	// See Up, Left, Right, Forward, Backward.
+	Down // Down Left Right A B Start
+
+	// Left represents the abstract Direction of presently relative "left."
+	//
+	// See Up, Down, Right, Forward, Backward.
+	Left // Right A B Start
+
+	// Right represents the abstract Direction of presently relative "right."
+	//
+	// See Up, Down, Left, Forward, Backward.
+	Right // A B Start
+
+	// Forward represents the abstract Direction of presently relative "forward."
+	//
+	// See Up, Down, Left, Right, Backward.
+	Forward
+
+	// Backward represents the abstract Direction of presently relative "backward."
+	//
+	// See Up, Down, Left, Right, Forward.
+	Backward
+)
+
+// String prints a single-character representation of the Direction -
+//
+//	   South: S
+//	    West: W
+//	   North: N
+//	    East: E
+//
+//	  Future: ⏭
+//	 Present: ⏸
+//	    Past: ⏮
+//
+//	      Up: ↑
+//	    Down: ↓
+//	    Left: ←
+//	   Right: →
+//	 Forward: ↷
+//	Backward: ↶
+func (d Direction) String() string {
+	switch d {
+	case South:
+		return "S"
+	case West:
+		return "W"
+	case North:
+		return "N"
+	case East:
+		return "E"
+	case Future:
+		return "⏭"
+	case Present:
+		return "⏸"
+	case Past:
+		return "⏮"
+	case Up:
+		return "↑"
+	case Down:
+		return "↓"
+	case Left:
+		return "←"
+	case Right:
+		return "→"
+	case Forward:
+		return "↷"
+	case Backward:
+		return "↶"
+	default:
+		return "Unknown"
 	}
-	return "1"
 }
 
 /**
@@ -68,7 +234,7 @@ Encoding
 //
 // Logical indicates this phrase entirely consists of data measurements.
 //
-// Signed indicates the first measurement is a sign, followed by the value.
+// Signed indicates the first measurement is a sign, followed by a value.
 //
 // Float indicates the first measurement is a sign, followed by an exponent, and lastly a mantissa.
 //
@@ -82,7 +248,7 @@ const (
 	// Logical indicates this phrase entirely consists of data measurements.
 	Logical
 
-	// Signed indicates the first measurement is a sign, followed by the value.
+	// Signed indicates the first measurement is a sign, followed by a value.
 	Signed
 
 	// Float indicates the first measurement is a sign, followed by an exponent, and lastly a mantissa.
@@ -92,6 +258,7 @@ const (
 	Index
 )
 
+// String prints the full word representation of the encoding scheme.
 func (e Encoding) String() string {
 	switch e {
 	case Raw:
@@ -110,11 +277,8 @@ func (e Encoding) String() string {
 }
 
 /**
-Endianness and Words
+Endianness
 */
-
-// WordWidth is the bit width of a standard int, which for all reasonable intents and purposes matches the architecture's word width.
-const WordWidth = strconv.IntSize // NOTE: While this could mismatch the architecture's word in some cases, the performance implications are minimal.
 
 // Endianness indicates the logical -byte- ordering of sequential bytes.  All binary data has a most significant side,
 // where the binary placeholder has the highest relative value, as well as a least significant side.  The individual bits
@@ -124,29 +288,36 @@ const WordWidth = strconv.IntSize // NOTE: While this could mismatch the archite
 //
 // BigEndian, where the most significant bytes come first - often used in network protocols:
 //
-//		| Most Sig. Byte  |   Middle Byte   | Least Sig. Byte |
-//		| 0 1 0 0 1 1 0 1 | 0 0 1 0 1 1 0 0 | 0 0 0 1 0 1 1 0 | (5,057,558)
-//		|        77       |        44       |        22       |
-//	          ⬑ I'm -only- showing the values here as an
-//	            identifier, not as part of the order
+//	| Most Sig. Byte  |   Middle Byte   | Least Sig. Byte |
+//	| 0 1 0 0 1 1 0 1 | 0 0 1 0 1 1 0 0 | 0 0 0 1 0 1 1 0 | (5,057,558)
+//	|        4D       |        2C       |        16       |
 //
-// LittleEndian, where the least significant bytes come first - used by x86, AMD64, ARM, and many more:
+// LittleEndian, where the least significant bytes come first - used by x86, AMD64, ARM, and the general world over:
 //
-//	| Least Sig. Byte |   Middle Byte   |  Most Sig. Byte |
-//	| 0 0 0 1 0 1 1 0 | 0 0 1 0 1 1 0 0 | 0 1 0 0 1 1 0 1 | (5,057,558)
-//	|        22       |        44       |        77       |
+//		| Least Sig. Byte |   Middle Byte   |  Most Sig. Byte |
+//		| 0 0 0 1 0 1 1 0 | 0 0 1 0 1 1 0 0 | 0 1 0 0 1 1 0 1 | (5,057,558)
+//		|        16       |        2C       |        4D       |
+//	          ⬑  The byte's internal bits remain in most→to→least order
 //
-// NOTE: While some hardware may physically store bits in least←to←most order internally, Go's shift operators (>> and <<)
+// NOTE: While some hardware may physically store bits in least←to←most order internally, Go's shift operators (<< and >>)
 // are guaranteed by the language specification to always operate in most→to→least significant order. This, in turn, means
 // that bit operations in tiny will -also- work with bits in most→to→least significant order regardless of the underlying
 // architecture's physical bit storage order. When reading raw memory, only byte ordering needs to be handled explicitly.
 //
-// NOTE: Some protocols like UART traditionally transmit the least significant bit first, so you may need to reverse bits
-// within bytes when interfacing with such protocols.
+// NOTE: Some protocols, like UART, traditionally transmit in least←to←most order, so you may also need to reverse bits
+// within bytes when interfacing with such protocols - which we fully support =)
 type Endianness int
 
 const (
+	// LittleEndian indicates that bytes are handled in least←to←most significant order and is used by x86, AMD64, ARM, and the general
+	// world over.
+	//
+	// See Endianness.
 	LittleEndian Endianness = iota
+
+	// BigEndian indicates that bytes are handled in most→to→least significant order and is often used in network protocols.
+	//
+	// See Endianness.
 	BigEndian
 )
 
@@ -180,7 +351,7 @@ func GetEndianness() Endianness {
 Errors
 */
 
-const errorMsgNotABit = "bits must be 0, 1, or 128 (nil)"
+const errorMsgNotABit = "bits must be 0, 1, or 219 (nil)"
 
-// ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 255 (nil) - as Bit is a byte underneath.
+// ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 219 (nil) - as Bit is a byte underneath.
 var ErrorNotABit = fmt.Errorf(errorMsgNotABit)

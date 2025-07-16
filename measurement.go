@@ -14,25 +14,25 @@ type Measurement struct {
 	Bits []Bit
 }
 
-// NewMeasurementOfDigit creates a new Measurement of the provided length consisting entirely of the provided digit.
-func NewMeasurementOfDigit(length int, digit Bit) Measurement {
+// NewMeasurementOfDigit creates a new Measurement of the provided bit-width consisting entirely of the provided digit.
+func NewMeasurementOfDigit(width int, digit Bit) Measurement {
 	if digit == One {
-		return NewMeasurementOfOnes(length)
+		return NewMeasurementOfOnes(width)
 	}
-	return NewMeasurementOfZeros(length)
+	return NewMeasurementOfZeros(width)
 }
 
-// NewMeasurementOfZeros creates a new Measurement of the provided length consisting entirely of 0s.
-func NewMeasurementOfZeros(length int) Measurement {
+// NewMeasurementOfZeros creates a new Measurement of the provided bit-width consisting entirely of 0s.
+func NewMeasurementOfZeros(width int) Measurement {
 	return Measurement{
-		Bytes: make([]byte, length/8),
-		Bits:  make([]Bit, length%8),
+		Bytes: make([]byte, width/8),
+		Bits:  make([]Bit, width%8),
 	}
 }
 
-// NewMeasurementOfOnes creates a new Measurement of the provided length consisting entirely of 1s.
-func NewMeasurementOfOnes(length int) Measurement {
-	zeros := NewMeasurementOfZeros(length)
+// NewMeasurementOfOnes creates a new Measurement of the provided bit-width consisting entirely of 1s.
+func NewMeasurementOfOnes(width int) Measurement {
+	zeros := NewMeasurementOfZeros(width)
 	for i := range zeros.Bytes {
 		zeros.Bytes[i] = 255
 	}
@@ -56,9 +56,9 @@ func NewMeasurementFromBytes(bytes ...byte) Measurement {
 	return m
 }
 
-// BitLength gets the total bit length of this Measurement's recorded data.
-func (a Measurement) BitLength() int {
-	return (len(a.Bytes) * 8) + len(a.Bits)
+// BitWidth gets the total bit width of this Measurement's recorded data.
+func (a Measurement) BitWidth() uint {
+	return uint((len(a.Bytes) * 8) + len(a.Bits))
 }
 
 // GetAllBits returns a slice of the Measurement's individual bits.
@@ -66,7 +66,7 @@ func (m Measurement) GetAllBits() []Bit {
 	var byteBits []Bit
 	for _, b := range m.Bytes {
 		bits := make([]Bit, 8)
-		for i := byte(7); i < 8; i-- {
+		for i := 7; i >= 0; i-- {
 			bits[i] = Bit((b >> i) & 1)
 		}
 		byteBits = append(byteBits, bits...)
