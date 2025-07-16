@@ -208,12 +208,12 @@ func Measure[T any](name string, value T) Phrase {
 	}
 
 	if size == 0 {
-		return NewPhrase(name, Logical, GetEndianness())
+		return NewPhrase(name, GetEndianness())
 	}
 
 	bytes := unsafe.Slice((*byte)(dataPtr), size)
 
-	phrase := NewPhrase(name, Logical, GetEndianness())
+	phrase := NewPhrase(name, GetEndianness())
 	phrase.Data = []Measurement{NewMeasurementOfBytes(bytes...)}
 	return phrase
 }

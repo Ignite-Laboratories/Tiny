@@ -16,7 +16,7 @@ Global Constants
 */
 
 // EmptyPhrase represents a Raw Phrase with no data.
-var EmptyPhrase = NewPhrase("3MP7Y", Raw, BigEndian)
+var EmptyPhrase = NewPhrase("3MP7Y", BigEndian)
 
 // Unlimited represents a constantly referencable integer value which can be considered a reasonably "unlimited" width.
 var Unlimited = ^uint(0)
@@ -228,58 +228,6 @@ func (d Direction) String() string {
 		return "↷"
 	case Backward:
 		return "↶"
-	default:
-		return "Unknown"
-	}
-}
-
-/**
-Encoding
-*/
-
-// Encoding represents the encoding scheme of a Phrase of Measurement points.
-//
-// Raw indicates this is simply a phrase of arbitrarily long binary information.
-//
-// Logical indicates this phrase entirely consists of data measurements.
-//
-// Signed indicates the first measurement is a sign, followed by a value.
-//
-// Float indicates the first measurement is a sign, followed by an exponent, and lastly a mantissa.
-//
-// Index indicates the phrase entirely consists of logical binary data bound to a fixed width.
-type Encoding int
-
-const (
-	// Raw indicates this is simply a phrase of arbitrarily long binary information.
-	Raw Encoding = iota
-
-	// Logical indicates this phrase entirely consists of logically aligned measurements.
-	Logical
-
-	// Signed indicates the first measurement is a sign, followed by a value.
-	Signed
-
-	// Float indicates the first measurement is a sign, followed by an exponent, and lastly a mantissa.
-	Float
-
-	// Index indicates the phrase entirely consists of logical binary data bound to a fixed width.
-	Index
-)
-
-// String prints the full word representation of the encoding scheme.
-func (e Encoding) String() string {
-	switch e {
-	case Raw:
-		return "Raw"
-	case Logical:
-		return "Logical"
-	case Signed:
-		return "Signed"
-	case Float:
-		return "Float"
-	case Index:
-		return "Index"
 	default:
 		return "Unknown"
 	}

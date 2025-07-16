@@ -9,7 +9,6 @@ import (
 type Phrase struct {
 	Name string
 	Data []Measurement
-	Encoding
 	Endianness
 }
 
@@ -30,7 +29,7 @@ type Logical Phrase
 // zero attempts to redefine the very fundamental definition of identification itself: it's PERFECTLY reasonable to naturally
 // count zero hairs on a magnificently bald head!
 //
-//  tl;dr - for a higher-order base to even naturally EXIST, it must accept the presence of zero as an identifiable value
+//	tl;dr - for a higher-order base to even naturally EXIST, it must accept the presence of zero as an identifiable value
 //
 // This implies there is one more set of numbers - "The Programmatic Set" - which extends the natural set with a singular 'nil' value.
 // I -cannot- stop you from setting your phrase to 'nil' and putting it in the programmatic set, but I can empower you with awareness =)
@@ -41,21 +40,19 @@ New Functions
 */
 
 // NewPhrase creates a named Phrase of the provided measurements, encoding scheme, and endianness.
-func NewPhrase(name string, encoding Encoding, endianness Endianness, m ...Measurement) Phrase {
+func NewPhrase(name string, endianness Endianness, m ...Measurement) Phrase {
 	return Phrase{
 		Name:       name,
 		Data:       m,
-		Encoding:   encoding,
 		Endianness: endianness,
 	}
 }
 
 // NewPhraseFromBits creates a named Phrase of the provided bits, encoding scheme, and endianness.
-func NewPhraseFromBits(name string, encoding Encoding, endianness Endianness, bits ...Bit) Phrase {
+func NewPhraseFromBits(name string, endianness Endianness, bits ...Bit) Phrase {
 	return Phrase{
 		Name:       name,
 		Data:       []Measurement{NewMeasurement(bits...)},
-		Encoding:   encoding,
 		Endianness: endianness,
 	}
 }
@@ -177,8 +174,7 @@ func (a Phrase) Align(width ...uint) Phrase {
 	}
 
 	return Phrase{
-		Data:     out,
-		Encoding: a.Encoding,
+		Data: out,
 	}
 }
 
@@ -192,7 +188,6 @@ func (a Phrase) BleedLastBit() (Bit, Phrase) {
 
 	lastBit, lastMeasurement := a.Data[len(a.Data)-1].BleedLastBit()
 	a.Data[len(a.Data)-1] = lastMeasurement
-	a.Encoding = Raw
 	return lastBit, a
 }
 
@@ -206,7 +201,6 @@ func (a Phrase) BleedFirstBit() (Bit, Phrase) {
 
 	firstBit, firstMeasurement := a.Data[0].BleedFirstBit()
 	a.Data[0] = firstMeasurement
-	a.Encoding = Raw
 	return firstBit, a
 }
 
@@ -223,9 +217,8 @@ func (a Phrase) Reverse() Phrase {
 	// TODO: Reverse the measurement order
 	rev := ReverseOperands(a)[0]
 	return Phrase{
-		Name:     fmt.Sprintf("reverse(%v)", a.Name),
-		Data:     rev.Data,
-		Encoding: a.Encoding,
+		Name: fmt.Sprintf("reverse(%v)", a.Name),
+		Data: rev.Data,
 	}
 }
 
@@ -266,7 +259,7 @@ func (a Phrase) StringPretty() string {
 		builder.WriteString(m.StringPretty())
 	}
 
-	builder.WriteString("| ")
+	builder.WriteString(" | ")
 
 	return builder.String()
 }
