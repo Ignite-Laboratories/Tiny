@@ -1,8 +1,9 @@
 package tiny
 
 // Bits provides access to Bit Expression from binary types. This process walks a cursor across the binary information and selectively yields bits according to one of the below logical expressions.
+// Expressions follow Go slice index accessor rules, meaning the low side is inclusive and the high side is exclusive.
 //
-// NOTE: When calling Emit, you may also provide a maximum number of bits to be emitted with the expression.
+// NOTE: When calling Emit, you must also provide a maximum number of bits to be emitted with the expression - this may be Unlimited.
 //
 // Expression.Positions[𝑛₀,𝑛₁,𝑛₂,𝑛₃] - reads the provided index positions of your binary information in most→to→least significant order - regardless of the provided variadic order.
 //

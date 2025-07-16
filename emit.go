@@ -9,6 +9,8 @@ import (
 //
 // For an "unlimited" maximum, please pass in Unlimited.
 func Emit[T binary](expr Expression, maximum uint, operands ...T) []Bit {
+	// TODO: Implement out of range errors in emission results
+
 	// Do nothing if there is no binary information to emit
 	totalWidth := GetBitWidth(operands...)
 	if totalWidth == 0 || maximum == 0 {
@@ -41,6 +43,11 @@ func Emit[T binary](expr Expression, maximum uint, operands ...T) []Bit {
 		} else {
 			first := uint(0)
 			last := uint(int(totalWidth))
+
+			if expr._high != nil {
+				last = *expr._high
+			}
+
 			expr._low = &first
 			expr._high = &last
 		}

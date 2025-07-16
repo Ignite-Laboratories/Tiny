@@ -238,9 +238,9 @@ func ToType[T any](p Phrase, endian ...Endianness) T {
 	var zero T
 	typeOf := reflect.TypeOf(zero)
 
-	targetEndian := GetEndianness()
-	if len(endian) > 0 {
-		targetEndian = endian[0]
+	flipBytes := false
+	if GetEndianness() == LittleEndian {
+		flipBytes = true
 	}
 
 	// Handle slices
@@ -257,20 +257,19 @@ func ToType[T any](p Phrase, endian ...Endianness) T {
 		slicePtr := unsafe.Pointer(sliceVal.UnsafePointer())
 		resultBytes := unsafe.Slice((*byte)(slicePtr), numElements*int(elemSize))
 
-		for byteIdx := 0; byteIdx < len(bits)/8; byteIdx++ {
+		for i := len(bits) - 1; i >= 0; i-- {
 			var currentByte byte
-			for bitIdx := 0; bitIdx < 8; bitIdx++ {
-				if bits[byteIdx*8+bitIdx] == 1 {
-					currentByte |= 1 << (7 - bitIdx)
+			for ii := 0; ii < 8; ii++ {
+				if bits[i] == 1 {
+					currentByte |= 1 << ii
 				}
+				i--
 			}
 
-			if targetEndian == BigEndian {
-				elementIdx := byteIdx / int(elemSize)
-				byteOffset := byteIdx % int(elemSize)
-				resultBytes[elementIdx*int(elemSize)+(int(elemSize)-1-byteOffset)] = currentByte
+			if flipBytes {
+				resultBytes = append(resultBytes, currentByte)
 			} else {
-				resultBytes[byteIdx] = currentByte
+				resultBytes = append(make([]byte, currentByte), resultBytes...)
 			}
 		}
 
@@ -287,21 +286,28 @@ func ToType[T any](p Phrase, endian ...Endianness) T {
 	resultPtr := unsafe.Pointer(&result)
 	resultBytes := unsafe.Slice((*byte)(resultPtr), size)
 
-	for byteIdx := 0; byteIdx < len(bits)/8; byteIdx++ {
+	byteI := (len(bits) / 8) - 1
+	if flipBytes {
+		byteI = 0
+	}
+
+	i := len(bits) - 1
+	for i > 0 {
 		var currentByte byte
-		for bitIdx := 0; bitIdx < 8; bitIdx++ {
-			if bits[byteIdx*8+bitIdx] == 1 {
-				currentByte |= 1 << (7 - bitIdx)
+		for ii := 0; ii < 8; ii++ {
+			if bits[i] == 1 {
+				currentByte |= 1 << ii
 			}
+			i--
 		}
 
-		if targetEndian == BigEndian {
-			resultBytes[len(resultBytes)-1-byteIdx] = currentByte
+		resultBytes[byteI] = currentByte
+		if flipBytes {
+			byteI++
 		} else {
-			resultBytes[byteIdx] = currentByte
+			byteI--
 		}
 	}
 
 	return result
-
 }

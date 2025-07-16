@@ -21,6 +21,15 @@ func NewPhrase(name string, encoding Encoding, m ...Measurement) Phrase {
 	}
 }
 
+// NewPhraseFromBits creates a named Phrase of the provided bits and encoding scheme.
+func NewPhraseFromBits(name string, encoding Encoding, bits ...Bit) Phrase {
+	return Phrase{
+		Name:     name,
+		Data:     []Measurement{NewMeasurement(bits...)},
+		Encoding: encoding,
+	}
+}
+
 // GetData returns the phrase's measurement data.  This is exposed as a method to guarantee
 // the encoded accessors for any derived types are grouped together in your IDE's type-ahead.
 func (a Phrase) GetData() []Measurement {
@@ -118,7 +127,7 @@ func (a Phrase) Align(width ...uint) Phrase {
 	}
 
 	out := make([]Measurement, 0, int(a.BitWidth())/w)
-	current := make([]Bit, 0, 8)
+	current := make([]Bit, 0, w)
 	i := 0
 
 	for _, m := range a.Data {
@@ -128,6 +137,7 @@ func (a Phrase) Align(width ...uint) Phrase {
 			if i == 8 {
 				i = 0
 				out = append(out, NewMeasurement(current...))
+				current = make([]Bit, 0, w)
 			}
 		}
 	}

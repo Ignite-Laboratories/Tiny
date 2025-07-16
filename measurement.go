@@ -75,7 +75,7 @@ func (a Measurement) GetAllBits() []Bit {
 	for _, b := range a.Bytes {
 		bits := make([]Bit, 8)
 		for i := 7; i >= 0; i-- {
-			bits[i] = Bit((b >> i) & 1)
+			bits[7-i] = Bit((b >> i) & 1)
 		}
 		byteBits = append(byteBits, bits...)
 	}
@@ -99,7 +99,7 @@ func (a Measurement) AppendBytes(bytes ...byte) Measurement {
 		bits := make([]Bit, 8)
 
 		for i := byte(7); i < 8; i-- {
-			bits[7-i] = Bit((b >> i) & 1)
+			bits[i] = Bit((b >> i) & 1)
 		}
 
 		blended := append(lastBits, bits[:8-len(lastBits)]...)
