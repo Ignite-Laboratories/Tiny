@@ -156,7 +156,7 @@ func linearLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 
 		// Bailout when the pre-calculated limit has been met
 		if len(yield) >= int(expr._limit) {
-			return yield[:int(expr._limit)], cursor
+			return yield[:int(math.Min(float64(len(yield)), float64(expr._limit)))], cursor
 		}
 	}
 	return yield, cursor

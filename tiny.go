@@ -219,7 +219,7 @@ func Measure[T any](name string, value T) Phrase {
 }
 
 // ToType converts a Phrase of binary information into the specified type T, respecting the architecture's Endianness.
-func ToType[T any](p Phrase, endian ...Endianness) T {
+func ToType[T any](p Phrase) T {
 	// TODO: Entirely re-write this to utilize Emit and read operations, that way we aren't actually expanding ALL the bits into a full byte in the process.
 	bits := p.GetAllBits()
 	var zero T

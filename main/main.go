@@ -12,7 +12,7 @@ func main() {
 	fmt.Printf("%v ← Measurement of [byte{77}, byte{22}]\n\n", m.StringPretty())
 
 	fmt.Println("#1 - Measuring an object directly out of memory into a phrase -")
-	random := rand.Int64()
+	random := rand.Int32()
 	p := tiny.Measure("data", random)
 	fmt.Printf("%v ← Phrase of [%v]\n\n", p.Align().StringPretty(), random)
 
@@ -35,4 +35,6 @@ func main() {
 	fmt.Printf("%v ← Reconstructed Phrase\n\n", p.Align().StringPretty())
 
 	// TODO: ToType and handle slices
+	//result := tiny.ToType[uint32](p)
+	//fmt.Println(result)
 }
