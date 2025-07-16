@@ -37,10 +37,10 @@ type Expression struct {
 }
 
 // BitLogicFunc takes in many bits and their collectively shared index and returns an output bit plus a nilable artifact.
-type BitLogicFunc func(int, ...Bit) ([]Bit, *Phrase)
+type BitLogicFunc func(uint, ...Bit) ([]Bit, *Phrase)
 
 // ArtifactFunc applies the artifact from a single round of calculation against the provided operand bits.
-type ArtifactFunc func(i int, artifact Phrase, operands ...Phrase) []Phrase
+type ArtifactFunc func(i uint, artifact Phrase, operands ...Phrase) []Phrase
 
 // Positions [𝑛₀,𝑛₁,𝑛₂...] reads the provided index positions of your binary information in most→to→least significant order - regardless of the provided variadic order.
 func (_ Expression) Positions(positions ...uint) Expression {
@@ -166,7 +166,7 @@ func (_ Expression) PatternReverse(pattern ...Bit) Expression {
 func patternLogic(pattern ...Bit) BitLogicFunc {
 	limit := len(pattern)
 	step := 0
-	return func(i int, operands ...Bit) ([]Bit, *Phrase) {
+	return func(i uint, operands ...Bit) ([]Bit, *Phrase) {
 		for _, b := range pattern {
 			operands[i] = b ^ pattern[i]
 		}

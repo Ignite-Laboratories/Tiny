@@ -180,6 +180,7 @@ func (a Phrase) RollUp() Phrase {
 
 // Reverse reverses the order of all bits in the phrase.
 func (a Phrase) Reverse() Phrase {
+	// TODO: Reverse the measurement order
 	rev := ReverseOperands(a)[0]
 	return Phrase{
 		Name:     fmt.Sprintf("reverse(%v)", a.Name),

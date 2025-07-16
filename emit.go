@@ -118,10 +118,16 @@ func linearLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 			cycleBits = append(cycleBits, bits...)
 		case Bit:
 			// Bits step the cursor across the bits and select out data
+			if expr._bitLogic != nil {
+				bits, _ := (*expr._bitLogic)(cursor, operand)
+				operand = bits[0]
+			}
+
 			if expr._positions != nil && len(*expr._positions) > 0 {
 				// We are performing explicit position selection
 				for _, pos := range *expr._positions {
 					if pos == cursor {
+
 						cycleBits = append(cycleBits, operand)
 					}
 				}

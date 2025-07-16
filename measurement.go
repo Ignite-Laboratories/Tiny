@@ -146,7 +146,7 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 
 // Reverse reverses the order of all bits in the measurement.
 func (a Measurement) Reverse() Measurement {
-	// TODO: reverse the measurement
+	// TODO: reverse the measurement bit order
 	return a
 }
 
