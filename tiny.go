@@ -225,11 +225,6 @@ func ToType[T any](p Phrase) T {
 	var zero T
 	typeOf := reflect.TypeOf(zero)
 
-	flipBytes := false
-	if GetEndianness() == LittleEndian {
-		flipBytes = true
-	}
-
 	// Handle slices
 	if typeOf.Kind() == reflect.Slice {
 		elemType := typeOf.Elem()
@@ -244,7 +239,9 @@ func ToType[T any](p Phrase) T {
 		slicePtr := unsafe.Pointer(sliceVal.UnsafePointer())
 		resultBytes := unsafe.Slice((*byte)(slicePtr), numElements*int(elemSize))
 
-		for i := len(bits) - 1; i >= 0; i-- {
+		byteI := (len(bits) / 8) - 1
+		i := len(bits) - 1
+		for i > 0 {
 			var currentByte byte
 			for ii := 0; ii < 8; ii++ {
 				if bits[i] == 1 {
@@ -253,11 +250,8 @@ func ToType[T any](p Phrase) T {
 				i--
 			}
 
-			if flipBytes {
-				resultBytes = append(resultBytes, currentByte)
-			} else {
-				resultBytes = append(make([]byte, currentByte), resultBytes...)
-			}
+			resultBytes[byteI] = currentByte
+			byteI--
 		}
 
 		return sliceVal.Interface().(T)
@@ -274,10 +268,6 @@ func ToType[T any](p Phrase) T {
 	resultBytes := unsafe.Slice((*byte)(resultPtr), size)
 
 	byteI := (len(bits) / 8) - 1
-	if flipBytes {
-		byteI = 0
-	}
-
 	i := len(bits) - 1
 	for i > 0 {
 		var currentByte byte
@@ -289,11 +279,7 @@ func ToType[T any](p Phrase) T {
 		}
 
 		resultBytes[byteI] = currentByte
-		if flipBytes {
-			byteI++
-		} else {
-			byteI--
-		}
+		byteI--
 	}
 
 	return result

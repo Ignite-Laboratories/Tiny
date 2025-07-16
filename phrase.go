@@ -5,13 +5,40 @@ import (
 	"strings"
 )
 
-// Phrase represents a collection of measurements, plus their Encoding scheme.
+// Phrase represents a collection of raw binary measurements and their observed Endianness at the time of recording.
 type Phrase struct {
 	Name string
 	Data []Measurement
 	Encoding
 	Endianness
 }
+
+// Logical represents a phrase where the measurements are fixed logical widths.
+type Logical Phrase
+
+// Natural represents a phrase holding a value belonging to the set of natural numbers, including zero.
+//
+// To those who consider zero to not be included in the set of natural numbers, I present a counter-argument:
+// Base 1 has only one identifier, meaning it includes zero by -not- holding a value in an observable location - this
+// is 'nil', which is not a part of the "natural" set of numbers.  All other higher order bases are built upon identifying
+// the size of a base 1 value through "identification" - in binary, `0` or `1`.  Yet `0` directly represents the -absence-
+// of any base 1 value at the target location - baked right into its -only- two identifiers!
+//
+// A base 1 value is only -countable- through identification.  Thus, the set of "Uncountable Numbers" IS base-1 - and it's
+// what directly allows all higher order bases to even BE naturally countable!  Not to mention that we count to a value by
+// analyzing the presence of anything - fingers, digits, different length squiggles, feelings - meaning to exclude
+// zero attempts to redefine the very fundamental definition of identification itself: it's PERFECTLY reasonable to naturally
+// count zero hairs on a magnificently bald head!
+//
+//  tl;dr - for a higher-order base to even naturally EXIST, it must accept the presence of zero as an identifiable value
+//
+// This implies there is one more set of numbers - "The Programmatic Set" - which extends the natural set with a singular 'nil' value.
+// I -cannot- stop you from setting your phrase to 'nil' and putting it in the programmatic set, but I can empower you with awareness =)
+type Natural Phrase
+
+/**
+New Functions
+*/
 
 // NewPhrase creates a named Phrase of the provided measurements, encoding scheme, and endianness.
 func NewPhrase(name string, encoding Encoding, endianness Endianness, m ...Measurement) Phrase {

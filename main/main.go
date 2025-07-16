@@ -2,17 +2,16 @@ package main
 
 import (
 	"fmt"
-	"math/rand/v2"
 	"tiny"
 )
 
 func main() {
-	fmt.Println("#0 - Creating a binary measurement directly -")
+	fmt.Println("#0 - Taking a direct binary measurement -")
 	m := tiny.NewMeasurementOfBytes(77, 22)
 	fmt.Printf("%v ← Measurement of [byte{77}, byte{22}]\n\n", m.StringPretty())
 
-	fmt.Println("#1 - Measuring an object directly out of memory into a phrase -")
-	random := rand.Int32()
+	fmt.Println("#1 - Measuring an object in memory into a phrase -")
+	random := tiny.Future
 	p := tiny.Measure("data", random)
 	fmt.Printf("%v ← Phrase of [%v]\n\n", p.Align().StringPretty(), random)
 
@@ -35,6 +34,6 @@ func main() {
 	fmt.Printf("%v ← Reconstructed Phrase\n\n", p.Align().StringPretty())
 
 	// TODO: ToType and handle slices
-	//result := tiny.ToType[uint32](p)
-	//fmt.Println(result)
+	result := tiny.ToType[tiny.Direction](p)
+	fmt.Printf("%v ← Reconstructed Object\n", result)
 }
