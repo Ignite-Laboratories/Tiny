@@ -55,11 +55,11 @@ func NewMeasurement(bits ...Bit) Measurement {
 	}
 }
 
-// NewMeasurementFromBytes creates a new Measurement of the provided byte slice.
-func NewMeasurementFromBytes(bytes ...byte) Measurement {
+// NewMeasurementOfBytes creates a new Measurement of the provided byte slice.
+func NewMeasurementOfBytes(bytes ...byte) Measurement {
 	// TODO: Generate a random name
 	m := Measurement{}
-	m.AppendBytes(bytes...)
+	m = m.AppendBytes(bytes...)
 	return m
 }
 
@@ -70,6 +70,7 @@ func (a Measurement) BitWidth() uint {
 
 // GetAllBits returns a slice of the Measurement's individual bits.
 func (a Measurement) GetAllBits() []Bit {
+	a = a.sanityCheck()
 	var byteBits []Bit
 	for _, b := range a.Bytes {
 		bits := make([]Bit, 8)
@@ -98,7 +99,7 @@ func (a Measurement) AppendBytes(bytes ...byte) Measurement {
 		bits := make([]Bit, 8)
 
 		for i := byte(7); i < 8; i-- {
-			bits[i] = Bit((b >> i) & 1)
+			bits[7-i] = Bit((b >> i) & 1)
 		}
 
 		blended := append(lastBits, bits[:8-len(lastBits)]...)
@@ -145,7 +146,8 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 
 // Reverse reverses the order of all bits in the measurement.
 func (a Measurement) Reverse() Measurement {
-	return ReverseOperands(a)[0]
+	// TODO: reverse the measurement
+	return a
 }
 
 // BleedLastBit returns the last bit of the measurement and a measurement missing that bit.
@@ -207,6 +209,12 @@ Utilities
 
 // sanityCheck ensures the provided bits are all 1s and 0s and rolls the currently measured bits into bytes, if possible.
 func (a Measurement) sanityCheck(bits ...Bit) Measurement {
+	if a.Bytes == nil {
+		a.Bytes = []byte{}
+	}
+	if a.Bits == nil {
+		a.Bits = []Bit{}
+	}
 	SanityCheck(bits...)
 	return a.RollUp()
 }

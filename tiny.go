@@ -227,7 +227,7 @@ func Measure[T any](name string, value T, endian ...Endianness) Phrase {
 	}
 
 	phrase := NewPhrase(name, Logical)
-	phrase.Data = []Measurement{NewMeasurementFromBytes(bytes...)}
+	phrase.Data = []Measurement{NewMeasurementOfBytes(bytes...)}
 	return phrase
 }
 

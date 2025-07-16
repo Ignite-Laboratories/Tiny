@@ -60,7 +60,7 @@ func (a Phrase) Append(bits ...Bit) Phrase {
 // AppendBytes places the provided bits at the end of the Phrase.
 func (a Phrase) AppendBytes(bytes ...byte) Phrase {
 	if len(a.Data) == 0 {
-		a.Data = append(a.Data, NewMeasurementFromBytes(bytes...))
+		a.Data = append(a.Data, NewMeasurementOfBytes(bytes...))
 		return a
 	}
 
@@ -83,7 +83,7 @@ func (a Phrase) Prepend(bits ...Bit) Phrase {
 // PrependBytes places the provided bytes at the start of the Phrase.
 func (a Phrase) PrependBytes(bytes ...byte) Phrase {
 	if len(a.Data) == 0 {
-		a.Data = append(a.Data, NewMeasurementFromBytes(bytes...))
+		a.Data = append(a.Data, NewMeasurementOfBytes(bytes...))
 		return a
 	}
 

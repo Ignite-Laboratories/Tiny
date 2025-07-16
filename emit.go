@@ -15,7 +15,7 @@ func Emit[T binary](expr Expression, maximum uint, operands ...T) []Bit {
 		return make([]Bit, 0)
 	}
 
-	if len(*expr._positions) > 0 && (expr._low != nil || expr._high != nil) {
+	if (expr._positions != nil && len(*expr._positions) > 0) && (expr._low != nil || expr._high != nil) {
 		panic("cannot search for an explicit position inside of a range - you can perform that operation with compound emit operations")
 	}
 
@@ -35,12 +35,14 @@ func Emit[T binary](expr Expression, maximum uint, operands ...T) []Bit {
 				expr._limit = *expr._high - *expr._low
 			} else {
 				// If no high boundary, set it to the last index of the operands
-				last := uint(int(totalWidth) - 1)
+				last := uint(int(totalWidth))
 				expr._high = &last
 			}
 		} else {
-			zero := uint(0)
-			expr._low = &zero
+			first := uint(0)
+			last := uint(int(totalWidth))
+			expr._low = &first
+			expr._high = &last
 		}
 	}
 
@@ -114,26 +116,24 @@ func linearLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 			}
 			bits, cursor = linearLogic(cursor, expr, bits...)
 			cycleBits = append(cycleBits, bits...)
-		case []Bit:
-			// Bit slices step the cursor across the bits and select out data
-			for _, bit := range operand {
-				if len(*expr._positions) > 0 {
-					// We are performing explicit position selection
-					for _, pos := range *expr._positions {
-						if pos == cursor {
-							cycleBits = append(cycleBits, bit)
-						}
-					}
-				} else {
-					// We are performing ranged selection
-					if cursor >= *expr._low && cursor < *expr._high {
-						cycleBits = append(cycleBits, bit)
+		case Bit:
+			// Bits step the cursor across the bits and select out data
+			if expr._positions != nil && len(*expr._positions) > 0 {
+				// We are performing explicit position selection
+				for _, pos := range *expr._positions {
+					if pos == cursor {
+						cycleBits = append(cycleBits, operand)
 					}
 				}
-
-				// Increment the cursor's current bit position in the source information
-				cursor++
+			} else {
+				// We are performing ranged selection
+				if cursor >= *expr._low && cursor < *expr._high {
+					cycleBits = append(cycleBits, operand)
+				}
 			}
+
+			// Increment the cursor's current bit position in the source information
+			cursor++
 		default:
 			panic(fmt.Errorf("invalid binary type: %T", operand))
 		}
@@ -215,5 +215,5 @@ func matrixLogic[T binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 	//	yield = linear
 	//	count = uint(longest) // TODO: Alignment all the operands and set this to the number of returned operands
 	//} else {
-	return nil, -1
+	return nil, Unlimited
 }
