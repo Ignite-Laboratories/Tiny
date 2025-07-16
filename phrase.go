@@ -15,6 +15,9 @@ type Phrase struct {
 // Logical represents a phrase where the measurements are fixed logical widths.
 type Logical Phrase
 
+// Index represents an implicitly fixed-width phrase of raw binary information.
+type Index Phrase
+
 // Natural represents a phrase holding a value belonging to the set of natural numbers, including zero.
 //
 // To those who consider zero to not be included in the set of natural numbers, I present a counter-argument:
@@ -34,6 +37,40 @@ type Logical Phrase
 // This implies there is one more set of numbers - "The Programmatic Set" - which extends the natural set with a singular 'nil' value.
 // I -cannot- stop you from setting your phrase to 'nil' and putting it in the programmatic set, but I can empower you with awareness =)
 type Natural Phrase
+
+// Integer represents a phrase encoded as two measurements - a sign bit, and an arbitrary bit-width value.
+//
+// NOTE: The entire goal of tiny is to break away from the boundaries of overflow logic - if you explicitly
+// require working with index-based overflow logic, please use an Index phrase.
+type Integer Phrase
+
+// Float32 represents a 32-bit phrase encoded as three measurements in accordance with IEEE 754 -
+//
+//      Sign: 1 bit
+//  Exponent: 8 bits
+//  Mantissa: 23 bits
+type Float32 Phrase
+
+// Float64 represents a 64-bit phrase encoded as three measurements in accordance with IEEE 754 -
+//
+//      Sign: 1 bit
+//  Exponent: 11 bits
+//  Mantissa: 52 bits
+type Float64 Phrase
+
+// Float128 represents a 128-bit phrase encoded as three measurements in accordance with IEEE 754 -
+//
+//      Sign: 1 bit
+//  Exponent: 15 bits
+//  Mantissa: 112 bits
+type Float128 Phrase
+
+// Float256 represents a 256-bit phrase encoded as three measurements in accordance with IEEE 754 -
+//
+//      Sign: 1 bit
+//  Exponent: 19 bits
+//  Mantissa: 236 bits
+type Float256 Phrase
 
 /**
 New Functions
