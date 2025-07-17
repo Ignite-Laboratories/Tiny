@@ -114,7 +114,7 @@ Directionality
 //	   Past - Reflection
 //
 // See South, West, North, East, Future, Present, Past, Up, Up, Down, Down, Left, Right, Left, Right, B, A, Start
-type Direction int
+type Direction byte
 
 const (
 	// South represents the cardinal Direction "down" - which is the -target- of all calculation.

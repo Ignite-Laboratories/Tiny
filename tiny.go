@@ -185,37 +185,63 @@ func SanityCheck(bits ...Bit) {
 }
 
 // Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.
-func Measure[T any](name string, value T) Phrase {
-	valueType := reflect.TypeOf(value)
+func Measure[T any](name string, value ...T) Phrase {
+	p := NewPhrase(name, BigEndian)
+	for _, v := range value {
+		p = p.AppendBytes(measure(name, v)...)
+	}
+	return p
+}
+
+func measure[T any](name string, value T) []byte {
+	// First determine the size to read
 	var size uintptr
-	var dataPtr unsafe.Pointer
-
-	// Handle slices differently from other types
-	if valueType.Kind() == reflect.Slice {
-		// Get slice width and element size
-		sliceVal := reflect.ValueOf(value)
-		elemSize := valueType.Elem().Size()
-		width := sliceVal.Len()
-		size = uintptr(width) * elemSize
-
-		// Get pointer to first element
-		if width > 0 {
-			dataPtr = sliceVal.UnsafePointer()
+	switch any(value).(type) {
+	case byte, int8, bool:
+		size = 1
+	case uint16, int16:
+		size = 2
+	case uint32, int32, float32:
+		size = 4
+	case uint64, int64, float64, uint, int:
+		size = 8
+	case complex64:
+		size = 8
+	case complex128:
+		size = 16
+	case string:
+		return []byte(any(value).(string))
+	default:
+		// Handle other types including slices using reflection
+		val := reflect.ValueOf(value)
+		if val.Kind() == reflect.Slice {
+			if val.Len() == 0 {
+				return []byte{}
+			}
+			elemSize := val.Type().Elem().Size()
+			totalSize := uintptr(val.Len()) * elemSize
+			size = totalSize
+		} else {
+			size = reflect.TypeOf(value).Size()
 		}
-	} else {
-		dataPtr = unsafe.Pointer(&value)
-		size = valueType.Size()
 	}
 
 	if size == 0 {
-		return NewPhrase(name, GetEndianness())
+		return []byte{}
 	}
 
-	bytes := unsafe.Slice((*byte)(dataPtr), size)
+	// Get pointer to the value and read memory
+	var dataPtr unsafe.Pointer
+	if val := reflect.ValueOf(value); val.Kind() == reflect.Slice {
+		dataPtr = unsafe.Pointer(val.UnsafePointer())
+	} else {
+		dataPtr = unsafe.Pointer(reflect.ValueOf(&value).Elem().UnsafeAddr())
+	}
 
-	phrase := NewPhrase(name, GetEndianness())
-	phrase.Data = []Measurement{NewMeasurementOfBytes(bytes...)}
-	return phrase
+	// Copy the bytes
+	bytes := make([]byte, size)
+	copy(bytes, (*[1 << 30]byte)(dataPtr)[:size:size])
+	return bytes
 }
 
 // ToType converts a Phrase of binary information into the specified type T, respecting the architecture's Endianness.
