@@ -12,7 +12,7 @@ type Phrase struct {
 	Endianness
 }
 
-// Logical represents a phrase where the measurements are fixed logical widths.
+// Logical represents a variable width phrase where the measurements are all similar fixed logical widths.
 type Logical Phrase
 
 // Index represents an implicitly fixed-width phrase of raw binary information.
@@ -20,22 +20,23 @@ type Index Phrase
 
 // Natural represents a phrase holding a value belonging to the set of natural numbers, including zero.
 //
-// To those who consider zero to not be included in the set of natural numbers, I present a counter-argument:
-// Base 1 has only one identifier, meaning it includes zero by -not- holding a value in an observable location - this
-// is 'nil', which is not a part of the "natural" set of numbers.  All other higher order bases are built upon identifying
-// the size of a base 1 value through "identification" - in binary, `0` or `1`.  Yet `0` directly represents the -absence-
-// of any base 1 value at the target location - baked right into its -only- two identifiers!
+// To those who think zero shouldn't be included in the set of natural numbers, I present a counter-argument:
+// Base 1 has only one identifier, meaning it can only "represent" zero by -not- holding a value in an observable
+// location.  Subsequently, all bases are built upon determining the size of a value through "identification" - in
+// binary, through a series of zeros or ones, in decimal through the identifiers 0-9.
 //
-// A base 1 value is only -countable- through identification.  Thus, the set of "Uncountable Numbers" IS base-1 - and it's
-// what directly allows all higher order bases to even BE naturally countable!  Not to mention that we count to a value by
-// analyzing the presence of anything - fingers, digits, different length squiggles, feelings - meaning to exclude
-// zero attempts to redefine the very fundamental definition of identification itself: it's PERFECTLY reasonable to naturally
-// count zero hairs on a magnificently bald head!
+// Now here's where it gets tricky: a value doesn't even EXIST until it is given a place to exist within, meaning its
+// existence directly implies a void which has now been filled - an identifiable "zero" state.  In fact, the very first
+// identifier of all higher order bases (zero) specifically identifies this state!  Counting, itself, comes from the act of observing
+// the general relativistic -presence- of anything - fingers, digits, different length squiggles, feelings - meaning to exclude
+// zero attempts to redefine the very fundamental definition of identification itself: it's PERFECTLY reasonable to -naturally-
+// count -zero- hairs on a magnificently bald head!
 //
-//	tl;dr - for a higher-order base to even naturally EXIST, it must accept the presence of zero as an identifiable value
+//	tl;dr - to count naturally involves identification, which implies accepting -non-existence- as a countable state
 //
-// This implies there is one more set of numbers - "The Programmatic Set" - which extends the natural set with a singular 'nil' value.
-// I -cannot- stop you from setting your phrase to 'nil' and putting it in the programmatic set, but I can empower you with awareness =)
+// I should note this entire system hinges on one fundamental flaw - this container technically holds one additional value beyond
+// the 'natural' number set: nil!  I call this the "programmatic set" of numbers, and I can't stop you from setting your natural
+// phrase to it, but I can empower you with awareness =)
 type Natural Phrase
 
 // Integer represents a phrase encoded as two measurements - a sign bit, and an arbitrary bit-width value.
@@ -46,30 +47,30 @@ type Integer Phrase
 
 // Float32 represents a 32-bit phrase encoded as three measurements in accordance with IEEE 754 -
 //
-//      Sign: 1 bit
-//  Exponent: 8 bits
-//  Mantissa: 23 bits
+//	    Sign: 1 bit
+//	Exponent: 8 bits
+//	Mantissa: 23 bits
 type Float32 Phrase
 
 // Float64 represents a 64-bit phrase encoded as three measurements in accordance with IEEE 754 -
 //
-//      Sign: 1 bit
-//  Exponent: 11 bits
-//  Mantissa: 52 bits
+//	    Sign: 1 bit
+//	Exponent: 11 bits
+//	Mantissa: 52 bits
 type Float64 Phrase
 
 // Float128 represents a 128-bit phrase encoded as three measurements in accordance with IEEE 754 -
 //
-//      Sign: 1 bit
-//  Exponent: 15 bits
-//  Mantissa: 112 bits
+//	    Sign: 1 bit
+//	Exponent: 15 bits
+//	Mantissa: 112 bits
 type Float128 Phrase
 
 // Float256 represents a 256-bit phrase encoded as three measurements in accordance with IEEE 754 -
 //
-//      Sign: 1 bit
-//  Exponent: 19 bits
-//  Mantissa: 236 bits
+//	    Sign: 1 bit
+//	Exponent: 19 bits
+//	Mantissa: 236 bits
 type Float256 Phrase
 
 /**
