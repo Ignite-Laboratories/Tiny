@@ -39,31 +39,31 @@ const (
 	PadToMiddleWithOnes
 )
 
-func padLeftSideWithZeros[T binary](width uint, operands ...T) []T {
+func padLeftSideWithZeros[T Binary](width uint, operands ...T) []T {
 	return pad[T](width, false, Zero, operands...)
 }
 
-func padLeftSideWithOnes[T binary](width uint, operands ...T) []T {
+func padLeftSideWithOnes[T Binary](width uint, operands ...T) []T {
 	return pad[T](width, false, One, operands...)
 }
 
-func padRightSideWithZeros[T binary](width uint, operands ...T) []T {
+func padRightSideWithZeros[T Binary](width uint, operands ...T) []T {
 	return pad[T](width, true, Zero, operands...)
 }
 
-func padRightSideWithOnes[T binary](width uint, operands ...T) []T {
+func padRightSideWithOnes[T Binary](width uint, operands ...T) []T {
 	return pad[T](width, true, One, operands...)
 }
 
-func padToMiddleWithZeros[T binary](width uint, operands ...T) []T {
+func padToMiddleWithZeros[T Binary](width uint, operands ...T) []T {
 	return middlePad(width, Zero, operands...)
 }
 
-func padToMiddleWithOnes[T binary](width uint, operands ...T) []T {
+func padToMiddleWithOnes[T Binary](width uint, operands ...T) []T {
 	return middlePad(width, One, operands...)
 }
 
-func middlePad[T binary](width uint, digit Bit, operands ...T) []T {
+func middlePad[T Binary](width uint, digit Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 
 	for i, o := range operands {
@@ -79,7 +79,7 @@ func middlePad[T binary](width uint, digit Bit, operands ...T) []T {
 	return out
 }
 
-func pad[T binary](width uint, right bool, digit Bit, operands ...T) []T {
+func pad[T Binary](width uint, right bool, digit Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 	for i, raw := range operands {
 		paddingWidth := width - GetBitWidth(raw)

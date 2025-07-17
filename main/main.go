@@ -10,8 +10,8 @@ import (
 func main() {
 	fmt.Println("#0 - Taking a direct binary measurement -")
 
-	m := tiny.Measure[byte]("bytes", 77, 22)
-	fmt.Printf("%v ← Measurement of [byte{77}, byte{22}]\n\n", m.StringPretty())
+	m := tiny.Measure[byte]("bytes", 77, 22, 44, 88)
+	fmt.Printf("%v ← Phrase of [byte{77}, byte{22}, byte{44}, byte{88}]\n\n", m.StringPretty())
 
 	fmt.Println("#1 - Measuring a random number")
 
@@ -21,12 +21,12 @@ func main() {
 
 	fmt.Println("#2 - Emitting specific bits from the phrase")
 
-	bits := emit.Between(11, 44).FromPhrase(p)
+	bits := emit.Between(11, 44, p)
 	fmt.Printf("%v ← Phrase[11:44]\n\n", bits)
 
 	fmt.Println("#3 -  Emitting the NOT of the emitted bits")
 
-	NOTbits := emit.NOT().FromBits(bits...)
+	NOTbits := emit.NOT(bits...)
 	fmt.Printf("%v ← !Phrase[11:44]\n\n", NOTbits)
 
 	fmt.Println("#4 - Measuring an object in memory into a phrase -")

@@ -7,7 +7,7 @@ import (
 )
 
 // GetBitWidth returns the bit width of the provided binary operand.
-func GetBitWidth[T binary](operands ...T) uint {
+func GetBitWidth[T Binary](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
@@ -33,7 +33,7 @@ func GetBitWidth[T binary](operands ...T) uint {
 // BleedEnd returns the ending bits of the operands and the operands missing those bits.
 //
 // All bleed operations are always returned in their original most→to→least significant order.
-func BleedEnd[T binary](width uint, operands ...T) ([][]Bit, []T) {
+func BleedEnd[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 	bits := make([][]Bit, 0, len(operands))
 
 	for x := 0; x < int(width); x++ {
@@ -69,7 +69,7 @@ func BleedEnd[T binary](width uint, operands ...T) ([][]Bit, []T) {
 // BleedStart returns the first bit of the operands and the operands missing that bit.
 //
 // All bleed operations are always returned in their original most→to→least significant order.
-func BleedStart[T binary](width uint, operands ...T) ([][]Bit, []T) {
+func BleedStart[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 	bits := make([][]Bit, 0, len(operands))
 
 	for x := 0; x < int(width); x++ {
@@ -103,7 +103,7 @@ func BleedStart[T binary](width uint, operands ...T) ([][]Bit, []T) {
 }
 
 // GetWidestOperand returns the widest bit width of the provided operands.
-func GetWidestOperand[T binary](operands ...T) uint {
+func GetWidestOperand[T Binary](operands ...T) uint {
 	var widest uint
 	for _, o := range operands {
 		width := GetBitWidth(o)
@@ -115,7 +115,7 @@ func GetWidestOperand[T binary](operands ...T) uint {
 }
 
 // AlignOperand applies the provided Alignment scheme against the operand in order to place the measured binary information relative to the provided bit width.
-func AlignOperand[T binary](operand T, width uint, scheme Alignment) T {
+func AlignOperand[T Binary](operand T, width uint, scheme Alignment) T {
 	switch scheme {
 	case PadLeftSideWithZeros:
 		return any(padLeftSideWithZeros(width, operand)[0]).(T)
@@ -134,7 +134,7 @@ func AlignOperand[T binary](operand T, width uint, scheme Alignment) T {
 	}
 }
 
-func ReverseOperands[T binary](operands ...T) []T {
+func ReverseOperands[T Binary](operands ...T) []T {
 	// Put your thing down, flip it, and reverse it
 	reversed := make([]T, len(operands))
 	limit := len(operands) - 1
@@ -188,7 +188,7 @@ func SanityCheck(bits ...Bit) {
 func Measure[T any](name string, value ...T) Phrase {
 	p := NewPhrase(name, BigEndian)
 	for _, v := range value {
-		p = p.AppendBytes(measure(name, v)...)
+		p = p.AppendMeasurement(NewMeasurementOfBytes(measure(name, v)...))
 	}
 	return p
 }

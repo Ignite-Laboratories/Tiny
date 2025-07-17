@@ -6,13 +6,13 @@
 //
 // Positions[𝑛₀,𝑛₁,𝑛₂,𝑛₃] - reads the provided index positions of your binary information in most→to→least significant order - regardless of the provided variadic order.
 //
-// PositionsReverse[𝑛₀,𝑛₁,𝑛₂,𝑛₃] - reads the provided index positions of your binary information in least←to←most significant order - regardless of the provided variadic order.
+// PositionsFromEnd[𝑛₀,𝑛₁,𝑛₂,𝑛₃] - reads the provided index positions of your binary information in least←to←most significant order - regardless of the provided variadic order.
 //
 // All[:] - Reads the entirety of your binary information.
 //
-// From[low:] - Reads from the provided index to the end of your binary information.
+// Low[low:] - Reads from the provided index to the end of your binary information.
 //
-// To[:high] - Reads to the provided index from the start of your binary information.
+// High[:high] - Reads to the provided index from the start of your binary information.
 //
 // Between[low:high] - Reads between the provided indexes of your binary information.
 //
@@ -20,5 +20,5 @@
 //
 // Pattern - XORs the provided pattern against the target bits in most→to→least significant order.
 //
-// PatternReverse - XORs the provided pattern against the target bits in least←to←most significant order.
+// PatternFromEnd - XORs the provided pattern against the target bits in least←to←most significant order.
 package emit

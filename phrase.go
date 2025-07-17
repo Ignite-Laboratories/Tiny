@@ -1,7 +1,6 @@
 package tiny
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -143,6 +142,12 @@ func (a Phrase) AppendBytes(bytes ...byte) Phrase {
 	return a.RollUp()
 }
 
+// AppendMeasurement places the provided measurement at the end of the Phrase.
+func (a Phrase) AppendMeasurement(m ...Measurement) Phrase {
+	a.Data = append(a.Data, m...)
+	return a
+}
+
 // Prepend places the provided bits at the start of the Phrase.
 func (a Phrase) Prepend(bits ...Bit) Phrase {
 	if len(a.Data) == 0 {
@@ -163,6 +168,12 @@ func (a Phrase) PrependBytes(bytes ...byte) Phrase {
 
 	a.Data[0] = a.Data[0].PrependBytes(bytes...)
 	return a.RollUp()
+}
+
+// PrependMeasurement places the provided measurement at the start of the Phrase.
+func (a Phrase) PrependMeasurement(m ...Measurement) Phrase {
+	a.Data = append(m, a.Data...)
+	return a
 }
 
 // Align ensures all Measurements are of the same width, with the last being smaller if measuring an uneven bit-width.
@@ -253,11 +264,7 @@ func (a Phrase) RollUp() Phrase {
 // Reverse reverses the order of all bits in the phrase.
 func (a Phrase) Reverse() Phrase {
 	// TODO: Reverse the measurement order
-	rev := ReverseOperands(a)[0]
-	return Phrase{
-		Name: fmt.Sprintf("reverse(%v)", a.Name),
-		Data: rev.Data,
-	}
+	return a
 }
 
 // String returns a string consisting entirely of 1s and 0s.

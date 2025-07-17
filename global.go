@@ -6,8 +6,8 @@ import (
 	"unsafe"
 )
 
-// binary represents the types that tiny supports conversion to bits from.
-type binary interface {
+// Binary represents the types that tiny supports conversion to bits from.
+type Binary interface {
 	Measurement | Phrase | byte | Bit
 }
 
@@ -263,7 +263,7 @@ Endianness
 //
 // NOTE: Some protocols, like UART, traditionally transmit in least←to←most order, so you may also need to reverse bits
 // within bytes when interfacing with such protocols - which we fully support =)
-type Endianness int
+type Endianness byte
 
 const (
 	// LittleEndian indicates that bytes are handled in least←to←most significant order and is used by x86, AMD64, ARM, and the general
