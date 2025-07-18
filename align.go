@@ -43,7 +43,7 @@ func padOperands[T Binary](width uint, d direction.Direction, t travel.Travel, d
 		padding := NewMeasurementOfPattern(int(paddingWidth), t, digits...).GetAllBits()
 
 		switch operand := any(raw).(type) {
-		case Phrase:
+		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
 		case Measurement:
 			switch d {
 			case direction.West:

@@ -8,7 +8,7 @@ import (
 
 // Binary represents the types that tiny supports conversion to bits from.
 type Binary interface {
-	Measurement | Phrase | byte | Bit
+	Bit | byte | Measurement | Phrase | Logical | Complex | Float | Index | Integer | Natural
 }
 
 /**

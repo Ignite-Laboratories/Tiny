@@ -36,7 +36,7 @@ func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
 		patternI := 0
 		for i := 0; i < width; i++ {
 			ii := i
-			if tt == travel.Eastbound {
+			if tt == travel.Westbound {
 				ii = width - 1 - i
 			}
 
@@ -47,13 +47,15 @@ func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
 	}
 
 	if t == travel.Inward || t == travel.Outward {
-		left := w / 2
-		right := w - left
+		leftWidth := w / 2
+		rightWidth := w - leftWidth
 
 		if t == travel.Inward {
-			return NewMeasurement(printer(left, travel.Eastbound)...).Append(printer(right, travel.Westbound)...)
+			left := NewMeasurement(printer(leftWidth, travel.Eastbound)...)
+			right := NewMeasurement(printer(rightWidth, travel.Westbound)...)
+			return left.AppendMeasurements(right)
 		}
-		return NewMeasurement(printer(left, travel.Westbound)...).Append(printer(right, travel.Eastbound)...)
+		return NewMeasurement(printer(leftWidth, travel.Westbound)...).Append(printer(rightWidth, travel.Eastbound)...)
 	}
 	return NewMeasurement(printer(w, t)...)
 }
@@ -64,7 +66,7 @@ func NewMeasurementOfZeros(width int) Measurement {
 	return Measurement{
 		Bytes: make([]byte, width/8),
 		Bits:  make([]Bit, width%8),
-	}
+	}.RollUp()
 }
 
 // NewMeasurementOfOnes creates a new Measurement of the provided bit-width consisting entirely of 1s.
@@ -77,7 +79,7 @@ func NewMeasurementOfOnes(width int) Measurement {
 	for i := range zeros.Bits {
 		zeros.Bits[i] = 1
 	}
-	return zeros
+	return zeros.RollUp()
 }
 
 // NewMeasurement creates a new Measurement of the provided Bit slice.
@@ -85,7 +87,7 @@ func NewMeasurement(bits ...Bit) Measurement {
 	// TODO: Generate a random name
 	return Measurement{
 		Bits: bits,
-	}
+	}.RollUp()
 }
 
 // NewMeasurementOfBytes creates a new Measurement of the provided byte slice.
@@ -93,7 +95,7 @@ func NewMeasurementOfBytes(bytes ...byte) Measurement {
 	// TODO: Generate a random name
 	m := Measurement{}
 	m = m.AppendBytes(bytes...)
-	return m
+	return m.RollUp()
 }
 
 // BitWidth gets the total bit width of this Measurement's recorded data.
@@ -150,6 +152,14 @@ func (a Measurement) AppendBytes(bytes ...byte) Measurement {
 	return a.RollUp()
 }
 
+// AppendMeasurements places the provided measurement at the end of the measurement.
+func (a Measurement) AppendMeasurements(m ...Measurement) Measurement {
+	for _, mmt := range m {
+		a = a.Append(mmt.GetAllBits()...)
+	}
+	return a.RollUp()
+}
+
 // Prepend places the provided bits at the start of the Measurement.
 func (a Measurement) Prepend(bits ...Bit) Measurement {
 	a = a.sanityCheck(bits...)
@@ -175,6 +185,20 @@ func (a Measurement) PrependBytes(bytes ...byte) Measurement {
 	a = a.AppendBytes(oldBytes...)
 	a = a.Append(oldBits...)
 	return a.RollUp()
+}
+
+// PrependMeasurements places the provided measurement at the start of the measurement.
+func (a Measurement) PrependMeasurements(m ...Measurement) Measurement {
+	if len(m) == 0 {
+		return a
+	}
+
+	result := m[len(m)-1]
+	for i := len(m) - 2; i >= 0; i-- {
+		result = m[i].AppendBytes(result.Bytes...).Append(result.Bits...)
+	}
+	result = result.AppendBytes(a.Bytes...).Append(a.Bits...)
+	return result.RollUp()
 }
 
 // Reverse reverses the order of all bits in the measurement.
@@ -227,7 +251,7 @@ func (a Measurement) RollUp() Measurement {
 		var b byte
 		for i := byte(7); i < 8; i-- {
 			if a.Bits[i] == 1 {
-				b |= 1 << i
+				b |= 1 << (7 - i)
 			}
 		}
 		a.Bits = a.Bits[8:]

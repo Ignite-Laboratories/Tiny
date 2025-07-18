@@ -93,6 +93,7 @@ func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 
 		// Decompose them through recursion
 		switch operand := any(raw).(type) {
+		case Logical, Complex, Float, Index, Integer, Natural:
 		case Phrase:
 			// Phrases recurse into their respective measurements
 			var bits []Bit

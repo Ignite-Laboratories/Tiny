@@ -14,6 +14,7 @@ func GetBitWidth[T Binary](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
+		case Logical, Complex, Float, Index, Integer, Natural:
 		case Phrase:
 			width += operand.BitWidth()
 		case Measurement:
@@ -46,7 +47,7 @@ func BleedEnd[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 			}
 
 			switch operand := any(raw).(type) {
-			case Phrase:
+			case Phrase, Logical, Complex, Float, Index, Integer, Natural:
 			case Measurement:
 				var bit Bit
 				bit, operand = operand.BleedLastBit()
@@ -82,7 +83,7 @@ func BleedStart[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 			}
 
 			switch operand := any(raw).(type) {
-			case Phrase:
+			case Phrase, Logical, Complex, Float, Index, Integer, Natural:
 			case Measurement:
 				var bit Bit
 				bit, operand = operand.BleedFirstBit()
@@ -137,8 +138,8 @@ func ReverseOperands[T Binary](operands ...T) []T {
 		switch operand := any(raw).(type) {
 		case Measurement:
 			reversed[limit-i] = any(operand.Reverse()).(T)
-		case Phrase:
-			reversed[limit-i] = any(operand.Reverse()).(T)
+		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+			reversed[limit-i] = any(operand.(Phrase).Reverse()).(T)
 		case []byte:
 			r := make([]byte, len(operand))
 			for ii := len(operand) - 1; ii >= 0; ii-- {
