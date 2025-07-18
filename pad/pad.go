@@ -1,3 +1,4 @@
+// Package pad provides access to the padding Scheme enumeration.
 package pad
 
 // Scheme represents a scheme of how to align operands relative to each other.  Alignment operations are applied using

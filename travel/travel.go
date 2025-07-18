@@ -1,3 +1,4 @@
+// Package travel provides access to the Travel enumeration.
 package travel
 
 // Travel represents a longitudinal or latitudinal direction.Direction of Travel.

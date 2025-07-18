@@ -1,3 +1,4 @@
+// Package direction provides access to the Direction enumeration.
 package direction
 
 // Direction represents general directionality and includes both cardinal and abstract reference points in time and space.

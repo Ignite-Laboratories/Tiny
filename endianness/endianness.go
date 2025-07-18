@@ -1,3 +1,4 @@
+// Package endianness provides access to the Endianness enumeration.
 package endianness
 
 import "unsafe"
