@@ -10,6 +10,13 @@ type Binary interface {
 	Bit | byte | Measurement | Phrase | Logical | Complex | Float | Index | Integer | Natural
 }
 
+// AnyPhrase represents any Phrase Type.
+//
+// See Logical, Index, Complex, Float, Integer, and Natural
+type AnyPhrase interface {
+	Phrase | Logical | Complex | Float | Index | Integer | Natural
+}
+
 /**
 Global Constants
 */

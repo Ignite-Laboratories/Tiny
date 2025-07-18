@@ -9,13 +9,35 @@ import (
 	"unsafe"
 )
 
+// getPhraseFromOperand returns the underlying Phrase of a higher-order phrase operand, or panics if not a phrase type.
+func getPhraseFromOperand(operand any) Phrase {
+	switch operand.(type) {
+	case Phrase:
+		return operand.(Phrase)
+	case Logical:
+		return operand.(Logical).Phrase
+	case Complex:
+		return operand.(Complex).Phrase
+	case Float:
+		return operand.(Float).Phrase
+	case Index:
+		return operand.(Index).Phrase
+	case Integer:
+		return operand.(Integer).Phrase
+	case Natural:
+		return operand.(Natural).Phrase
+	default:
+		panic("invalid phrase type: " + reflect.TypeOf(operand).String())
+	}
+}
+
 // GetBitWidth returns the bit width of the provided binary operand.
 func GetBitWidth[T Binary](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
 		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
-			width += operand.(IPhrase).BitWidth()
+			width += getPhraseFromOperand(operand).BitWidth()
 		case Measurement:
 			width += operand.BitWidth()
 		case []byte:
@@ -138,7 +160,7 @@ func ReverseOperands[T Binary](operands ...T) []T {
 	for i, raw := range operands {
 		switch operand := any(raw).(type) {
 		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
-			reversed[limit-i] = operand.(IPhrase).Reverse().(T)
+			reversed[limit-i] = any(getPhraseFromOperand(operand).Reverse()).(T)
 		case Measurement:
 			reversed[limit-i] = any(operand.Reverse()).(T)
 		case []byte:

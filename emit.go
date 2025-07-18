@@ -96,7 +96,7 @@ func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
 			// Phrases recurse into their respective measurements
 			var bits []Bit
-			bits, cursor = linearLogic(cursor, expr, operand.(IPhrase).GetData()...)
+			bits, cursor = linearLogic(cursor, expr, getPhraseFromOperand(operand).GetData()...)
 			cycleBits = append(cycleBits, bits...)
 		case Measurement:
 			// Measurements recurse into their respective bytes and then their bits

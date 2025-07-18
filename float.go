@@ -6,14 +6,6 @@ type Float struct {
 	Phrase
 }
 
-func (a Float) GetData() []Measurement {
-	return a.Phrase.GetData()
-}
-
-func (a Float) BitWidth() uint {
-	return a.Phrase.BitWidth()
-}
-
 // Float32 represents a 32-bit phrase encoded as three measurements in accordance with IEEE 754 -
 //
 //	    Sign: 1 bit

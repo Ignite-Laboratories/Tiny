@@ -7,11 +7,3 @@ package tiny
 type Integer struct {
 	Phrase
 }
-
-func (a Integer) GetData() []Measurement {
-	return a.Phrase.GetData()
-}
-
-func (a Integer) BitWidth() uint {
-	return a.Phrase.BitWidth()
-}
