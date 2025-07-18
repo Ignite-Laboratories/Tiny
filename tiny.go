@@ -3,6 +3,9 @@ package tiny
 import (
 	"fmt"
 	"reflect"
+	"tiny/endianness"
+	"tiny/pad"
+	"tiny/travel"
 	"unsafe"
 )
 
@@ -114,16 +117,21 @@ func GetWidestOperand[T Binary](operands ...T) uint {
 	return widest
 }
 
-// AlignOperand applies the provided Alignment scheme against the operand in order to place the measured binary information relative to the provided bit width.
-func AlignOperand[T Binary](operand T, width uint, scheme Alignment) T {
+// AlignOperand applies the provided padding scheme against the operands in order to align the measured binary information relative to the provided bit width.
+//
+// You must provide at least one digit to pad the data with, but you may provide a pattern of digits.  The pattern is emitted across the operand starting
+// from the West side and working towards the East.  If working latitudinally, the pattern bits are applied longitudinally across each operand in the same way.
+//
+// NOTE: If you wish for
+func AlignOperand[T Binary](operands []T, width uint, scheme pad.Scheme, traveling travel.Travel, digits ...Bit) T {
 	switch scheme {
-	case PadLeftSideWithZeros:
+	case PadWestSideWithZeros:
 		return any(padLeftSideWithZeros(width, operand)[0]).(T)
-	case PadLeftSideWithOnes:
+	case PadWestSideWithOnes:
 		return any(padLeftSideWithOnes(width, operand)[0]).(T)
-	case PadRightSideWithZeros:
+	case PadEastSideWithZeros:
 		return any(padRightSideWithZeros(width, operand)[0]).(T)
-	case PadRightSideWithOnes:
+	case PadEastSideWithOnes:
 		return any(padRightSideWithOnes(width, operand)[0]).(T)
 	case PadToMiddleWithZeros:
 		return any(padToMiddleWithZeros(width, operand)[0]).(T)
@@ -186,7 +194,7 @@ func SanityCheck(bits ...Bit) {
 
 // Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.
 func Measure[T any](name string, value ...T) Phrase {
-	p := NewPhrase(name, BigEndian)
+	p := NewPhrase(name, endianness.BigEndian)
 	for _, v := range value {
 		p = p.AppendMeasurement(NewMeasurementOfBytes(measure(name, v)...))
 	}

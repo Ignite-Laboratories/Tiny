@@ -1,69 +1,13 @@
 package tiny
 
-// Alignment represents a scheme of how to align operands relative to each other - alignment operations are applied with
-// no respect to the reversal of bit emission and instead operate as "left" or "right" spatially.
-//
-// NOTE: You can only align variable width binary types - such as slices of bytes or bits, or measurements or phrases.
-// These will panic if you attempt to "pad a byte," for instance, as it's a static-width element.
-//
-// PadLeftSideWithZeros will pad the left side of the smaller operands to the width of the largest with zeros.
-//
-// PadLeftSideWithOnes will pad the left side of the smaller operands to the width of the largest with ones.
-//
-// PadRightSideWithZeros will pad the right side of the smaller operands to the width of the largest with zeros.
-//
-// PadRightSideWithOnes will pad the right side of the smaller operands to the width of the largest with ones.
-//
-// PadToMiddleWithZeros will equally pad both sides of the smaller operands to the width of the largest with zeros, biased towards the left.
-//
-// PadToMiddleWithOnes will equally pad both sides of the smaller operands to the width of the largest with ones, biased towards the left.
-type Alignment int
-
-const (
-	// PadLeftSideWithZeros will pad the left side of the smaller operands to the width of the largest with zeros.
-	PadLeftSideWithZeros Alignment = iota
-
-	// PadLeftSideWithOnes will pad the left side of the smaller operands to the width of the largest with ones.
-	PadLeftSideWithOnes
-
-	// PadRightSideWithZeros will pad the right side of the smaller operands to the width of the largest with zeros.
-	PadRightSideWithZeros
-
-	// PadRightSideWithOnes will pad the right side of the smaller operands to the width of the largest with ones.
-	PadRightSideWithOnes
-
-	// PadToMiddleWithZeros will equally pad both sides of the smaller operands to the width of the largest with zeros, biased towards the left.
-	PadToMiddleWithZeros
-
-	// PadToMiddleWithOnes will equally pad both sides of the smaller operands to the width of the largest with ones, biased towards the left.
-	PadToMiddleWithOnes
+import (
+	"fmt"
+	"tiny/direction"
+	"tiny/travel"
 )
 
-func padLeftSideWithZeros[T Binary](width uint, operands ...T) []T {
-	return pad[T](width, false, Zero, operands...)
-}
-
-func padLeftSideWithOnes[T Binary](width uint, operands ...T) []T {
-	return pad[T](width, false, One, operands...)
-}
-
-func padRightSideWithZeros[T Binary](width uint, operands ...T) []T {
-	return pad[T](width, true, Zero, operands...)
-}
-
-func padRightSideWithOnes[T Binary](width uint, operands ...T) []T {
-	return pad[T](width, true, One, operands...)
-}
-
-func padToMiddleWithZeros[T Binary](width uint, operands ...T) []T {
-	return middlePad(width, Zero, operands...)
-}
-
-func padToMiddleWithOnes[T Binary](width uint, operands ...T) []T {
-	return middlePad(width, One, operands...)
-}
-
-func middlePad[T Binary](width uint, digit Bit, operands ...T) []T {
+func middlePadOperands[T Binary](width uint, direction direction.Direction, travel travel.Travel, digits []Bit, operands ...T) []T {
+	// TODO: Implement north/south padding
 	out := make([]T, len(operands))
 
 	for i, o := range operands {
@@ -72,14 +16,22 @@ func middlePad[T Binary](width uint, digit Bit, operands ...T) []T {
 		left := toPad / 2
 		right := toPad - left
 
-		out[i] = pad(left, false, digit, o)[0]
-		out[i] = pad(right, true, digit, out[i])[0]
+		if travel == travel.Outward {
+			out[i] = padOperands(left, direction, travel.Westbound, digits, o)[0]
+			out[i] = padOperands(right, direction, travel.Eastbound, digits, out[i])[0]
+		} else if travel == travel.Inward {
+			out[i] = padOperands(left, direction, travel.Eastbound, digits, o)[0]
+			out[i] = padOperands(right, direction, travel.Westbound, digits, out[i])[0]
+		} else {
+			out[i] = padOperands(left, direction, travel, digits, o)[0]
+			out[i] = padOperands(right, direction, travel, digits, out[i])[0]
+		}
 	}
 
 	return out
 }
 
-func pad[T Binary](width uint, right bool, digit Bit, operands ...T) []T {
+func padOperands[T Binary](width uint, direction direction.Direction, travel travel.Travel, digits []Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 	for i, raw := range operands {
 		paddingWidth := width - GetBitWidth(raw)
@@ -88,33 +40,38 @@ func pad[T Binary](width uint, right bool, digit Bit, operands ...T) []T {
 			continue
 		}
 
-		padding := NewMeasurementOfDigit(int(paddingWidth), digit).GetAllBits()
+		padding := NewMeasurementOfDigit(int(paddingWidth), digits).GetAllBits()
 
 		switch operand := any(raw).(type) {
 		case Phrase:
-			if right {
-				out[i] = any(operand.Append(padding...)).(T)
-			} else {
-				out[i] = any(operand.Prepend(padding...)).(T)
-			}
 		case Measurement:
-			if right {
-				out[i] = any(operand.Append(padding...)).(T)
-			} else {
+			switch direction {
+			case direction.West:
 				out[i] = any(operand.Prepend(padding...)).(T)
+			case direction.East:
+				out[i] = any(operand.Append(padding...)).(T)
+			case direction.North:
+			case direction.South:
+				// TODO: Implement north/south padding
+			default:
+				panic(fmt.Sprintf("cannot pad to '%v' direction", direction))
+			}
+		case []Bit:
+			switch direction {
+			case direction.West:
+				out[i] = any(append(padding, operand...)).(T)
+			case direction.East:
+				out[i] = any(append(operand, padding...)).(T)
+			case direction.North:
+			case direction.South:
+				// TODO: Implement north/south padding
+			default:
+				panic(fmt.Sprintf("cannot pad to '%v' direction", direction))
 			}
 		case []byte:
-			panic("cannot pad static width elements")
-		case []Bit:
-			if right {
-				out[i] = any(append(operand, padding...)).(T)
-			} else {
-				out[i] = any(append(padding, operand...)).(T)
-			}
 		case byte:
-			panic("cannot pad a static width element")
 		case Bit:
-			panic("cannot pad a static width element")
+			panic("cannot pad static width elements")
 		default:
 			panic("unknown operand type")
 		}

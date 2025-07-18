@@ -2,6 +2,7 @@ package tiny
 
 import (
 	"strings"
+	"tiny/travel"
 )
 
 // Measurement is a variable-width slice of bits and is used to efficiently store them in operating memory.
@@ -16,8 +17,8 @@ type Measurement struct {
 	Bits []Bit
 }
 
-// NewMeasurementOfDigit creates a new Measurement of the provided bit-width consisting entirely of the provided digit.
-func NewMeasurementOfDigit(width int, digit Bit) Measurement {
+// NewMeasurementOfPattern creates a new Measurement of the provided bit-width consisting of the pattern emitted across it in the Direction of Travel.
+func NewMeasurementOfPattern(width int, travel travel.Travel, digits ...Bit) Measurement {
 	// TODO: Generate a random name
 	if digit == One {
 		return NewMeasurementOfOnes(width)
