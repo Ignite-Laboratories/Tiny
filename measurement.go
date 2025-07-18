@@ -18,6 +18,13 @@ type Measurement struct {
 	Bits []Bit
 }
 
+// NewMeasurementOfBit creates a new Measurement of the provided bit-width consisting entirely of the provided Bit.
+//
+// Inward and outward travel directions are supported and work from the midpoint of the width, biased towards the west.
+func NewMeasurementOfBit(w int, b Bit) Measurement {
+	return NewMeasurementOfPattern(w, travel.Eastbound, b)
+}
+
 // NewMeasurementOfPattern creates a new Measurement of the provided bit-width consisting of the pattern emitted across it in the Direction of Travel.
 //
 // Inward and outward travel directions are supported and work from the midpoint of the width, biased towards the west.
@@ -28,7 +35,7 @@ func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
 	}
 
 	if t == travel.Northbound || t == travel.Southbound {
-		panic(fmt.Sprintf("cannot travel %v across a measurement", t.StringFull(true)))
+		panic(fmt.Sprintf("cannot take a latitudinal binary measurement [%v]", t.StringFull(true)))
 	}
 
 	printer := func(width int, tt travel.Travel) []Bit {
@@ -46,11 +53,11 @@ func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
 		return bits
 	}
 
-	if t == travel.Inward || t == travel.Outward {
+	if t == travel.Inbound || t == travel.Outbound {
 		leftWidth := w / 2
 		rightWidth := w - leftWidth
 
-		if t == travel.Inward {
+		if t == travel.Inbound {
 			left := NewMeasurement(printer(leftWidth, travel.Eastbound)...)
 			right := NewMeasurement(printer(rightWidth, travel.Westbound)...)
 			return left.AppendMeasurements(right)
@@ -288,8 +295,8 @@ func (a Measurement) String() string {
 	return builder.String()
 }
 
-// StringPretty converts the measurement to a binary string with a single space character
-// between each 1 and 0.
+// StringPretty returns a measurement-formatted string of the current binary information. Measurements
+// are simply formatted with a single space between digits.
 func (a Measurement) StringPretty() string {
 	bits := a.GetAllBits()
 

@@ -16,10 +16,10 @@ func middlePadOperands[T Binary](width uint, d direction.Direction, t travel.Tra
 		left := toPad / 2
 		right := toPad - left
 
-		if t == travel.Outward {
+		if t == travel.Outbound {
 			out[i] = padOperands(left, d, travel.Westbound, digits, o)[0]
 			out[i] = padOperands(right, d, travel.Eastbound, digits, out[i])[0]
-		} else if t == travel.Inward {
+		} else if t == travel.Inbound {
 			out[i] = padOperands(left, d, travel.Eastbound, digits, o)[0]
 			out[i] = padOperands(right, d, travel.Westbound, digits, out[i])[0]
 		} else {

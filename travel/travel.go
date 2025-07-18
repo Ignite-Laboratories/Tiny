@@ -3,39 +3,39 @@ package travel
 
 // Travel represents a longitudinal or latitudinal direction.Direction of Travel.
 //
-// See Westbound, Eastbound, Northbound, Southbound, Outward, and Inward.
+// See Westbound, Eastbound, Northbound, Southbound, Outbound, and Inbound.
 type Travel byte
 
 const (
 	// Westbound represents a westerly direction of travel.
 	//
-	// See Eastbound, Northbound, Southbound, Outward, and Inward.
+	// See Eastbound, Northbound, Southbound, Outbound, and Inbound.
 	Westbound Travel = iota
 
 	// Eastbound represents an eastern direction of travel.
 	//
-	// See Westbound, Northbound, Southbound, Outward, and Inward.
+	// See Westbound, Northbound, Southbound, Outbound, and Inbound.
 	Eastbound
 
 	// Northbound represents a northward direction of travel.
 	//
-	// See Westbound, Eastbound, Southbound, Outward, and Inward.
+	// See Westbound, Eastbound, Southbound, Outbound, and Inbound.
 	Northbound
 
 	// Southbound represents a southernly direction of travel.
 	//
-	// See Westbound, Eastbound, Northbound, Outward, and Inward.
+	// See Westbound, Eastbound, Northbound, Outbound, and Inbound.
 	Southbound
 
-	// Outward represents an outward direction of travel.
+	// Outbound represents an outward direction of travel.
 	//
-	// See Westbound, Eastbound, Northbound, Southbound, and Inward.
-	Outward
+	// See Westbound, Eastbound, Northbound, Southbound, and Inbound.
+	Outbound
 
-	// Inward represents an inward direction of travel.
+	// Inbound represents an inward direction of travel.
 	//
-	// See Westbound, Eastbound, Northbound, Southbound, and Outward.
-	Inward
+	// See Westbound, Eastbound, Northbound, Southbound, and Outbound.
+	Inbound
 )
 
 // String prints a two (or three) character representation of the Travel direction -
@@ -56,9 +56,9 @@ func (t Travel) String() string {
 		return "EB"
 	case Southbound:
 		return "SB"
-	case Outward:
+	case Outbound:
 		return "OUT"
-	case Inward:
+	case Inbound:
 		return "IN"
 	default:
 		return "Unknown"
@@ -91,12 +91,12 @@ func (t Travel) StringFull(lowercase ...bool) string {
 			return "southbound"
 		}
 		return "Southbound"
-	case Outward:
+	case Outbound:
 		if lower {
 			return "outward"
 		}
 		return "Outward"
-	case Inward:
+	case Inbound:
 		if lower {
 			return "inward"
 		}

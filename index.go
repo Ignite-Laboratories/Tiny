@@ -4,3 +4,11 @@ package tiny
 type Index struct {
 	Phrase
 }
+
+func (a Index) GetData() []Measurement {
+	return a.Phrase.GetData()
+}
+
+func (a Index) BitWidth() uint {
+	return a.Phrase.BitWidth()
+}

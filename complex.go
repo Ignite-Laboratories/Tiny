@@ -6,3 +6,11 @@ package tiny
 type Complex struct {
 	Phrase
 }
+
+func (a Complex) GetData() []Measurement {
+	return a.Phrase.GetData()
+}
+
+func (a Complex) BitWidth() uint {
+	return a.Phrase.BitWidth()
+}

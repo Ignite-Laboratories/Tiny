@@ -1,5 +1,5 @@
 // Package endianness provides access to the Endianness enumeration.
-package endianness
+package endian
 
 import "unsafe"
 
@@ -9,13 +9,13 @@ import "unsafe"
 // be stored in least←to←most significant order while retaining the individual bit order of each byte.  There are two
 // types of endianness -
 //
-// BigEndian, where the most significant bytes come first - or "raw" binary:
+// Big, where the most significant bytes come first - or "raw" binary:
 //
 //	| Most Sig. Byte  |   Middle Byte   | Least Sig. Byte |
 //	| 0 1 0 0 1 1 0 1 | 0 0 1 0 1 1 0 0 | 0 0 0 1 0 1 1 0 | (5,057,558)
 //	|        4D       |        2C       |        16       |
 //
-// LittleEndian, where the least significant bytes come first - used by x86, AMD64, ARM, and the general world over:
+// Little, where the least significant bytes come first - used by x86, AMD64, ARM, and the general world over:
 //
 //	| Least Sig. Byte |   Middle Byte   |  Most Sig. Byte |
 //	| 0 0 0 1 0 1 1 0 | 0 0 1 0 1 1 0 0 | 0 1 0 0 1 1 0 1 | (5,057,558)
@@ -30,28 +30,28 @@ import "unsafe"
 // NOTE: Some protocols, like UART, traditionally transmit in least←to←most order, so you may also need to reverse bits
 // within bytes when interfacing with such protocols - which we fully support =)
 //
-// See LittleEndian and BigEndian.
+// See Little and Big.
 type Endianness byte
 
 const (
-	// LittleEndian indicates that bytes are handled in least←to←most significant order and is used by x86, AMD64, ARM, and the general
+	// Little indicates that bytes are handled in least←to←most significant order and is used by x86, AMD64, ARM, and the general
 	// world over.
 	//
-	// See Endianness.
-	LittleEndian Endianness = iota
+	// See Endianness and Big.
+	Little Endianness = iota
 
-	// BigEndian indicates that bytes are handled in most→to→least significant order and is often used in network protocols.
+	// Big indicates that bytes are handled in most→to→least significant order and is often used in network protocols.
 	//
-	// See Endianness.
-	BigEndian
+	// See Endianness and Little.
+	Big
 )
 
 // String prints an uppercase one-word representation of the Endianness.
 func (e Endianness) String() string {
 	switch e {
-	case LittleEndian:
+	case Little:
 		return "LittleEndian"
-	case BigEndian:
+	case Big:
 		return "BigEndian"
 	default:
 		return "Unknown"
@@ -64,12 +64,12 @@ func (e Endianness) String() string {
 func (e Endianness) StringFull(lowercase ...bool) string {
 	lower := len(lowercase) > 0 && lowercase[0]
 	switch e {
-	case LittleEndian:
+	case Little:
 		if lower {
 			return "little endian"
 		}
 		return "Little Endian"
-	case BigEndian:
+	case Big:
 		if lower {
 			return "big endian"
 		}
@@ -89,9 +89,9 @@ func GetEndianness() Endianness {
 
 	switch buf[0] {
 	case 0xCD:
-		return LittleEndian
+		return Little
 	case 0xAB:
-		return BigEndian
+		return Big
 	default:
 		panic("could not determine native endianness")
 	}

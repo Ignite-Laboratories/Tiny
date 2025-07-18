@@ -3,7 +3,7 @@ package tiny
 import (
 	"fmt"
 	"reflect"
-	"tiny/endianness"
+	"tiny/endian"
 	"tiny/pad"
 	"tiny/travel"
 	"unsafe"
@@ -14,9 +14,8 @@ func GetBitWidth[T Binary](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
-		case Logical, Complex, Float, Index, Integer, Natural:
-		case Phrase:
-			width += operand.BitWidth()
+		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+			width += operand.(IPhrase).BitWidth()
 		case Measurement:
 			width += operand.BitWidth()
 		case []byte:
@@ -48,6 +47,7 @@ func BleedEnd[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 
 			switch operand := any(raw).(type) {
 			case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+				// TODO: Implement this
 			case Measurement:
 				var bit Bit
 				bit, operand = operand.BleedLastBit()
@@ -84,6 +84,7 @@ func BleedStart[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 
 			switch operand := any(raw).(type) {
 			case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+				// TODO: Implement this
 			case Measurement:
 				var bit Bit
 				bit, operand = operand.BleedFirstBit()
@@ -136,10 +137,10 @@ func ReverseOperands[T Binary](operands ...T) []T {
 
 	for i, raw := range operands {
 		switch operand := any(raw).(type) {
+		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+			reversed[limit-i] = operand.(IPhrase).Reverse().(T)
 		case Measurement:
 			reversed[limit-i] = any(operand.Reverse()).(T)
-		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
-			reversed[limit-i] = any(operand.(Phrase).Reverse()).(T)
 		case []byte:
 			r := make([]byte, len(operand))
 			for ii := len(operand) - 1; ii >= 0; ii-- {
@@ -181,7 +182,8 @@ func SanityCheck(bits ...Bit) {
 
 // Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.
 func Measure[T any](name string, value ...T) Phrase {
-	p := NewPhrase(name, endianness.BigEndian)
+	p := NewPhrase(name)
+	p.Endianness = endian.GetEndianness()
 	for _, v := range value {
 		p = p.AppendMeasurement(NewMeasurementOfBytes(measure(name, v)...))
 	}

@@ -3,7 +3,6 @@ package tiny
 import (
 	"fmt"
 	"strconv"
-	"tiny/endianness"
 )
 
 // Binary represents the types that tiny supports conversion to bits from.
@@ -15,8 +14,8 @@ type Binary interface {
 Global Constants
 */
 
-// EmptyPhrase represents a raw BigEndian Phrase with no data named "3MP7Y".
-var EmptyPhrase = NewPhrase("3MP7Y", endianness.BigEndian)
+// EmptyPhrase represents a raw Phrase with no data named "3MP7Y".
+var EmptyPhrase = NewPhrase("3MP7Y")
 
 // Unlimited represents a constantly referencable integer value which can be considered a reasonably "unlimited" width.
 var Unlimited = ^uint(0)

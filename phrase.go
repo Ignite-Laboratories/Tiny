@@ -2,35 +2,35 @@ package tiny
 
 import (
 	"strings"
-	"tiny/endianness"
+	"tiny/endian"
 )
 
 // Phrase represents a collection of raw binary measurements and their observed Endianness at the time of recording.
 type Phrase struct {
 	Name string
 	Data []Measurement
-	endianness.Endianness
+	endian.Endianness
 }
 
 /**
 New Functions
 */
 
-// NewPhrase creates a named Phrase of the provided measurements, encoding scheme, and endianness.
-func NewPhrase(name string, endianness endianness.Endianness, m ...Measurement) Phrase {
+// NewPhrase creates a named Phrase of the provided measurements.
+func NewPhrase(name string, m ...Measurement) Phrase {
 	return Phrase{
 		Name:       name,
 		Data:       m,
-		Endianness: endianness,
+		Endianness: endian.Big,
 	}
 }
 
-// NewPhraseFromBits creates a named Phrase of the provided bits, encoding scheme, and endianness.
-func NewPhraseFromBits(name string, endianness endianness.Endianness, bits ...Bit) Phrase {
+// NewPhraseFromBits creates a named Phrase of the provided bits.
+func NewPhraseFromBits(name string, bits ...Bit) Phrase {
 	return Phrase{
 		Name:       name,
 		Data:       []Measurement{NewMeasurement(bits...)},
-		Endianness: endianness,
+		Endianness: endian.Big,
 	}
 }
 
@@ -219,12 +219,17 @@ func (a Phrase) String() string {
 	return builder.String()
 }
 
-// StringPretty returns a phrase-formatted string of the current measurements.
+// StringPretty returns a phrase-formatted string of the current measurements. Phrases are formatted as:
 //
-// This means the bits will be placed between pipes and with dashes between measurements.
+//  0. Pipes wrap the phrase data.
+//  1. Dashes break apart measurements.
+//  2. A single space between all characters.
+//  3. An empty phrase returns two spaces between pipes.
+//
+// NOTE: The reason for a two-space empty string is to allow the printing of both outward arrows when displaying index sizes.
 func (a Phrase) StringPretty() string {
 	if len(a.Data) == 0 {
-		return "||"
+		return "|  |"
 	}
 
 	totalSize := 4 + (len(a.Data)-1)*3
