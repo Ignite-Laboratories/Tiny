@@ -19,7 +19,7 @@ package direction
 //	Present - Experience
 //	   Past - Reflection
 //
-// See South, West, North, East, Future, Present, Past, Forward, Backward, Up, Up, Down, Down, Left, Right, Left, Right, B, A, Start
+// # See South, West, North, East, Future, Present, Past, Forward, Backward, Up, Up, Down, Down, Left, Right, Left, Right, B, A, Start
 //
 // In addition, you may also require a direction of travel.Travel.
 type Direction byte

@@ -4,4 +4,4 @@ package tiny
 //
 // NOTE: The entire goal of tiny is to break away from the boundaries of overflow logic - if you explicitly
 // require working with index-based overflow logic, please use an Index phrase.
-type Integer tiny.Phrase
+type Integer Phrase

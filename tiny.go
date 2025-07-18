@@ -117,29 +117,15 @@ func GetWidestOperand[T Binary](operands ...T) uint {
 	return widest
 }
 
-// AlignOperand applies the provided padding scheme against the operands in order to align the measured binary information relative to the provided bit width.
+// AlignOperands applies the provided padding scheme against the operands in order to align the measured binary information relative to the provided bit width.
 //
 // You must provide at least one digit to pad the data with, but you may provide a pattern of digits.  The pattern is emitted across the operand starting
 // from the West side and working towards the East.  If working latitudinally, the pattern bits are applied longitudinally across each operand in the same way.
 //
 // NOTE: If you wish for
-func AlignOperand[T Binary](operands []T, width uint, scheme pad.Scheme, traveling travel.Travel, digits ...Bit) T {
-	switch scheme {
-	case PadWestSideWithZeros:
-		return any(padLeftSideWithZeros(width, operand)[0]).(T)
-	case PadWestSideWithOnes:
-		return any(padLeftSideWithOnes(width, operand)[0]).(T)
-	case PadEastSideWithZeros:
-		return any(padRightSideWithZeros(width, operand)[0]).(T)
-	case PadEastSideWithOnes:
-		return any(padRightSideWithOnes(width, operand)[0]).(T)
-	case PadToMiddleWithZeros:
-		return any(padToMiddleWithZeros(width, operand)[0]).(T)
-	case PadToMiddleWithOnes:
-		return any(padToMiddleWithOnes(width, operand)[0]).(T)
-	default:
-		panic("invalid alignment scheme")
-	}
+func AlignOperands[T Binary](operands []T, width uint, scheme pad.Scheme, traveling travel.Travel, digits ...Bit) []T {
+	// TODO: alignment
+	return operands
 }
 
 func ReverseOperands[T Binary](operands ...T) []T {

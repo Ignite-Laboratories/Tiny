@@ -190,7 +190,7 @@ func matrixLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 	//	// The underlying table is ordered [Col][Row]Bit
 	//	table := make([][]Bit, longest)
 	//	for i, raw := range data {
-	//		data[i] = AlignOperand(raw, longest, *expr._alignment)
+	//		data[i] = AlignOperands(raw, longest, *expr._alignment)
 	//		table[i], _ = Emit[T](subExpr, raw)
 	//	}
 	//

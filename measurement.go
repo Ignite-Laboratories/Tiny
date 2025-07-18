@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"fmt"
 	"strings"
 	"tiny/travel"
 )
@@ -18,12 +19,43 @@ type Measurement struct {
 }
 
 // NewMeasurementOfPattern creates a new Measurement of the provided bit-width consisting of the pattern emitted across it in the Direction of Travel.
-func NewMeasurementOfPattern(width int, travel travel.Travel, digits ...Bit) Measurement {
+//
+// Inward and outward travel directions are supported and work from the midpoint of the width, biased towards the west.
+func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
 	// TODO: Generate a random name
-	if digit == One {
-		return NewMeasurementOfOnes(width)
+	if w <= 0 || len(p) == 0 {
+		return Measurement{}
 	}
-	return NewMeasurementOfZeros(width)
+
+	if t == travel.Northbound || t == travel.Southbound {
+		panic(fmt.Sprintf("cannot travel %v across a measurement", t.StringFull(true)))
+	}
+
+	printer := func(width int, tt travel.Travel) []Bit {
+		bits := make([]Bit, width)
+		patternI := 0
+		for i := 0; i < width; i++ {
+			ii := i
+			if tt == travel.Eastbound {
+				ii = width - 1 - i
+			}
+
+			bits[ii] = p[patternI]
+			patternI = (patternI + 1) % len(p)
+		}
+		return bits
+	}
+
+	if t == travel.Inward || t == travel.Outward {
+		left := w / 2
+		right := w - left
+
+		if t == travel.Inward {
+			return NewMeasurement(printer(left, travel.Eastbound)...).Append(printer(right, travel.Westbound)...)
+		}
+		return NewMeasurement(printer(left, travel.Westbound)...).Append(printer(right, travel.Eastbound)...)
+	}
+	return NewMeasurement(printer(w, t)...)
 }
 
 // NewMeasurementOfZeros creates a new Measurement of the provided bit-width consisting entirely of 0s.

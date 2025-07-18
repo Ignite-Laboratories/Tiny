@@ -9,8 +9,7 @@ import (
 )
 
 func main() {
-	tiny.
-		fmt.Println("#0 - Taking a direct binary measurement -")
+	fmt.Println("#0 - Taking a direct binary measurement -")
 
 	m := tiny.Measure[byte]("bytes", 77, 22, 44, 88)
 	fmt.Printf("%v ← Phrase of [byte{77}, byte{22}, byte{44}, byte{88}]\n\n", m.StringPretty())

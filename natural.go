@@ -19,4 +19,4 @@ package tiny
 // I should note this entire system hinges on one fundamental flaw - this container technically holds one additional value beyond
 // the 'natural' number set: nil!  I call this the "programmatic set" of numbers, and I can't stop you from setting your natural
 // phrase to it, but I can empower you with awareness =)
-type Natural tiny.Phrase
+type Natural Phrase
