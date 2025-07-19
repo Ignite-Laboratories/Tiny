@@ -15,11 +15,11 @@ func main() {
 
 	fmt.Println("#1 - Measuring a random number:")
 	random := rand.Int64()
-	logical := tiny.Measure[int64]("random", random).AsLogical()
-	fmt.Printf("%v ← %v\n\n", logical.StringPretty(), random)
+	p := tiny.Measure[int64]("random", random)
+	fmt.Printf("%v ← %v\n\n", p.StringPretty(), random)
 
 	fmt.Println("#2 - Emitting specific bits from the logical phrase:")
-	bits := emit.Between(11, 44, logical)
+	bits := emit.Between(11, 44, p)
 	fmt.Printf("%v ← Phrase[11:44]\n\n", bits)
 
 	fmt.Println("#3 -  Emitting the NOT of the emitted bits:")
@@ -27,7 +27,7 @@ func main() {
 
 	fmt.Println("#4 - Measuring an object in memory into a phrase:")
 
-	p := tiny.Measure[direction.Direction]("forward progress", direction.Future)
+	p = tiny.Measure[direction.Direction]("forward progress", direction.Future)
 	fmt.Printf("%v ← Phrase of [%v]\n\n", p.Align().StringPretty(), direction.Future)
 
 	fmt.Println("#5 - Recreating the original object from the phrase:")

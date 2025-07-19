@@ -6,15 +6,17 @@ import (
 )
 
 // Binary represents the types that tiny supports conversion to bits from.
+//
+// See Bit, Measurement, Phrase, Index, Complex, and Natural
 type Binary interface {
-	Bit | byte | Measurement | Phrase | Logical | Complex | Float | Index | Integer | Natural
+	Bit | byte | Measurement | Phrase | Complex | Index | Natural
 }
 
 // AnyPhrase represents any Phrase Type.
 //
-// See Logical, Index, Complex, Float, Integer, and Natural
+// See Phrase, Complex, Index, and Natural
 type AnyPhrase interface {
-	Phrase | Logical | Complex | Float | Index | Integer | Natural
+	Phrase | Complex | Index | Natural
 }
 
 /**

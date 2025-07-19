@@ -4,3 +4,5 @@ package tiny
 type Index struct {
 	Phrase
 }
+
+// TODO: Make indexes support a signed "flow" value that can be reset on demand, indicating how many times it over or under-flowed

@@ -14,17 +14,13 @@ func getPhraseFromOperand(operand any) Phrase {
 	switch operand.(type) {
 	case Phrase:
 		return operand.(Phrase)
-	case Logical:
-		return operand.(Logical).Phrase
 	case Complex:
 		return operand.(Complex).Phrase
-	case Float:
-		return operand.(Float).Phrase
 	case Index:
 		return operand.(Index).Phrase
-	case Integer:
-		return operand.(Integer).Phrase
 	case Natural:
+		return operand.(Natural).Phrase
+	case Real:
 		return operand.(Natural).Phrase
 	default:
 		panic("invalid phrase type: " + reflect.TypeOf(operand).String())
@@ -36,7 +32,7 @@ func GetBitWidth[T Binary](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
-		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+		case Phrase, Complex, Index, Real, Natural:
 			width += getPhraseFromOperand(operand).BitWidth()
 		case Measurement:
 			width += operand.BitWidth()
@@ -68,7 +64,7 @@ func BleedEnd[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 			}
 
 			switch operand := any(raw).(type) {
-			case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+			case Phrase, Complex, Index, Real, Natural:
 				// TODO: Implement this
 			case Measurement:
 				var bit Bit
@@ -105,7 +101,7 @@ func BleedStart[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 			}
 
 			switch operand := any(raw).(type) {
-			case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+			case Phrase, Complex, Index, Real, Natural:
 				// TODO: Implement this
 			case Measurement:
 				var bit Bit
@@ -159,7 +155,7 @@ func ReverseOperands[T Binary](operands ...T) []T {
 
 	for i, raw := range operands {
 		switch operand := any(raw).(type) {
-		case Phrase, Logical, Complex, Float, Index, Integer, Natural:
+		case Phrase, Complex, Index, Real, Natural:
 			reversed[limit-i] = any(getPhraseFromOperand(operand).Reverse()).(T)
 		case Measurement:
 			reversed[limit-i] = any(operand.Reverse()).(T)
@@ -202,7 +198,7 @@ func SanityCheck(bits ...Bit) {
 	}
 }
 
-// Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Logical Phrase.
+// Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Phrase.
 func Measure[T any](name string, value ...T) Phrase {
 	p := NewPhrase(name)
 	p.Endianness = endian.GetEndianness()
