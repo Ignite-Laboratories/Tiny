@@ -33,6 +33,12 @@ func middlePadOperands[T Binary](width uint, d direction.Direction, t travel.Tra
 
 func padOperands[T Binary](width uint, d direction.Direction, t travel.Travel, digits []Bit, operands ...T) []T {
 	out := make([]T, len(operands))
+
+	if d == direction.North || d == direction.South {
+		// TODO: Implement north/south padding
+		return operands
+	}
+
 	for i, raw := range operands {
 		paddingWidth := width - GetBitWidth(raw)
 		if paddingWidth == 0 {
@@ -50,11 +56,8 @@ func padOperands[T Binary](width uint, d direction.Direction, t travel.Travel, d
 				out[i] = any(operand.Prepend(padding...)).(T)
 			case direction.East:
 				out[i] = any(operand.Append(padding...)).(T)
-			case direction.North:
-			case direction.South:
-				// TODO: Implement north/south padding
 			default:
-				panic(fmt.Sprintf("cannot pad to '%v' direction", d))
+				panic(fmt.Sprintf("cannot pad to '%v' direction - please use the cardinal directions North, West, South, and East", d))
 			}
 		case []Bit:
 			switch d {
@@ -62,11 +65,8 @@ func padOperands[T Binary](width uint, d direction.Direction, t travel.Travel, d
 				out[i] = any(append(padding, operand...)).(T)
 			case direction.East:
 				out[i] = any(append(operand, padding...)).(T)
-			case direction.North:
-			case direction.South:
-				// TODO: Implement north/south padding
 			default:
-				panic(fmt.Sprintf("cannot pad to '%v' direction", d))
+				panic(fmt.Sprintf("cannot pad to '%v' direction - please use the cardinal directions North, West, South, and East", d))
 			}
 		case []byte:
 		case byte:

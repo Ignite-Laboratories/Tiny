@@ -1,6 +1,6 @@
 package tiny
 
-// Complex represents a phrase encoded as two Real numbers - a real part, and an imaginary part.
+// Complex represents a phrase which holds two Real phrases - a real part, and an imaginary part.
 type Complex struct {
 	Phrase
 }
