@@ -25,7 +25,7 @@ func NewMeasurementOfBit(w int, b Bit) Measurement {
 	return NewMeasurementOfPattern(w, travel.Eastbound, b)
 }
 
-// NewMeasurementOfPattern creates a new Measurement of the provided bit-width consisting of the pattern emitted across it in the Direction of Travel.
+// NewMeasurementOfPattern creates a new Measurement of the provided bit-width consisting of the pattern emitted across it in the direction.Direction of travel.Travel.
 //
 // Inward and outward travel directions are supported and work from the midpoint of the width, biased towards the west.
 func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {

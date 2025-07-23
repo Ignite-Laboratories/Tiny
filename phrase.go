@@ -1,6 +1,7 @@
 package tiny
 
 import (
+	"github.com/ignite-laboratories/core"
 	"strings"
 	"tiny/endian"
 )
@@ -16,8 +17,16 @@ type Phrase struct {
 New Functions
 */
 
-// NewPhrase creates a named Phrase of the provided measurements.
-func NewPhrase(name string, m ...Measurement) Phrase {
+func NewPhrase(m ...Measurement) Phrase {
+	return Phrase{
+		Name:       core.RandomNameFiltered(NameFilter).Name,
+		Data:       m,
+		Endianness: endian.Big,
+	}
+}
+
+// NewPhraseNamed creates a named Phrase of the provided measurements and name.
+func NewPhraseNamed(name string, m ...Measurement) Phrase {
 	return Phrase{
 		Name:       name,
 		Data:       m,
@@ -25,8 +34,8 @@ func NewPhrase(name string, m ...Measurement) Phrase {
 	}
 }
 
-// NewPhraseFromBits creates a named Phrase of the provided bits.
-func NewPhraseFromBits(name string, bits ...Bit) Phrase {
+// NewPhraseNamedFromBits creates a named Phrase of the provided bits and name.
+func NewPhraseNamedFromBits(name string, bits ...Bit) Phrase {
 	return Phrase{
 		Name:       name,
 		Data:       []Measurement{NewMeasurement(bits...)},

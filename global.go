@@ -5,18 +5,19 @@ import (
 	"strconv"
 )
 
-// Binary represents the types that tiny supports conversion to bits from.
+// Binary represents the basic binary types that compose all Operable types.
 //
-// See Bit, Measurement, Phrase, Index, Complex, and Natural
+// See Bit, Measurement, Phrase, Natural, Real, Complex, and Index
 type Binary interface {
-	Bit | byte | Measurement | Phrase | Complex | Index | Natural
+	Bit | byte | Measurement | Phrase
 }
 
-// AnyPhrase represents any Phrase Type.
+// Operable represents any type that can be implicitly aligned and named for performing logical operations.
 //
-// See Phrase, Complex, Index, and Natural
-type AnyPhrase interface {
-	Phrase | Complex | Index | Natural
+// See Natural, Real, Complex, Index, and Binary
+type Operable interface {
+	Natural | Real | Complex | Index | Binary
+	GetName() string
 }
 
 /**
@@ -24,7 +25,7 @@ Global Constants
 */
 
 // EmptyPhrase represents a raw Phrase with no data named "3MP7Y".
-var EmptyPhrase = NewPhrase("3MP7Y")
+var EmptyPhrase = NewPhraseNamed("3MP7Y")
 
 // Unlimited represents a constantly referencable integer value which can be considered a reasonably "unlimited" width.
 var Unlimited = ^uint(0)

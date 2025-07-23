@@ -1,6 +1,9 @@
 package tiny
 
-// Complex represents a phrase which holds two Real phrases - a real part, and an imaginary part.
+// Complex represents an Operable Phrase which holds two Real numbers - a "real" part, and an "imaginary" part.
+//
+// See Natural, Real, Index, and Binary
 type Complex struct {
-	Phrase
+	Real      Real
+	Imaginary Real
 }
