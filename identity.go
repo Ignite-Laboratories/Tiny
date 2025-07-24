@@ -9,10 +9,13 @@ var usedNames = make(map[string]*core.GivenName)
 var nameRollover = 1 << 14
 
 // NameFilter is a standard function for returning a name which satisfies tiny's requirements for implicit naming.
+// Currently, these are our explicit filters -
 //
-// Names are explicitly filtered to ONLY the standard 26 letters of the English alphabet, with no special or spacing
-// characters - meaning only single-word names.  This is specifically to ensure that operands can be represented as
-// a single uninterrupted run of identifiable characters - a variable name, if you will.
+//   - Only the standard 26 letters of the English alphabet (case-insensitive)
+//   - No whitespace or special characters (meaning only single word names)
+//   - At least three characters in length
+//
+// These filters will never be reduced - if any changes are made, they will only be augmented.
 //
 // NOTE: This guarantees up to 2¹⁴ unique names before it begins recycling names.
 func NameFilter(name core.GivenName) bool {
@@ -22,7 +25,7 @@ func NameFilter(name core.GivenName) bool {
 		usedNames = make(map[string]*core.GivenName)
 	}
 
-	if nonAlphaRegex.MatchString(name.Name) && usedNames[name.Name] == nil {
+	if nonAlphaRegex.MatchString(name.Name) && usedNames[name.Name] == nil && len(name.Name) > 2 {
 		usedNames[name.Name] = &name
 		return true
 	}

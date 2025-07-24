@@ -93,10 +93,27 @@ func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 
 		// Decompose them through recursion
 		switch operand := any(raw).(type) {
-		case Phrase, Complex, Index, Real, Natural:
+		case Phrase:
 			// Phrases recurse into their respective measurements
 			var bits []Bit
-			bits, cursor = linearLogic(cursor, expr, getPhraseFromOperand(operand).GetData()...)
+			bits, cursor = linearLogic(cursor, expr, operand.GetData()...)
+			cycleBits = append(cycleBits, bits...)
+		case Index:
+			// Indexes recurse into their respective measurements
+			var bits []Bit
+			bits, cursor = linearLogic(cursor, expr, operand.GetData()...)
+			cycleBits = append(cycleBits, bits...)
+		case Complex:
+			panic(fmt.Errorf("cannot perform linear logic on complex numbers as they cannot be implicitly aligned"))
+		case Real:
+			// Reals recurse into their phrase form
+			var bits []Bit
+			bits, cursor = linearLogic(cursor, expr, operand.AsPhrase())
+			cycleBits = append(cycleBits, bits...)
+		case Natural:
+			// Naturals recurse into their composed measurement
+			var bits []Bit
+			bits, cursor = linearLogic(cursor, expr, operand.Measurement)
 			cycleBits = append(cycleBits, bits...)
 		case Measurement:
 			// Measurements recurse into their respective bytes and then their bits

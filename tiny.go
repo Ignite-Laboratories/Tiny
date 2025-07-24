@@ -15,32 +15,22 @@ func GetRandomName() string {
 	return core.RandomNameFiltered(NameFilter).Name
 }
 
-// getPhraseFromOperand returns the underlying Phrase of a higher-order phrase operand, or panics if not a phrase type.
-func getPhraseFromOperand(operand any) Phrase {
-	switch operand.(type) {
-	case Phrase:
-		return operand.(Phrase)
-		// TODO: Convert operands to phrases
-	//case Complex:
-	//	return operand.(Complex).Phrase
-	//case Index:
-	//	return operand.(Index).Phrase
-	//case Natural:
-	//	return operand.(Natural).Phrase
-	//case Real:
-	//	return operand.(Natural).Phrase
-	default:
-		panic("invalid phrase type: " + reflect.TypeOf(operand).String())
-	}
-}
-
 // GetBitWidth returns the bit width of the provided binary operand.
 func GetBitWidth[T Binary](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
-		case Phrase, Complex, Index, Real, Natural:
-			width += getPhraseFromOperand(operand).BitWidth()
+		case Phrase:
+			width += operand.BitWidth()
+		case Index:
+			width += operand.BitWidth()
+		case Real:
+			width += operand.BitWidth()
+		case Complex:
+			width += operand.Real.BitWidth()
+			width += operand.Imaginary.BitWidth()
+		case Natural:
+			width += operand.BitWidth()
 		case Measurement:
 			width += operand.BitWidth()
 		case []byte:
@@ -162,8 +152,14 @@ func ReverseOperands[T Binary](operands ...T) []T {
 
 	for i, raw := range operands {
 		switch operand := any(raw).(type) {
-		case Phrase, Complex, Index, Real, Natural:
-			reversed[limit-i] = any(getPhraseFromOperand(operand).Reverse()).(T)
+		case Real, Complex:
+			panic(fmt.Errorf("cannot reverse real or complex numbers - please first convert to a phrase"))
+		case Phrase:
+			reversed[limit-i] = any(operand.Reverse()).(T)
+		case Index:
+			reversed[limit-i] = any(operand.Reverse()).(T)
+		case Natural:
+			reversed[limit-i] = any(operand.Reverse()).(T)
 		case Measurement:
 			reversed[limit-i] = any(operand.Reverse()).(T)
 		case []byte:

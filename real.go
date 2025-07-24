@@ -32,8 +32,8 @@ import (
 //
 // See Natural, Complex, Index, and Binary
 type Real struct {
-	// Name represents the name of this real number.  By default, numbers are given a random cultural name to ensure that
-	// it doesn't step on any of the standard variable names ('a', 'x', etc...) you'll want to provide.  The names provided
+	// Name represents the name of this real number.  By default, numbers are given a random cultural human name to ensure that
+	// it doesn't step on any of the standard variable names you'll want to provide ('a', 'x', 'y', etc...).  The names provided
 	// are guaranteed to be a single word containing only letters of the English alphabet for fluent proof generation.
 	Name string
 
@@ -207,4 +207,22 @@ Utilities
 func (a Real) cleanup() Real {
 	// TODO: Implement a periodicity and irrationality check
 	return a
+}
+
+// BitWidth returns the overall bit width of this Real in its smallest representation, up to its decimal precision width.
+//
+// NOTE: This includes the sign as a single Bit value.
+func (a Real) BitWidth() uint {
+	// TODO: Handle the periodic bit width appropriately
+	return a.Whole.BitWidth() + a.Fractional.BitWidth() + a.Periodic.BitWidth()
+}
+
+func (a Real) AsPhrase() Phrase {
+	sign := NewMeasurement(0)
+	if a.Negative {
+		sign = NewMeasurement(1)
+	}
+
+	// TODO: Handle the periodic bit width appropriately
+	return NewPhrase(sign, a.Whole.Measurement, a.Fractional.Measurement, a.Periodic.Measurement)
 }
