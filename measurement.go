@@ -370,31 +370,31 @@ func (a Measurement) StringPretty() string {
 Emission Passthrough
 */
 
-func (a Measurement) EmitPositions(positions ...uint) ([]Bit, error) {
+func (a Measurement) EmitUntil(continueFn ContinueFunc, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
+
+	return Emit(Expression{
+		Continue: &continueFn,
+		Reverse:  &reverse,
+	}, a)
+}
+
+func (a Measurement) EmitPositions(positions []uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
+
 	return Emit(Expression{
 		Positions: &positions,
+		Reverse:   &reverse,
 	}, a)
 }
 
-func (a Measurement) EmitPositionsFromEnd(positions ...uint) ([]Bit, error) {
-	return Emit(Expression{
-		Positions: &positions,
-		Reverse:   &True,
-	}, a)
-}
+func (a Measurement) EmitWidth(width uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Measurement) EmitWidth(width uint) ([]Bit, error) {
-	return Emit(Expression{
-		Low:  &Start,
-		High: &width,
-	}, a)
-}
-
-func (a Measurement) EmitWidthFromEnd(width uint) ([]Bit, error) {
 	return Emit(Expression{
 		Low:     &Start,
 		High:    &width,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
@@ -412,67 +412,48 @@ func (a Measurement) EmitLast() (Bit, error) {
 	return bits[0], err
 }
 
-func (a Measurement) EmitLow(low uint) ([]Bit, error) {
-	return Emit(Expression{
-		Low: &low,
-	}, a)
-}
+func (a Measurement) EmitLow(low uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Measurement) EmitLowFromEnd(low uint) ([]Bit, error) {
 	return Emit(Expression{
 		Low:     &low,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Measurement) EmitHigh(high uint) ([]Bit, error) {
-	return Emit(Expression{
-		High: &high,
-	}, a)
-}
+func (a Measurement) EmitHigh(high uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Measurement) EmitHighFromEnd(high uint) ([]Bit, error) {
 	return Emit(Expression{
 		High:    &high,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Measurement) EmitBetween(low uint, high uint) ([]Bit, error) {
-	return Emit(Expression{
-		Low:  &low,
-		High: &high,
-	}, a)
-}
+func (a Measurement) EmitBetween(low uint, high uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Measurement) EmitBetweenFromEnd(low uint, high uint) ([]Bit, error) {
 	return Emit(Expression{
 		Low:     &low,
 		High:    &high,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Measurement) EmitAll(low uint, high uint) ([]Bit, error) {
-	return Emit(Expression{}, a)
-}
+func (a Measurement) EmitAll(low uint, high uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Measurement) EmitReversed(low uint, high uint) ([]Bit, error) {
 	return Emit(Expression{
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Measurement) Gate(logic BitLogicFunc) ([]Bit, error) {
-	return Emit(Expression{
-		BitLogic: &logic,
-	}, a)
-}
+func (a Measurement) EmitGated(logic BitLogicFunc, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Measurement) GateFromEnd(logic BitLogicFunc) ([]Bit, error) {
 	return Emit(Expression{
 		BitLogic: &logic,
-		Reverse:  &True,
+		Reverse:  &reverse,
 	}, a)
 }
 

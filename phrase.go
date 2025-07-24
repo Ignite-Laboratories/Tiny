@@ -3,6 +3,7 @@ package tiny
 import (
 	"github.com/ignite-laboratories/core"
 	"strings"
+	"tiny/travel"
 )
 
 // Phrase represents a collection of raw binary measurements and their observed endianness at the time of recording.
@@ -266,31 +267,31 @@ func (a Phrase) StringPretty() string {
 Emission Passthrough
 */
 
-func (a Phrase) EmitPositions(positions ...uint) ([]Bit, error) {
+func (a Phrase) EmitUntil(continueFn ContinueFunc, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
+
+	return Emit(Expression{
+		Continue: &continueFn,
+		Reverse:  &reverse,
+	}, a)
+}
+
+func (a Phrase) EmitPositions(positions []uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
+
 	return Emit(Expression{
 		Positions: &positions,
+		Reverse:   &reverse,
 	}, a)
 }
 
-func (a Phrase) EmitPositionsFromEnd(positions ...uint) ([]Bit, error) {
-	return Emit(Expression{
-		Positions: &positions,
-		Reverse:   &True,
-	}, a)
-}
+func (a Phrase) EmitWidth(width uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Phrase) EmitWidth(width uint) ([]Bit, error) {
-	return Emit(Expression{
-		Low:  &Start,
-		High: &width,
-	}, a)
-}
-
-func (a Phrase) EmitWidthFromEnd(width uint) ([]Bit, error) {
 	return Emit(Expression{
 		Low:     &Start,
 		High:    &width,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
@@ -308,67 +309,48 @@ func (a Phrase) EmitLast() (Bit, error) {
 	return bits[0], err
 }
 
-func (a Phrase) EmitLow(low uint) ([]Bit, error) {
-	return Emit(Expression{
-		Low: &low,
-	}, a)
-}
+func (a Phrase) EmitLow(low uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Phrase) EmitLowFromEnd(low uint) ([]Bit, error) {
 	return Emit(Expression{
 		Low:     &low,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Phrase) EmitHigh(high uint) ([]Bit, error) {
-	return Emit(Expression{
-		High: &high,
-	}, a)
-}
+func (a Phrase) EmitHigh(high uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Phrase) EmitHighFromEnd(high uint) ([]Bit, error) {
 	return Emit(Expression{
 		High:    &high,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Phrase) EmitBetween(low uint, high uint) ([]Bit, error) {
-	return Emit(Expression{
-		Low:  &low,
-		High: &high,
-	}, a)
-}
+func (a Phrase) EmitBetween(low uint, high uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Phrase) EmitBetweenFromEnd(low uint, high uint) ([]Bit, error) {
 	return Emit(Expression{
 		Low:     &low,
 		High:    &high,
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Phrase) EmitAll(low uint, high uint) ([]Bit, error) {
-	return Emit(Expression{}, a)
-}
+func (a Phrase) EmitAll(low uint, high uint, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Phrase) EmitReversed(low uint, high uint) ([]Bit, error) {
 	return Emit(Expression{
-		Reverse: &True,
+		Reverse: &reverse,
 	}, a)
 }
 
-func (a Phrase) Gate(logic BitLogicFunc) ([]Bit, error) {
-	return Emit(Expression{
-		BitLogic: &logic,
-	}, a)
-}
+func (a Phrase) EmitGated(logic BitLogicFunc, traveling ...travel.Travel) ([]Bit, error) {
+	reverse := shouldReverseLongitudinally(traveling...)
 
-func (a Phrase) GateFromEnd(logic BitLogicFunc) ([]Bit, error) {
 	return Emit(Expression{
 		BitLogic: &logic,
-		Reverse:  &True,
+		Reverse:  &reverse,
 	}, a)
 }
 

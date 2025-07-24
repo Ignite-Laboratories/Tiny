@@ -25,6 +25,21 @@ package emit
 
 import "tiny"
 
+// Until keeps reading the provided bit width until the continue function returns false in most→to→least significant order
+func Until(continueFn tiny.ContinueFunc) tiny.Expression {
+	return tiny.Expression{
+		Continue: &continueFn,
+	}
+}
+
+// UntilFromEnd keeps reading the provided bit width until the continue function returns false in least←to←most significant order
+func UntilFromEnd(continueFn tiny.ContinueFunc) tiny.Expression {
+	return tiny.Expression{
+		Continue: &continueFn,
+		Reverse:  &tiny.True,
+	}
+}
+
 // Positions [𝑛₀,𝑛₁,𝑛₂...] creates a tiny.Expression which will read the provided index positions of your binary information in most→to→least significant order - regardless of the provided variadic order.
 func Positions(positions ...uint) tiny.Expression {
 	return tiny.Expression{

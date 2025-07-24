@@ -47,5 +47,14 @@ func main() {
 	fmt.Printf("%v ← `1, 0, 0, 1, 1` Inbound\n", tiny.NewMeasurementOfPattern(22, travel.Inbound, 1, 0, 0, 1, 1).AsPhrase(-1).StringPretty())
 	fmt.Printf("%v ← `1, 0, 0, 1, 1` Outbound\n", tiny.NewMeasurementOfPattern(22, travel.Outbound, 1, 0, 0, 1, 1).AsPhrase(-1).StringPretty())
 	fmt.Printf("%v ← `0` Repeating\n", tiny.NewMeasurementOfBit(11, 0).AsPhrase(-1).StringPretty())
-	fmt.Printf("%v ← `1` Repeating\n", tiny.NewMeasurementOfBit(11, 1).AsPhrase(-1).StringPretty())
+	fmt.Printf("%v ← `1` Repeating\n\n", tiny.NewMeasurementOfBit(11, 1).AsPhrase(-1).StringPretty())
+
+	fmt.Printf("#8 - Emitting from the end of %v until a condition has been met:\n", p.Name)
+	bits, err = p.EmitUntil(func(i uint, data []tiny.Bit) bool {
+		if len(data) < 3 {
+			return true
+		}
+		return false
+	}, travel.Westbound) // NOTE: Reverse hasn't quite been implemented yet - that'll be next
+	fmt.Printf("%v ← while(len(%v) < 3)\n\n", bits, p.Name)
 }

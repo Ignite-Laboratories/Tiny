@@ -9,6 +9,7 @@ type Expression struct {
 	Reverse   *bool
 	BitLogic  *BitLogicFunc
 	Artifact  *ArtifactFunc
+	Continue  *ContinueFunc
 	limit     uint
 }
 
@@ -33,3 +34,6 @@ type BitLogicFunc func(uint, ...Bit) ([]Bit, *Phrase)
 
 // ArtifactFunc applies the artifact from a single round of calculation against the provided operand bits.
 type ArtifactFunc func(i uint, artifact Phrase, operands ...Phrase) []Phrase
+
+// ContinueFunc is called after every Bit is read with the currently read bits - if it returns false, the emission terminates traversal.
+type ContinueFunc func(i uint, data []Bit) bool

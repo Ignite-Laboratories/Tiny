@@ -95,14 +95,14 @@ func (t Travel) StringFull(lowercase ...bool) string {
 		return "Southbound"
 	case Outbound:
 		if lower {
-			return "outward"
+			return "outbound"
 		}
-		return "Outward"
+		return "Outbound"
 	case Inbound:
 		if lower {
-			return "inward"
+			return "inbound"
 		}
-		return "Inward"
+		return "Inbound"
 	default:
 		if lower {
 			return "unknown"

@@ -117,13 +117,10 @@ func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 			bits, cursor = linearLogic(cursor, expr, operand.Measurement)
 			cycleBits = append(cycleBits, bits...)
 		case Measurement:
-			// Measurements recurse into their respective bytes and then their bits
+			// Measurements recurse into their individual bits
 			var bits []Bit
 
-			bits, cursor = linearLogic(cursor, expr, operand.Bytes...)
-			cycleBits = append(cycleBits, bits...)
-
-			bits, cursor = linearLogic(cursor, expr, operand.Bits...)
+			bits, cursor = linearLogic(cursor, expr, operand.GetAllBits()...)
 			cycleBits = append(cycleBits, bits...)
 		case []byte:
 			// Byte slices recurse into their individual bytes
@@ -168,6 +165,11 @@ func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 
 		// Yield the found bits
 		yield = append(yield, cycleBits...)
+
+		// Check if there is a continuation function and whether it has returned false
+		if expr.Continue != nil && !(*expr.Continue)(cursor, yield) {
+			return yield, cursor
+		}
 
 		// Bailout when the pre-calculated limit has been met
 		overage := len(yield) - int(expr.limit)
