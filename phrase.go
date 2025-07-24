@@ -3,14 +3,12 @@ package tiny
 import (
 	"github.com/ignite-laboratories/core"
 	"strings"
-	"tiny/endian"
 )
 
-// Phrase represents a collection of raw binary measurements and their observed Endianness at the time of recording.
+// Phrase represents a collection of raw binary measurements and their observed endianness at the time of recording.
 type Phrase struct {
 	Name string
 	Data []Measurement
-	endian.Endianness
 }
 
 /**
@@ -19,27 +17,24 @@ New Functions
 
 func NewPhrase(m ...Measurement) Phrase {
 	return Phrase{
-		Name:       core.RandomNameFiltered(NameFilter).Name,
-		Data:       m,
-		Endianness: endian.Big,
+		Name: core.RandomNameFiltered(NameFilter).Name,
+		Data: m,
 	}
 }
 
 // NewPhraseNamed creates a named Phrase of the provided measurements and name.
 func NewPhraseNamed(name string, m ...Measurement) Phrase {
 	return Phrase{
-		Name:       name,
-		Data:       m,
-		Endianness: endian.Big,
+		Name: name,
+		Data: m,
 	}
 }
 
 // NewPhraseNamedFromBits creates a named Phrase of the provided bits and name.
 func NewPhraseNamedFromBits(name string, bits ...Bit) Phrase {
 	return Phrase{
-		Name:       name,
-		Data:       []Measurement{NewMeasurement(bits...)},
-		Endianness: endian.Big,
+		Name: name,
+		Data: []Measurement{NewMeasurement(bits...)},
 	}
 }
 
@@ -127,7 +122,9 @@ func (a Phrase) PrependMeasurement(m ...Measurement) Phrase {
 
 // Align ensures all Measurements are of the same width, with the last being smaller if measuring an uneven bit-width.
 //
-// If no width is provided, a standard alignment of 8-bits-per-byte will be used.
+// NOTE: If no width is provided, a standard alignment of 8-bits-per-byte will be used.
+//
+// NOTE: If you provide a negative width, the phrase will be aligned as a single measurement.
 //
 // For example -
 //
@@ -145,10 +142,13 @@ func (a Phrase) PrependMeasurement(m ...Measurement) Phrase {
 //
 //	| 0 1 0 1 0 0 1 1 0 1 0 0 0 1 0 1 - 1 0 0 0 1 0 0 0 0 1 |  ← Raw Bits
 //	|          Measurement 0          -    Measurement 1    |  ← Aligned Measurements
-func (a Phrase) Align(width ...uint) Phrase {
+func (a Phrase) Align(width ...int) Phrase {
 	w := 8
 	if len(width) > 0 {
 		w = int(width[0])
+	}
+	if w < 0 {
+		w = int(a.BitWidth())
 	}
 
 	out := make([]Measurement, 0, int(a.BitWidth())/w)
@@ -159,7 +159,7 @@ func (a Phrase) Align(width ...uint) Phrase {
 		for _, b := range m.GetAllBits() {
 			current = append(current, b)
 			i++
-			if i == 8 {
+			if i == w {
 				i = 0
 				out = append(out, NewMeasurement(current...))
 				current = make([]Bit, 0, w)

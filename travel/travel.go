@@ -3,6 +3,8 @@ package travel
 
 // Travel represents a longitudinal or latitudinal direction.Direction of Travel.
 //
+// These directly relate to the cardinal directions of calculation.
+//
 // See Westbound, Eastbound, Northbound, Southbound, Outbound, and Inbound.
 type Travel byte
 
@@ -12,17 +14,17 @@ const (
 	// See Eastbound, Northbound, Southbound, Outbound, and Inbound.
 	Westbound Travel = iota
 
-	// Eastbound represents an eastern direction of travel.
+	// Eastbound represents an easterly direction of travel.
 	//
 	// See Westbound, Northbound, Southbound, Outbound, and Inbound.
 	Eastbound
 
-	// Northbound represents a northward direction of travel.
+	// Northbound represents a northerly direction of travel.
 	//
 	// See Westbound, Eastbound, Southbound, Outbound, and Inbound.
 	Northbound
 
-	// Southbound represents a southernly direction of travel.
+	// Southbound represents a southerly direction of travel.
 	//
 	// See Westbound, Eastbound, Northbound, Outbound, and Inbound.
 	Southbound

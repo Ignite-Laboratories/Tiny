@@ -3,17 +3,25 @@ package tiny
 import (
 	"fmt"
 	"strings"
+	"tiny/endian"
 	"tiny/travel"
 )
 
 // Measurement is a variable-width slice of bits and is used to efficiently store them in operating memory.
 // As most languages inherently require at least 8 bits to store custom types, storing each bit individually
 // would need 8 times the size of every bit - thus, the measurement was born.
+//
+// NOTE: ALL measurements are processed in standard endian.Big form - however, at the time of measurement we
+// ALSO capture the original endianness of the stored value.  It can generally be ignored - but it's still quite
+// interesting if you care to investigate =)
 type Measurement struct {
-	// Name represents the name of this measurement.
-	Name string
+	// Endianness indicates the endian.Endianness of the data as it was
+	// originally stored before being measured in standard endian.Big form.
+	endian.Endianness
+
 	// Bytes holds complete byte data.
 	Bytes []byte
+
 	// Bits holds any remaining bits.
 	Bits []Bit
 }
@@ -29,9 +37,10 @@ func NewMeasurementOfBit(w int, b Bit) Measurement {
 //
 // Inward and outward travel directions are supported and work from the midpoint of the width, biased towards the west.
 func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
-	// TODO: Generate a random name
 	if w <= 0 || len(p) == 0 {
-		return Measurement{}
+		return Measurement{
+			Endianness: endian.Big,
+		}
 	}
 
 	if t == travel.Northbound || t == travel.Southbound {
@@ -69,10 +78,10 @@ func NewMeasurementOfPattern(w int, t travel.Travel, p ...Bit) Measurement {
 
 // NewMeasurementOfZeros creates a new Measurement of the provided bit-width consisting entirely of 0s.
 func NewMeasurementOfZeros(width int) Measurement {
-	// TODO: Generate a random name
 	return Measurement{
-		Bytes: make([]byte, width/8),
-		Bits:  make([]Bit, width%8),
+		Bytes:      make([]byte, width/8),
+		Bits:       make([]Bit, width%8),
+		Endianness: endian.Big,
 	}.RollUp()
 }
 
@@ -91,18 +100,30 @@ func NewMeasurementOfOnes(width int) Measurement {
 
 // NewMeasurement creates a new Measurement of the provided Bit slice.
 func NewMeasurement(bits ...Bit) Measurement {
-	// TODO: Generate a random name
+	SanityCheck(bits...)
 	return Measurement{
-		Bits: bits,
+		Bits:       bits,
+		Endianness: endian.Big,
 	}.RollUp()
 }
 
 // NewMeasurementOfBytes creates a new Measurement of the provided byte slice.
 func NewMeasurementOfBytes(bytes ...byte) Measurement {
-	// TODO: Generate a random name
-	m := Measurement{}
-	m = m.AppendBytes(bytes...)
-	return m.RollUp()
+	return Measurement{
+		Bytes:      bytes,
+		Endianness: endian.Big,
+	}.RollUp()
+}
+
+// NewMeasurementOfBinaryString creates a new Measurement from the provided binary input string.
+//
+// NOTE: This will panic if anything but a 1 or 0 is found in the input string.
+func NewMeasurementOfBinaryString(s string) Measurement {
+	bits := make([]Bit, len(s))
+	for i := 0; i < len(s); i++ {
+		bits[i] = Bit(s[i])
+	}
+	return NewMeasurement(bits...)
 }
 
 // BitWidth gets the total bit width of this Measurement's recorded data.
@@ -252,6 +273,13 @@ func (a Measurement) BleedFirstBit() (Bit, Measurement) {
 	}
 }
 
+// AsPhrase returns the measurement as a Phrase aligned to 8-bits-per-measurement, or the optionally provided width.
+//
+// If you would like a single output measurement in the phrase, pass a negative number to the width.
+func (a Measurement) AsPhrase(width ...int) Phrase {
+	return NewPhrase(a).Align(width...)
+}
+
 // RollUp combines the currently measured bits into the measured bytes if there is enough recorded.
 func (a Measurement) RollUp() Measurement {
 	for len(a.Bits) >= 8 {
@@ -265,6 +293,25 @@ func (a Measurement) RollUp() Measurement {
 		a.Bytes = append(a.Bytes, b)
 	}
 	return a
+}
+
+/**
+Arithmetic
+*/
+
+// NonZero returns true if the underlying measurement holds a non-zero value.
+func (a Measurement) NonZero() bool {
+	for _, b := range a.Bytes {
+		if b > 0 {
+			return true
+		}
+	}
+	for _, b := range a.Bits {
+		if b > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 /**

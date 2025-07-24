@@ -1,4 +1,4 @@
-// Package endianness provides access to the Endianness enumeration.
+// Package endian provides access to the Endianness enumeration.
 package endian
 
 import "unsafe"
@@ -40,7 +40,7 @@ const (
 	// See Endianness and Big.
 	Little Endianness = iota
 
-	// Big indicates that bytes are handled in most→to→least significant order and is often used in network protocols.
+	// Big indicates that bytes are handled in most→to→least significant order and represents "raw" binary - it's often favored by network protocols.
 	//
 	// See Endianness and Little.
 	Big
@@ -82,8 +82,8 @@ func (e Endianness) StringFull(lowercase ...bool) string {
 	}
 }
 
-// GetEndianness returns the Endianness of the currently executing hardware.
-func GetEndianness() Endianness {
+// GetArchitectureEndianness returns the Endianness of the currently executing hardware.
+func GetArchitectureEndianness() Endianness {
 	buf := [2]byte{}
 	*(*uint16)(unsafe.Pointer(&buf[0])) = uint16(0xABCD)
 

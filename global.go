@@ -2,8 +2,22 @@ package tiny
 
 import (
 	"fmt"
+	"math/big"
 	"strconv"
 )
+
+// Primitive represents the primitive types provided by Go, all of which are convertable between Measurement and primitive form.
+//
+// In addition, the big.Int and big.Float types are considered "primitive" as they are fully interoperable with the matrix engine.
+type Primitive interface {
+	*big.Int | *big.Float |
+		int8 | int16 | int32 | int64 |
+		uint8 | uint16 | uint32 | uint64 |
+		float32 | float64 |
+		complex64 | complex128 |
+		int | uint | uintptr |
+		bool
+}
 
 // Binary represents the basic binary types that compose all Operable types.
 //
@@ -18,6 +32,7 @@ type Binary interface {
 type Operable interface {
 	Natural | Real | Complex | Index | Binary
 	GetName() string
+	Named(string)
 }
 
 /**
@@ -140,7 +155,11 @@ func (b Bit) String() string {
 Errors
 */
 
-const errorMsgNotABit = "bits must be 0, 1, or 219 (nil)"
+const errorMsgNotABit = "bits must be 0 or 1 in value"
+const errorMsgNotABitWithNil = "bits must be 0, 1, or 219 (nil) in value"
 
-// ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 219 (nil) - as Bit is a byte underneath.
+// ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0 - as Bit is a byte underneath.
 var ErrorNotABit = fmt.Errorf(errorMsgNotABit)
+
+// ErrorNotABitWithNil is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 219 (nil) - as Bit is a byte underneath.
+var ErrorNotABitWithNil = fmt.Errorf(errorMsgNotABitWithNil)

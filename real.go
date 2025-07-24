@@ -1,17 +1,25 @@
 package tiny
 
+import (
+	"fmt"
+	"math"
+	"math/big"
+	"strings"
+)
+
 // Real represents an Operable Phrase that represents a "real number" - real numbers are held in four measurements:
 //
 //	  ⬐ The Sign              ⬐ The Fractional Part
 //	| 1 - 1 0 1 1 0 - 1 0 0 0 1 0 1 0 1 1 - 1 1 0 | ( -22.5556̅ )
 //	          ⬑ The Whole Part                ⬑ The Periodic Part
 //
-// All parts (except the sign) can grow in arbitrary widths to accommodate whatever size number you can imagine.  To put
-// this into perspective, a 256 bit number can hold up to the value 1.1579208923731619542357098500869e+77!  A single
-// gigabyte of memory can hold up to 3.2e-8 256-bit real numbers - meaning you've got plenty of storage in the modern age
-// to work with =)
+// All parts (except the sign) can grow to arbitrary widths to accommodate whatever size number you can imagine.  To put
+// this into perspective, a 256 bit number can hold up to the value 1.1579208923731619542357098500869x10⁷⁷!  A single
+// gigabyte of memory can hold up to 3.2x10⁸ 256-bit real numbers - with the most common numbers fitting in less than 64 bits.
+// In essence, you've got plenty of storage in the modern age to work with even the most astronomically large of numbers =)
 //
-// By default, real numbers are given a maximum combined decimal precision bit width of 256 bits - but you may override that if desired.
+// By default, real numbers are given a maximum combined -decimal- precision bit width of 256 bits - but you may override that if desired.
+// This prevents infinitely repeating (or irrational) numbers from exhausting your computer's memory, unless you specifically need it to.
 //
 // After every arithmetic operation, a check is performed to see if the periodic part is missing and if the fractional part
 // fills the entire allotted precision - if so, the real number is deemed to be "irrational".
@@ -24,10 +32,15 @@ package tiny
 //
 // See Natural, Complex, Index, and Binary
 type Real struct {
+	// Name represents the name of this real number.  By default, numbers are given a random cultural name to ensure that
+	// it doesn't step on any of the standard variable names ('a', 'x', etc...) you'll want to provide.  The names provided
+	// are guaranteed to be a single word containing only letters of the English alphabet for fluent proof generation.
+	Name string
+
 	// Precision represents the maximum combined bit-width of any part of the real number beyond the decimal place.
 	//
 	// NOTE: This defaults to 256 bits.
-	Precision int // Defaults to 256
+	Precision uint // Defaults to 256
 
 	// Irrational is true when the number continues on indefinitely with no observed repetition up to the defined precision.
 	Irrational bool
@@ -43,4 +56,140 @@ type Real struct {
 
 	// Periodic represents the periodic end of the fractional portion of the real number and may or may not be present.
 	Periodic Natural
+}
+
+// NewReal creates a new instance of a Real number from the provided Primitive value.
+//
+// NOTE: You may also set the desired precision at this point, though it defaults to 256.
+func NewReal[T Primitive](value T, precision ...uint) Real {
+	return NewRealNamed(GetRandomName(), value, precision...)
+}
+
+// NewRealNamed creates a new instance of a named Real number from the provided Primitive value and name.
+//
+// NOTE: You may also set the desired precision at this point, though it defaults to 256.
+func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
+	p := uint(256)
+	if len(precision) > 0 {
+		p = precision[0]
+	}
+
+	out := Real{
+		Name:       name,
+		Precision:  p,
+		Whole:      NewNatural(0),
+		Fractional: NewNatural(0),
+		Periodic:   NewNatural(0),
+	}
+
+	switch operand := any(value).(type) {
+	case *big.Int:
+		out.Negative = operand.Sign() < 0
+		out.Whole = Natural{
+			Measurement: NewMeasurementOfBinaryString(operand.Text(2)),
+		}
+	case *big.Float:
+		out.Negative = operand.Sign() < 0
+
+		entire := operand.Text(2, int(out.Precision))
+		pointIndex := strings.Index(entire, ".")
+
+		if pointIndex <= 0 {
+			out.Whole = Natural{
+				Measurement: NewMeasurementOfBinaryString(entire),
+			}
+		} else {
+			whole := entire[:pointIndex]
+			fractional := entire[pointIndex+1:]
+			out.Whole = Natural{
+				Measurement: NewMeasurementOfBinaryString(whole),
+			}
+			out.Fractional = Natural{
+				Measurement: NewMeasurementOfBinaryString(fractional),
+			}
+		}
+	case uint8, uint16, uint32, uint64, uint, uintptr:
+		var v uint
+		switch u := operand.(type) {
+		case uint8:
+			v = uint(u)
+		case uint16:
+			v = uint(u)
+		case uint32:
+			v = uint(u)
+		case uint64:
+			v = uint(u)
+		case uint:
+			v = u
+		case uintptr:
+			v = uint(u)
+		}
+
+		out.Whole = NewNatural(v)
+	case int8, int16, int32, int64, int:
+		var v int
+		switch i := operand.(type) {
+		case int8:
+			v = int(i)
+		case int16:
+			v = int(i)
+		case int32:
+			v = int(i)
+		case int64:
+			v = int(i)
+		case int:
+			v = i
+		}
+
+		out.Negative = v < 0
+		out.Whole = NewNatural(uint(v))
+	case float32, float64:
+		var v float64
+		switch f := operand.(type) {
+		case float32:
+			v = float64(f)
+		case float64:
+			v = f
+		}
+
+		if math.IsNaN(v) {
+			panic(fmt.Errorf("cannot create real from NaN"))
+		}
+		if math.IsInf(v, 0) {
+			panic(fmt.Errorf("cannot create real from Inf"))
+		}
+
+		out = NewRealNamed(name, big.NewFloat(v), precision...)
+	case complex64:
+		if imag(operand) != 0 {
+			panic(fmt.Errorf("cannot create real from a complex number with a non-zero imaginary part - [%v]", operand))
+		}
+		out = NewRealNamed(name, real(operand), precision...)
+	case complex128:
+		if imag(operand) != 0 {
+			panic(fmt.Errorf("cannot create real from a complex number with a non-zero imaginary part - [%v]", operand))
+		}
+		out = NewRealNamed(name, real(operand), precision...)
+	case bool:
+		if operand {
+			out.Whole = NewNatural(1)
+		} else {
+			out.Whole = NewNatural(0)
+		}
+	default:
+		panic(fmt.Errorf("cannot create real from primitive type '%T'", operand))
+	}
+
+	return out.cleanup()
+}
+
+/**
+Utilities
+*/
+
+// cleanup expands the real number to full precision and then checks for irrationality or periodicity in
+// the fractional component before rolling up those conditions into the appropriate measurements.
+func (a Real) cleanup() Real {
+	// TODO: Implement a periodicity and irrationality check
+	return a
 }

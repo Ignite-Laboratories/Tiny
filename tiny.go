@@ -2,6 +2,7 @@ package tiny
 
 import (
 	"fmt"
+	"github.com/ignite-laboratories/core"
 	"reflect"
 	"tiny/endian"
 	"tiny/pad"
@@ -9,19 +10,25 @@ import (
 	"unsafe"
 )
 
+// GetRandomName returns a randomly generated name which conforms to the NameFilter rules.
+func GetRandomName() string {
+	return core.RandomNameFiltered(NameFilter).Name
+}
+
 // getPhraseFromOperand returns the underlying Phrase of a higher-order phrase operand, or panics if not a phrase type.
 func getPhraseFromOperand(operand any) Phrase {
 	switch operand.(type) {
 	case Phrase:
 		return operand.(Phrase)
-	case Complex:
-		return operand.(Complex).Phrase
-	case Index:
-		return operand.(Index).Phrase
-	case Natural:
-		return operand.(Natural).Phrase
-	case Real:
-		return operand.(Natural).Phrase
+		// TODO: Convert operands to phrases
+	//case Complex:
+	//	return operand.(Complex).Phrase
+	//case Index:
+	//	return operand.(Index).Phrase
+	//case Natural:
+	//	return operand.(Natural).Phrase
+	//case Real:
+	//	return operand.(Natural).Phrase
 	default:
 		panic("invalid phrase type: " + reflect.TypeOf(operand).String())
 	}
@@ -188,28 +195,47 @@ func ReverseByte(b byte) byte {
 	return (b&0xAA)>>1 | (b&0x55)<<1
 }
 
-// SanityCheck ensures the provided bits are all either Zero, One, or Nil - as Bit is a byte underneath.  In the land of
+// SanityCheck ensures the provided bits are all either Zero or One - as Bit is a byte underneath.  In the land of
 // binary, that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
+//
+// NOTE: This does not account for a 'nil' bit - for that, please use SanityCheckWithNil.
 func SanityCheck(bits ...Bit) {
 	for _, b := range bits {
-		if b != Zero && b != One && b != Nil {
+		if b != Zero && b != One {
 			panic(ErrorNotABit)
 		}
 	}
 }
 
-// Measure takes a named Measurement of the bits in any sized object at runtime and returns them as a Phrase.
-func Measure[T any](name string, value ...T) Phrase {
-	p := NewPhrase(name)
-	p.Endianness = endian.GetEndianness()
-	for _, v := range value {
-		p = p.AppendMeasurement(NewMeasurementOfBytes(measure(name, v)...))
+// SanityCheckWithNil ensures the provided bits are all either Zero, One, or Nil - as Bit is a byte underneath.  In the land of
+// binary, that can break all logic without you ever knowing - thus, this intentionally hard panics with ErrorNotABit.
+//
+// NOTE: This accounts for a 'nil' bit - if you wish to work with "traditional" bits, please use SanityCheck.
+func SanityCheckWithNil(bits ...Bit) {
+	for _, b := range bits {
+		if b != Zero && b != One && b != Nil {
+			panic(ErrorNotABitWithNil)
+		}
+	}
+}
+
+// Measure takes a Measurement of any sized object at runtime.
+func Measure[T any](value T) Measurement {
+	m := NewMeasurementOfBytes(measure(value)...)
+	m.Endianness = endian.GetArchitectureEndianness()
+	return m
+}
+
+// MeasureMany takes measurements of many objects at runtime and returns the result as a single Phrase.
+func MeasureMany[T any](values ...T) Phrase {
+	p := NewPhrase()
+	for _, v := range values {
+		p = p.AppendMeasurement(Measure(v))
 	}
 	return p
 }
 
-func measure[T any](name string, value T) []byte {
-	// First determine the size to read
+func measure[T any](value T) []byte {
 	var size uintptr
 	switch any(value).(type) {
 	case byte, int8, bool:
@@ -245,7 +271,6 @@ func measure[T any](name string, value T) []byte {
 		return []byte{}
 	}
 
-	// Get pointer to the value and read memory
 	var dataPtr unsafe.Pointer
 	if val := reflect.ValueOf(value); val.Kind() == reflect.Slice {
 		dataPtr = unsafe.Pointer(val.UnsafePointer())
@@ -253,16 +278,14 @@ func measure[T any](name string, value T) []byte {
 		dataPtr = unsafe.Pointer(reflect.ValueOf(&value).Elem().UnsafeAddr())
 	}
 
-	// Copy the bytes
 	bytes := make([]byte, size)
 	copy(bytes, (*[1 << 30]byte)(dataPtr)[:size:size])
 	return bytes
 }
 
-// ToType converts a Phrase of binary information into the specified type T, respecting the architecture's Endianness.
-func ToType[T any](p Phrase) T {
-	// TODO: Entirely re-write this to utilize Emit and read operations, that way we aren't actually expanding ALL the bits into a full byte in the process.
-	bits := p.GetAllBits()
+// ToType converts a Measurement of binary information into the specified type T.
+func ToType[T any](m Measurement) T {
+	bits := m.GetAllBits()
 	var zero T
 	typeOf := reflect.TypeOf(zero)
 
