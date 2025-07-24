@@ -169,15 +169,7 @@ func GateFromEnd[T tiny.Binary](logic tiny.BitLogicFunc, operands ...T) ([]tiny.
 //	        0 | 1
 //	        1 | 0
 func NOT[T tiny.Binary](operands ...T) ([]tiny.Bit, error) {
-	return Gate(func(i uint, bits ...tiny.Bit) ([]tiny.Bit, *tiny.Phrase) {
-		if len(bits) == 0 {
-			return tiny.SingleZero, nil
-		}
-		for _, b := range bits {
-			bits[0] = b ^ 1
-		}
-		return bits, nil
-	}, operands...)
+	return Gate(tiny.Logic.NOT, operands...)
 }
 
 /**

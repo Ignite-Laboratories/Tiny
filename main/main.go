@@ -20,12 +20,12 @@ func main() {
 	fmt.Printf("%v ← %v(%v)\n\n", p.StringPretty(), p.Name, random)
 
 	fmt.Printf("#2 - Emitting specific bits of %v:\n", p.Name)
-	bits, _ := emit.Between(11, 44, p)
+	bits, _ := p.EmitBetween(11, 44)
 	fmt.Printf("%v ← %v[11:44]\n\n", bits, p.Name)
 
 	fmt.Printf("#3 - Gracefully emitting beyond the bounds of %v:\n", p.Name)
 	var err error
-	bits, err = emit.Between(55, 88, p)
+	bits, err = p.EmitBetween(55, 88)
 	fmt.Printf("%v ← %v[55:88] - Error: %v\n\n", bits, p.Name, err)
 
 	fmt.Printf("#4 -  Emitting the NOT of the last emitted bits from %v:\n", p.Name)

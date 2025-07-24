@@ -261,3 +261,125 @@ func (a Phrase) StringPretty() string {
 
 	return builder.String()
 }
+
+/**
+Emission Passthrough
+*/
+
+func (a Phrase) EmitPositions(positions ...uint) ([]Bit, error) {
+	return Emit(Expression{
+		Positions: &positions,
+	}, a)
+}
+
+func (a Phrase) EmitPositionsFromEnd(positions ...uint) ([]Bit, error) {
+	return Emit(Expression{
+		Positions: &positions,
+		Reverse:   &True,
+	}, a)
+}
+
+func (a Phrase) EmitWidth(width uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:  &Start,
+		High: &width,
+	}, a)
+}
+
+func (a Phrase) EmitWidthFromEnd(width uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:     &Start,
+		High:    &width,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Phrase) EmitFirst() (Bit, error) {
+	bits, err := Emit(Expression{
+		Positions: &Initial,
+	}, a)
+	return bits[0], err
+}
+
+func (a Phrase) EmitLast() (Bit, error) {
+	bits, err := Emit(Expression{
+		Last: &True,
+	}, a)
+	return bits[0], err
+}
+
+func (a Phrase) EmitLow(low uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low: &low,
+	}, a)
+}
+
+func (a Phrase) EmitLowFromEnd(low uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:     &low,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Phrase) EmitHigh(high uint) ([]Bit, error) {
+	return Emit(Expression{
+		High: &high,
+	}, a)
+}
+
+func (a Phrase) EmitHighFromEnd(high uint) ([]Bit, error) {
+	return Emit(Expression{
+		High:    &high,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Phrase) EmitBetween(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:  &low,
+		High: &high,
+	}, a)
+}
+
+func (a Phrase) EmitBetweenFromEnd(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:     &low,
+		High:    &high,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Phrase) EmitAll(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{}, a)
+}
+
+func (a Phrase) EmitReversed(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{
+		Reverse: &True,
+	}, a)
+}
+
+func (a Phrase) Gate(logic BitLogicFunc) ([]Bit, error) {
+	return Emit(Expression{
+		BitLogic: &logic,
+	}, a)
+}
+
+func (a Phrase) GateFromEnd(logic BitLogicFunc) ([]Bit, error) {
+	return Emit(Expression{
+		BitLogic: &logic,
+		Reverse:  &True,
+	}, a)
+}
+
+/**
+Logic Functions
+*/
+
+func (a Phrase) NOT() ([]Bit, error) {
+	var notFunc BitLogicFunc
+	notFunc = Logic.NOT
+	return Emit(Expression{
+		BitLogic: &notFunc,
+	}, a)
+}

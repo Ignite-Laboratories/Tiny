@@ -365,3 +365,125 @@ func (a Measurement) StringPretty() string {
 
 	return builder.String()
 }
+
+/**
+Emission Passthrough
+*/
+
+func (a Measurement) EmitPositions(positions ...uint) ([]Bit, error) {
+	return Emit(Expression{
+		Positions: &positions,
+	}, a)
+}
+
+func (a Measurement) EmitPositionsFromEnd(positions ...uint) ([]Bit, error) {
+	return Emit(Expression{
+		Positions: &positions,
+		Reverse:   &True,
+	}, a)
+}
+
+func (a Measurement) EmitWidth(width uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:  &Start,
+		High: &width,
+	}, a)
+}
+
+func (a Measurement) EmitWidthFromEnd(width uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:     &Start,
+		High:    &width,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Measurement) EmitFirst() (Bit, error) {
+	bits, err := Emit(Expression{
+		Positions: &Initial,
+	}, a)
+	return bits[0], err
+}
+
+func (a Measurement) EmitLast() (Bit, error) {
+	bits, err := Emit(Expression{
+		Last: &True,
+	}, a)
+	return bits[0], err
+}
+
+func (a Measurement) EmitLow(low uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low: &low,
+	}, a)
+}
+
+func (a Measurement) EmitLowFromEnd(low uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:     &low,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Measurement) EmitHigh(high uint) ([]Bit, error) {
+	return Emit(Expression{
+		High: &high,
+	}, a)
+}
+
+func (a Measurement) EmitHighFromEnd(high uint) ([]Bit, error) {
+	return Emit(Expression{
+		High:    &high,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Measurement) EmitBetween(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:  &low,
+		High: &high,
+	}, a)
+}
+
+func (a Measurement) EmitBetweenFromEnd(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{
+		Low:     &low,
+		High:    &high,
+		Reverse: &True,
+	}, a)
+}
+
+func (a Measurement) EmitAll(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{}, a)
+}
+
+func (a Measurement) EmitReversed(low uint, high uint) ([]Bit, error) {
+	return Emit(Expression{
+		Reverse: &True,
+	}, a)
+}
+
+func (a Measurement) Gate(logic BitLogicFunc) ([]Bit, error) {
+	return Emit(Expression{
+		BitLogic: &logic,
+	}, a)
+}
+
+func (a Measurement) GateFromEnd(logic BitLogicFunc) ([]Bit, error) {
+	return Emit(Expression{
+		BitLogic: &logic,
+		Reverse:  &True,
+	}, a)
+}
+
+/**
+Logic Functions
+*/
+
+func (a Measurement) NOT() ([]Bit, error) {
+	var notFunc BitLogicFunc
+	notFunc = Logic.NOT
+	return Emit(Expression{
+		BitLogic: &notFunc,
+	}, a)
+}
