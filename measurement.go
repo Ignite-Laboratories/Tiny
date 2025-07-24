@@ -161,16 +161,20 @@ func (a Measurement) AppendBytes(bytes ...byte) Measurement {
 	for _, b := range bytes {
 		bits := make([]Bit, 8)
 
+		ii := 0
 		for i := byte(7); i < 8; i-- {
-			bits[i] = Bit((b >> i) & 1)
+			bits[ii] = Bit((b >> i) & 1)
+			ii++
 		}
 
 		blended := append(lastBits, bits[:8-len(lastBits)]...)
 		lastBits = bits[8-len(lastBits):]
 
 		var newByte byte
+		ii = 0
 		for i := byte(7); i < 8; i-- {
-			newByte |= byte(blended[i]) << i
+			newByte |= byte(blended[ii]) << i
+			ii++
 		}
 
 		a.Bytes = append(a.Bytes, newByte)
@@ -231,8 +235,24 @@ func (a Measurement) PrependMeasurements(m ...Measurement) Measurement {
 
 // Reverse reverses the order of all bits in the measurement.
 func (a Measurement) Reverse() Measurement {
-	// TODO: reverse the measurement bit order
-	return a
+	reversedBytes := make([]byte, len(a.Bytes))
+	reversedBits := make([]Bit, len(a.Bits))
+
+	ii := 0
+	for i := len(a.Bytes) - 1; i >= 0; i-- {
+		reversedBytes[ii] = ReverseByte(a.Bytes[i])
+		ii++
+	}
+
+	ii = 0
+	for i := len(a.Bits) - 1; i >= 0; i-- {
+		reversedBits[ii] = a.Bits[i]
+		ii++
+	}
+
+	a.Bytes = reversedBytes
+	a.Bits = make([]Bit, 0)
+	return a.Prepend(reversedBits...)
 }
 
 // BleedLastBit returns the last bit of the measurement and a measurement missing that bit.

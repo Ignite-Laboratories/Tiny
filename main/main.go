@@ -10,6 +10,9 @@ import (
 )
 
 func main() {
+	var bits []tiny.Bit
+	var err error
+
 	p := tiny.MeasureMany[byte](77, 22, 44, 88)
 	fmt.Printf("\n#0 - Taking a direct binary measurement of several bytes into a phrase named %v:\n", p.Name)
 	fmt.Printf("%v ← %v(byte{77}, byte{22}, byte{44}, byte{88})\n\n", p.StringPretty(), p.Name)
@@ -19,28 +22,41 @@ func main() {
 	fmt.Printf("#1 - Measuring a random 64 bit number into a phrase aligned at 17 bits-per-measurement named %v:\n", p.Name)
 	fmt.Printf("%v ← %v(%v)\n\n", p.StringPretty(), p.Name, random)
 
-	fmt.Printf("#2 - Emitting specific bits of %v:\n", p.Name)
-	bits, _ := p.EmitBetween(11, 44)
+	fmt.Printf("#2 - Emitting from the end of %v until a condition has been met:\n", p.Name)
+	continueFn := func(i uint, data []tiny.Bit) bool {
+		if len(data) < 3 {
+			return true
+		}
+		return false
+	}
+
+	bits, err = p.EmitUntil(continueFn, travel.Westbound)
+	fmt.Printf("%v ← %v %v while(len(found) < 3)\n\n", bits, p.Name, travel.Westbound.StringFull())
+
+	bits, err = p.EmitUntil(continueFn, travel.Eastbound)
+	fmt.Printf("%v ← %v %v while(len(found) < 3)\n\n", bits, p.Name, travel.Eastbound.StringFull())
+
+	fmt.Printf("#3 - Emitting specific bits of %v:\n", p.Name)
+	bits, _ = p.EmitBetween(11, 44)
 	fmt.Printf("%v ← %v[11:44]\n\n", bits, p.Name)
 
-	fmt.Printf("#3 - Gracefully emitting beyond the bounds of %v:\n", p.Name)
-	var err error
+	fmt.Printf("#4 - Gracefully emitting beyond the bounds of %v:\n", p.Name)
 	bits, err = p.EmitBetween(55, 88)
 	fmt.Printf("%v ← %v[55:88] - Error: %v\n\n", bits, p.Name, err)
 
-	fmt.Printf("#4 -  Emitting the NOT of the last emitted bits from %v:\n", p.Name)
+	fmt.Printf("#5 -  Emitting the NOT of the last emitted bits from %v:\n", p.Name)
 	notBits, _ := emit.NOT(bits...)
 	fmt.Printf("%v ← !%v\n\n", notBits, p.Name)
 
-	fmt.Println("#5 - Measuring an object in memory:")
+	fmt.Println("#6 - Measuring an object in memory:")
 
 	m := tiny.Measure[direction.Direction](direction.Future)
 	fmt.Printf("%v ← Measurement of [%v]\n\n", m.StringPretty(), direction.Future)
 
-	fmt.Println("#6 - Recreating the original object from the measurement:")
+	fmt.Println("#7 - Recreating the original object from the measurement:")
 	fmt.Printf("%v ← Reconstructed Object\n\n", tiny.ToType[direction.Direction](m))
 
-	fmt.Println("#7 - Pattern emission:")
+	fmt.Println("#8 - Pattern emission:")
 
 	fmt.Printf("%v ← `1, 0, 0, 1, 1` Westbound\n", tiny.NewMeasurementOfPattern(22, travel.Westbound, 1, 0, 0, 1, 1).AsPhrase(-1).StringPretty())
 	fmt.Printf("%v ← `1, 0, 0, 1, 1` Eastbound\n", tiny.NewMeasurementOfPattern(22, travel.Eastbound, 1, 0, 0, 1, 1).AsPhrase(-1).StringPretty())
@@ -48,13 +64,4 @@ func main() {
 	fmt.Printf("%v ← `1, 0, 0, 1, 1` Outbound\n", tiny.NewMeasurementOfPattern(22, travel.Outbound, 1, 0, 0, 1, 1).AsPhrase(-1).StringPretty())
 	fmt.Printf("%v ← `0` Repeating\n", tiny.NewMeasurementOfBit(11, 0).AsPhrase(-1).StringPretty())
 	fmt.Printf("%v ← `1` Repeating\n\n", tiny.NewMeasurementOfBit(11, 1).AsPhrase(-1).StringPretty())
-
-	fmt.Printf("#8 - Emitting from the end of %v until a condition has been met:\n", p.Name)
-	bits, err = p.EmitUntil(func(i uint, data []tiny.Bit) bool {
-		if len(data) < 3 {
-			return true
-		}
-		return false
-	}, travel.Westbound) // NOTE: Reverse hasn't quite been implemented yet - that'll be next
-	fmt.Printf("%v ← while(len(%v) < 3)\n\n", bits, p.Name)
 }

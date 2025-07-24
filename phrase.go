@@ -212,7 +212,13 @@ func (a Phrase) RollUp() Phrase {
 
 // Reverse reverses the order of all bits in the phrase.
 func (a Phrase) Reverse() Phrase {
-	// TODO: Reverse the measurement order
+	reversed := make([]Measurement, len(a.Data))
+	ii := 0
+	for i := len(a.Data) - 1; i >= 0; i-- {
+		reversed[ii] = a.Data[i].Reverse()
+		ii++
+	}
+	a.Data = reversed
 	return a
 }
 
