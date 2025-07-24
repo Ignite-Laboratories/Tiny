@@ -39,7 +39,7 @@ type Real struct {
 
 	// Precision represents the maximum combined bit-width of any part of the real number beyond the decimal place.
 	//
-	// NOTE: This defaults to 256 bits.
+	// NOTE: This defaults to 256 bits through the real creation functions.
 	Precision uint // Defaults to 256
 
 	// Irrational is true when the number continues on indefinitely with no observed repetition up to the defined precision.
@@ -79,7 +79,7 @@ func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
 		Precision:  p,
 		Whole:      NewNatural(0),
 		Fractional: NewNatural(0),
-		Periodic:   NewNatural(0),
+		Periodic:   NewNatural(0), // *pushes glasses up nose* - "technically," all numbers fractionally end in infinitely repeating zeros =)
 	}
 
 	switch operand := any(value).(type) {
@@ -90,22 +90,31 @@ func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
 		}
 	case *big.Float:
 		out.Negative = operand.Sign() < 0
+		operand = new(big.Float).Abs(operand)
 
-		entire := operand.Text(2, int(out.Precision))
-		pointIndex := strings.Index(entire, ".")
+		// NOTE: We're already working with a big type, so don't be afraid to leverage it's power =)
 
-		if pointIndex <= 0 {
+		entire := operand.Text('f', int(out.Precision))
+		pointPos := strings.Index(entire, ".")
+
+		if pointPos <= 0 {
+			// No decimal place - this is a whole number
+
+			whole, _ := new(big.Int).SetString(entire, 10)
 			out.Whole = Natural{
-				Measurement: NewMeasurementOfBinaryString(entire),
+				Measurement: NewMeasurementOfBinaryString(whole.Text(2)),
 			}
 		} else {
-			whole := entire[:pointIndex]
-			fractional := entire[pointIndex+1:]
+			// A decimal place was found - this is a fractional number
+
+			whole, _ := new(big.Int).SetString(entire[:pointPos], 10)
 			out.Whole = Natural{
-				Measurement: NewMeasurementOfBinaryString(whole),
+				Measurement: NewMeasurementOfBinaryString(whole.Text(2)),
 			}
+
+			fractional, _ := new(big.Int).SetString(entire[pointPos+1:], 10)
 			out.Fractional = Natural{
-				Measurement: NewMeasurementOfBinaryString(fractional),
+				Measurement: NewMeasurementOfBinaryString(fractional.Text(2)),
 			}
 		}
 	case uint8, uint16, uint32, uint64, uint, uintptr:
@@ -153,22 +162,27 @@ func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
 		}
 
 		if math.IsNaN(v) {
-			panic(fmt.Errorf("cannot create real from NaN"))
+			panic(fmt.Errorf("cannot create real from a 'NaN' valued float"))
 		}
 		if math.IsInf(v, 0) {
-			panic(fmt.Errorf("cannot create real from Inf"))
+			panic(fmt.Errorf("cannot create real from a 'Inf' valued float"))
 		}
 
+		// Hand this off to big.Float, as they have EXCELLENT and robust precision guarantees.
 		out = NewRealNamed(name, big.NewFloat(v), precision...)
 	case complex64:
 		if imag(operand) != 0 {
 			panic(fmt.Errorf("cannot create real from a complex number with a non-zero imaginary part - [%v]", operand))
 		}
+
+		// Hand this off as a float32 for big.Float to process
 		out = NewRealNamed(name, real(operand), precision...)
 	case complex128:
 		if imag(operand) != 0 {
 			panic(fmt.Errorf("cannot create real from a complex number with a non-zero imaginary part - [%v]", operand))
 		}
+
+		// Hand this off as a float64 for big.Float to process
 		out = NewRealNamed(name, real(operand), precision...)
 	case bool:
 		if operand {
@@ -180,6 +194,7 @@ func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
 		panic(fmt.Errorf("cannot create real from primitive type '%T'", operand))
 	}
 
+	// Lastly, perform checks for rationality and infinite repetition
 	return out.cleanup()
 }
 
