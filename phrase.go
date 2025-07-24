@@ -171,9 +171,8 @@ func (a Phrase) Align(width ...int) Phrase {
 		out = append(out, NewMeasurement(current...))
 	}
 
-	return Phrase{
-		Data: out,
-	}
+	a.Data = out
+	return a
 }
 
 // BleedLastBit returns the last bit of the phrase and a phrase missing that bit.
