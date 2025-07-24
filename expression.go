@@ -9,7 +9,7 @@ type Expression struct {
 	Reverse   *bool
 	BitLogic  *BitLogicFunc
 	Artifact  *ArtifactFunc
-	_Limit    uint
+	limit     uint
 }
 
 func (e Expression) FromPhrase(p ...Phrase) []Bit {
