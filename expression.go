@@ -12,19 +12,19 @@ type Expression struct {
 	limit     uint
 }
 
-func (e Expression) FromPhrase(p ...Phrase) []Bit {
+func (e Expression) FromPhrase(p ...Phrase) ([]Bit, error) {
 	return Emit(e, p...)
 }
 
-func (e Expression) FromMeasurement(m ...Measurement) []Bit {
+func (e Expression) FromMeasurement(m ...Measurement) ([]Bit, error) {
 	return Emit(e, m...)
 }
 
-func (e Expression) FromByte(b ...byte) []Bit {
+func (e Expression) FromByte(b ...byte) ([]Bit, error) {
 	return Emit(e, b...)
 }
 
-func (e Expression) FromBits(b ...Bit) []Bit {
+func (e Expression) FromBits(b ...Bit) ([]Bit, error) {
 	return Emit(e, b...)
 }
 

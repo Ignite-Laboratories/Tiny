@@ -246,7 +246,7 @@ func (a Measurement) BleedLastBit() (Bit, Measurement) {
 		return a.Bits[len(a.Bits)-1], a.RollUp()
 	}
 
-	bits := Emit(Expression{}, 8, a.Bytes[len(a.Bytes)-1])
+	bits, _ := Emit(Expression{}, 8, a.Bytes[len(a.Bytes)-1])
 	last := bits[7]
 	bits = bits[:7]
 	a.Bits = append(bits, a.Bits...)
@@ -260,7 +260,7 @@ func (a Measurement) BleedFirstBit() (Bit, Measurement) {
 	}
 
 	if len(a.Bytes) >= 0 {
-		bits := Emit(Expression{}, 8, a.Bytes[0])
+		bits, _ := Emit(Expression{}, 8, a.Bytes[0])
 		first := bits[0]
 		bits = bits[1:]
 		a.Bytes = a.Bytes[1:]

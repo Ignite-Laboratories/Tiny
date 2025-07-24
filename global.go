@@ -157,9 +157,17 @@ Errors
 
 const errorMsgNotABit = "bits must be 0 or 1 in value"
 const errorMsgNotABitWithNil = "bits must be 0, 1, or 219 (nil) in value"
+const errorMsgOutOfBits = "ran out of bits"
+const errorMsgNoBits = "no bits were provided"
 
 // ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0 - as Bit is a byte underneath.
 var ErrorNotABit = fmt.Errorf(errorMsgNotABit)
 
 // ErrorNotABitWithNil is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 219 (nil) - as Bit is a byte underneath.
 var ErrorNotABitWithNil = fmt.Errorf(errorMsgNotABitWithNil)
+
+// ErrorOutOfBits is emitted whenever an emission operation requested more bits than could be emitted.
+var ErrorOutOfBits = fmt.Errorf(errorMsgOutOfBits)
+
+// ErrorNoBits is emitted whenever an operation is provided with an empty set of bits to work with.
+var ErrorNoBits = fmt.Errorf(errorMsgNoBits)

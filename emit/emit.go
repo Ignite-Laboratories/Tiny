@@ -43,7 +43,7 @@ func PositionsFromEnd(positions ...uint) tiny.Expression {
 // Width [𝑛] creates a tiny.Expression which will read the provided bit width in most→to→least significant order.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func Width[T tiny.Binary](width uint, operands ...T) []tiny.Bit {
+func Width[T tiny.Binary](width uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Low:  &tiny.Start,
 		High: &width,
@@ -51,7 +51,7 @@ func Width[T tiny.Binary](width uint, operands ...T) []tiny.Bit {
 }
 
 // WidthFromEnd [𝑛] creates a tiny.Expression which will read the provided bit width in least←to←most significant order.
-func WidthFromEnd[T tiny.Binary](width uint, operands ...T) []tiny.Bit {
+func WidthFromEnd[T tiny.Binary](width uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Low:     &tiny.Start,
 		High:    &width,
@@ -60,28 +60,28 @@ func WidthFromEnd[T tiny.Binary](width uint, operands ...T) []tiny.Bit {
 }
 
 // First [0] creates a tiny.Expression which will read the first index position of your binary information.
-func First[T tiny.Binary](operands ...T) []tiny.Bit {
+func First[T tiny.Binary](operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Positions: &tiny.Initial,
 	}, operands...)
 }
 
 // Last [𝑛 - 1] creates a tiny.Expression which will read the last index position of your binary information.
-func Last[T tiny.Binary](operands ...T) []tiny.Bit {
+func Last[T tiny.Binary](operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Last: &tiny.True,
 	}, operands...)
 }
 
 // Low [low:] creates a tiny.Expression which will read from the provided index to the end of your binary information.
-func Low[T tiny.Binary](low uint, operands ...T) []tiny.Bit {
+func Low[T tiny.Binary](low uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Low: &low,
 	}, operands...)
 }
 
 // LowFromEnd [low:] creates a tiny.Expression which will read from the provided index to the end of your binary information.
-func LowFromEnd[T tiny.Binary](low uint, operands ...T) []tiny.Bit {
+func LowFromEnd[T tiny.Binary](low uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Low:     &low,
 		Reverse: &tiny.True,
@@ -89,14 +89,14 @@ func LowFromEnd[T tiny.Binary](low uint, operands ...T) []tiny.Bit {
 }
 
 // High [:high] creates a tiny.Expression which will read to the provided index from the start of your binary information.
-func High[T tiny.Binary](high uint, operands ...T) []tiny.Bit {
+func High[T tiny.Binary](high uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		High: &high,
 	}, operands...)
 }
 
 // HighFromEnd [:high] creates a tiny.Expression which will read to the provided index from the start of your binary information.
-func HighFromEnd[T tiny.Binary](high uint, operands ...T) []tiny.Bit {
+func HighFromEnd[T tiny.Binary](high uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		High:    &high,
 		Reverse: &tiny.True,
@@ -106,7 +106,7 @@ func HighFromEnd[T tiny.Binary](high uint, operands ...T) []tiny.Bit {
 // Between [low:high:*] creates a tiny.Expression which will read between the provided indexes of your binary information up to the provided maximum in most→to→least significant order.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func Between[T tiny.Binary](low uint, high uint, operands ...T) []tiny.Bit {
+func Between[T tiny.Binary](low uint, high uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Low:  &low,
 		High: &high,
@@ -116,7 +116,7 @@ func Between[T tiny.Binary](low uint, high uint, operands ...T) []tiny.Bit {
 // BetweenFromEnd [low:high:*] creates a tiny.Expression which will read between the provided indexes of your binary information up to the provided maximum in most→to→least significant order.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func BetweenFromEnd[T tiny.Binary](low uint, high uint, operands ...T) []tiny.Bit {
+func BetweenFromEnd[T tiny.Binary](low uint, high uint, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		Low:     &low,
 		High:    &high,
@@ -127,14 +127,14 @@ func BetweenFromEnd[T tiny.Binary](low uint, high uint, operands ...T) []tiny.Bi
 // All [:] creates a tiny.Expression which will read the entirety of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func All[T tiny.Binary](operands ...T) []tiny.Bit {
+func All[T tiny.Binary](operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{}, operands...)
 }
 
 // Reversed [:] creates a tiny.Expression which will read the entirety of your binary information.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func Reversed[T tiny.Binary](operands ...T) []tiny.Bit {
+func Reversed[T tiny.Binary](operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{Reverse: &tiny.True}, operands...)
 }
 
@@ -145,14 +145,14 @@ Logic Gates
 // Gate creates a tiny.Expression which will apply the provided logic gate against every input bit.
 //
 // Expression operations happen in most→to→least significant order - if you would like least←to←most order, please indicate "reverse".
-func Gate[T tiny.Binary](logic tiny.BitLogicFunc, operands ...T) []tiny.Bit {
+func Gate[T tiny.Binary](logic tiny.BitLogicFunc, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		BitLogic: &logic,
 	}, operands...)
 }
 
 // GateFromEnd creates a tiny.Expression which will apply the provided logic gate against every input bit.
-func GateFromEnd[T tiny.Binary](logic tiny.BitLogicFunc, operands ...T) []tiny.Bit {
+func GateFromEnd[T tiny.Binary](logic tiny.BitLogicFunc, operands ...T) ([]tiny.Bit, error) {
 	return tiny.Emit(tiny.Expression{
 		BitLogic: &logic,
 		Reverse:  &tiny.True,
@@ -168,7 +168,7 @@ func GateFromEnd[T tiny.Binary](logic tiny.BitLogicFunc, operands ...T) []tiny.B
 //	        𝑎 | 𝑜𝑢𝑡
 //	        0 | 1
 //	        1 | 0
-func NOT[T tiny.Binary](operands ...T) []tiny.Bit {
+func NOT[T tiny.Binary](operands ...T) ([]tiny.Bit, error) {
 	return Gate(func(i uint, bits ...tiny.Bit) ([]tiny.Bit, *tiny.Phrase) {
 		if len(bits) == 0 {
 			return tiny.SingleZero, nil
@@ -185,12 +185,12 @@ Pattern Emission
 */
 
 // Pattern creates a tiny.Expression which will XOR the provided pattern against the input bits in most→to→least significant order.
-func Pattern[T tiny.Binary](pattern []tiny.Bit, operands ...T) []tiny.Bit {
+func Pattern[T tiny.Binary](pattern []tiny.Bit, operands ...T) ([]tiny.Bit, error) {
 	return Gate(patternLogic(pattern...), operands...)
 }
 
 // PatternFromEnd creates a tiny.Expression which will XOR the provided pattern against the input bits in least←to←most significant order.
-func PatternFromEnd[T tiny.Binary](pattern []tiny.Bit, operands ...T) []tiny.Bit {
+func PatternFromEnd[T tiny.Binary](pattern []tiny.Bit, operands ...T) ([]tiny.Bit, error) {
 	return GateFromEnd(patternLogic(pattern...), operands...)
 }
 
