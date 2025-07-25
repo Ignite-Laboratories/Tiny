@@ -15,3 +15,8 @@ type Index struct {
 }
 
 // TODO: Make indexes support a signed "flow" value that can be reset on demand, indicating how many times it over or under-flowed
+
+func (a Index) AsPhrase() Phrase {
+	// TODO: Convert an Index to a Phrase
+	return Phrase{}
+}

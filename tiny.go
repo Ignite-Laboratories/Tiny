@@ -134,7 +134,7 @@ func GetWidestOperand[T Operable](operands ...T) uint {
 	return widest
 }
 
-// AlignOperands applies the provided padding scheme against the operands in order to align the measured binary information relative to the provided bit width.
+// AlignOperands applies the provided padding scheme against the operands to align the measured binary information relative to the provided bit width.
 //
 // You must provide at least one digit to pad the data with, but you may provide a pattern of digits.  The pattern is emitted across the operand starting
 // from the West side and working towards the East.  If working latitudinally, the pattern bits are applied longitudinally across each operand in the same way.
@@ -145,7 +145,9 @@ func AlignOperands[T Operable](operands []T, width uint, scheme pad.Scheme, trav
 	return operands
 }
 
-func ReverseOperands[T Operable](operands ...T) []T {
+// ReverseOperands reverses the provided input operands.  If they are an Operable type, the internal bits
+// are reversed - otherwise, the operands themselves are returned in reverse order.
+func ReverseOperands[T any](operands ...T) []T {
 	// Put your thing down, flip it, and reverse it
 	reversed := make([]T, len(operands))
 	limit := len(operands) - 1
@@ -177,7 +179,7 @@ func ReverseOperands[T Operable](operands ...T) []T {
 		case byte:
 			reversed[limit-i] = any(ReverseByte(operand)).(T)
 		default:
-			panic(fmt.Errorf("invalid binary type: %T", operand))
+			reversed[limit-i] = any(operand).(T)
 		}
 	}
 

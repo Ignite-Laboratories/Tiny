@@ -11,12 +11,12 @@ import (
 // In addition, the big.Int and big.Float types are considered "primitive" as they are fully interoperable with the matrix engine.
 type Primitive interface {
 	*big.Int | *big.Float |
-		int8 | int16 | int32 | int64 |
-		uint8 | uint16 | uint32 | uint64 |
-		float32 | float64 |
-		complex64 | complex128 |
-		int | uint | uintptr |
-		bool
+	int8 | int16 | int32 | int64 |
+	uint8 | uint16 | uint32 | uint64 |
+	float32 | float64 |
+	complex64 | complex128 |
+	int | uint | uintptr |
+	bool
 }
 
 // Operable represents the basic logically operable types.
@@ -148,8 +148,8 @@ Errors
 
 const errorMsgNotABit = "bits must be 0 or 1 in value"
 const errorMsgNotABitWithNil = "bits must be 0, 1, or 219 (nil) in value"
-const errorMsgOutOfBits = "ran out of bits"
-const errorMsgNoBits = "no bits were provided"
+const errorMsgOutOfEmittableData = "ran out of data to emit"
+const errorMsgNothingToEmit = "nothing to emit"
 
 // ErrorNotABit is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0 - as Bit is a byte underneath.
 var ErrorNotABit = fmt.Errorf(errorMsgNotABit)
@@ -157,8 +157,9 @@ var ErrorNotABit = fmt.Errorf(errorMsgNotABit)
 // ErrorNotABitWithNil is emitted whenever a method expecting a Bit is provided with any other byte value than 1, 0, or 219 (nil) - as Bit is a byte underneath.
 var ErrorNotABitWithNil = fmt.Errorf(errorMsgNotABitWithNil)
 
-// ErrorOutOfBits is emitted whenever an emission operation requested more bits than could be emitted.
-var ErrorOutOfBits = fmt.Errorf(errorMsgOutOfBits)
+// ErrorOutOfEmittableData is emitted whenever an emission operation requested more bits than could be emitted.
+var ErrorOutOfEmittableData = fmt.Errorf(errorMsgOutOfEmittableData)
 
-// ErrorNoBits is emitted whenever an operation is provided with an empty set of bits to work with.
-var ErrorNoBits = fmt.Errorf(errorMsgNoBits)
+// ErrorNothingToEmit is emitted whenever Emit is provided with nothing to emit - this may mean no operands were provided,
+// or there was no underlying binary information.
+var ErrorNothingToEmit = fmt.Errorf(errorMsgNothingToEmit)
