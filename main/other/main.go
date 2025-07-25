@@ -2,14 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand/v2"
-	"tiny"
 )
 
 func main() {
-	m := tiny.Measure[uint64](rand.Uint64()).AsPhrase(11)
-	fmt.Println(m.StringPretty())
-
-	m = m.Reverse()
-	fmt.Println(m.StringPretty())
+	fmt.Println("01234567890̅1̅2̅3̅4̅5̅6̅7̅8̅9̅")
 }

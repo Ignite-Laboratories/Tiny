@@ -22,7 +22,7 @@ package tiny
 // above base 1, which might consider that to be 'zero'.  When factoring this trait in, I call it the "programmatic set" of
 // numbers.  I can't stop you from setting your natural phrase to it - but I can empower you with awareness of it =)
 //
-// See Real, Complex, Index, and Binary
+// See Real, Complex, Index, and Operable
 type Natural struct {
 	Measurement
 }
@@ -34,32 +34,16 @@ func NewNatural(value uint) Natural {
 	}
 }
 
-// The below is for reference when converting to back to an IEEE 754 float:
-
-// Float32 represents a 32-bit phrase encoded as three measurements in accordance with IEEE 754 -
+// NewNaturalFromString creates a new Natural measurement that represents the provided base-encoded string.
 //
-//	    Sign: 1 bit
-//	Exponent: 8 bits
-//	Mantissa: 23 bits
-//type Float32 Phrase
+// NOTE: The input string must be encoded as expected by Real.SetBase()
+func NewNaturalFromString(base byte, value string) Natural {
+	// TODO: Implement this
+	panic("unsupported")
+}
 
-// Float64 represents a 64-bit phrase encoded as three measurements in accordance with IEEE 754 -
-//
-//	    Sign: 1 bit
-//	Exponent: 11 bits
-//	Mantissa: 52 bits
-//type Float64 Phrase
-
-// Float128 represents a 128-bit phrase encoded as three measurements in accordance with IEEE 754 -
-//
-//	    Sign: 1 bit
-//	Exponent: 15 bits
-//	Mantissa: 112 bits
-//type Float128 Phrase
-
-// Float256 represents a 256-bit phrase encoded as three measurements in accordance with IEEE 754 -
-//
-//	    Sign: 1 bit
-//	Exponent: 19 bits
-//	Mantissa: 236 bits
-//type Float256 Phrase
+// Text converts the Natural to a string of the provided base, encoded to the specification defined by Real.SetBase()
+func (a Natural) Text(base byte) string {
+	// TODO: Implement Natural.Text(base)
+	return ""
+}

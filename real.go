@@ -30,12 +30,14 @@ import (
 // schemes on the fly).  The need to differentiate between floating point and integer numbers is entirely a computer science issue
 // born from ancient memory requirements and NOT one that a mathematician should have to bear while exploring their theories.
 //
-// See Natural, Complex, Index, and Binary
+// See Natural, Complex, Index, and Operable
 type Real struct {
 	// Name represents the name of this real number.  By default, numbers are given a random cultural human name to ensure that
 	// it doesn't step on any of the standard variable names you'll want to provide ('a', 'x', 'y', etc...).  The names provided
 	// are guaranteed to be a single word containing only letters of the English alphabet for fluent proof generation.
 	Name string
+
+	base byte
 
 	// Precision represents the maximum combined bit-width of any part of the real number beyond the decimal place.
 	//
@@ -165,7 +167,7 @@ func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
 			panic(fmt.Errorf("cannot create real from a 'NaN' valued float"))
 		}
 		if math.IsInf(v, 0) {
-			panic(fmt.Errorf("cannot create real from a 'Inf' valued float"))
+			panic(fmt.Errorf("cannot create real from an 'Inf' valued float"))
 		}
 
 		// Hand this off to big.Float, as they have EXCELLENT and robust precision guarantees.
@@ -198,9 +200,52 @@ func NewRealNamed[T Primitive](name string, value T, precision ...uint) Real {
 	return out.cleanup()
 }
 
+// SetBase sets the base this number should be observed in.  While the underlying information (and all arithmetic) is done in
+// binary, the representation of the number is still handled in an appropriate base.  This allows us to capture the periodic
+// portion of the fractional part of the real number, since the periodic portion can transiently appear across bases.
+//
+// When converting between string and numeric form in different bases the string should comply with the below table -
+//
+//	 Base | Symbol Set
+//	 0-1  | Unsupported
+//	 2-10 | 0-9
+//	11-36 | 0-9, then A-Z
+//	37-60 | 0-9, then A-Z, then the lowercase Greek alphabet
+//	 61+  | Unsupported
+//
+// For reference here's the lowercase Greek alphabet, in order -
+//
+//	α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ τ υ φ χ ψ ω
+//	              NOTE: Medial Sigma ⬏
+func (a Real) SetBase(base byte) Real {
+	a.base = base
+	a.sanityCheck()
+	return a
+}
+
+// Text converts the Real to a string of its currently set base value.
+//
+// See SetBase() for a table of how the string will be encoded.
+func (a Real) Text() string {
+	// TODO: Implement Real.Text()
+	// The periodic part should be interleaved with the overline character in unicode 0̅1̅2̅3̅4̅5̅6̅7̅8̅9̅
+	return ""
+}
+
 /**
 Utilities
 */
+
+// sanityCheck is a function to perform general sanity checks against the real number, such as for an invalid base value.
+func (a Real) sanityCheck() Real {
+	if a.base < 2 {
+		panic(fmt.Errorf("base %d is unsupported", a.base))
+	}
+	if a.base > 60 {
+		panic(fmt.Errorf("base %d is unsupported", a.base))
+	}
+	return a
+}
 
 // cleanup expands the real number to full precision and then checks for irrationality or periodicity in
 // the fractional component before rolling up those conditions into the appropriate measurements.

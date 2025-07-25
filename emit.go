@@ -9,7 +9,7 @@ import (
 // NOTE: This will return an ErrorNoBits and an empty bit slice if the input operands have no overall bits.
 //
 // NOTE: This will return an ErrorOutOfBits if there were not enough bits found to satisfy the expression, while still returning whatever it could find.
-func Emit[T Binary](expr Expression, operands ...T) ([]Bit, error) {
+func Emit[T Operable](expr Expression, operands ...T) ([]Bit, error) {
 	// Do nothing if there is no binary information to emit
 	totalWidth := GetBitWidth(operands...)
 	if totalWidth == 0 {
@@ -81,7 +81,7 @@ func Emit[T Binary](expr Expression, operands ...T) ([]Bit, error) {
 	return yield, nil
 }
 
-func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, uint) {
+func linearLogic[T Operable](cursor uint, expr Expression, operands ...T) ([]Bit, uint) {
 	yield := make([]Bit, 0, 1<<10) // Pre-allocate a reasonable chunk of memory
 
 	// Walk through the current operands one at a time
@@ -181,7 +181,7 @@ func linearLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, 
 	return yield, cursor
 }
 
-func matrixLogic[T Binary](cursor uint, expr Expression, operands ...T) ([]Bit, uint) {
+func matrixLogic[T Operable](cursor uint, expr Expression, operands ...T) ([]Bit, uint) {
 	// TODO: start sub-expressions to grab bits and build a matrix for computation
 
 	//if expr._matrix != nil && *expr._matrix {

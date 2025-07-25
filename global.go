@@ -19,20 +19,11 @@ type Primitive interface {
 		bool
 }
 
-// Binary represents the basic binary types that compose all Operable types.
+// Operable represents the basic logically operable types.
 //
 // See Bit, Measurement, Phrase, Natural, Real, Complex, and Index
-type Binary interface {
-	Bit | byte | Measurement | Phrase
-}
-
-// Operable represents any type that can be implicitly aligned and named for performing logical operations.
-//
-// See Natural, Real, Complex, Index, and Binary
 type Operable interface {
-	Natural | Real | Complex | Index | Binary
-	GetName() string
-	Named(string)
+	Bit | byte | Measurement | Phrase | Natural | Real | Complex | Index
 }
 
 /**

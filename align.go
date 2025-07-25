@@ -6,7 +6,7 @@ import (
 	"tiny/travel"
 )
 
-func middlePadOperands[T Binary](width uint, d direction.Direction, t travel.Travel, digits []Bit, operands ...T) []T {
+func middlePadOperands[T Operable](width uint, d direction.Direction, t travel.Travel, digits []Bit, operands ...T) []T {
 	// TODO: Implement north/south padding
 	out := make([]T, len(operands))
 
@@ -31,7 +31,7 @@ func middlePadOperands[T Binary](width uint, d direction.Direction, t travel.Tra
 	return out
 }
 
-func padOperands[T Binary](width uint, d direction.Direction, t travel.Travel, digits []Bit, operands ...T) []T {
+func padOperands[T Operable](width uint, d direction.Direction, t travel.Travel, digits []Bit, operands ...T) []T {
 	out := make([]T, len(operands))
 
 	if d == direction.North || d == direction.South {

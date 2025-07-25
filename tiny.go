@@ -16,7 +16,7 @@ func GetRandomName() string {
 }
 
 // GetBitWidth returns the bit width of the provided binary operand.
-func GetBitWidth[T Binary](operands ...T) uint {
+func GetBitWidth[T Operable](operands ...T) uint {
 	width := uint(0)
 	for _, raw := range operands {
 		switch operand := any(raw).(type) {
@@ -51,7 +51,7 @@ func GetBitWidth[T Binary](operands ...T) uint {
 // BleedEnd returns the ending bits of the operands and the operands missing those bits.
 //
 // All bleed operations are always returned in their original most→to→least significant order.
-func BleedEnd[T Binary](width uint, operands ...T) ([][]Bit, []T) {
+func BleedEnd[T Operable](width uint, operands ...T) ([][]Bit, []T) {
 	bits := make([][]Bit, 0, len(operands))
 
 	for x := 0; x < int(width); x++ {
@@ -88,7 +88,7 @@ func BleedEnd[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 // BleedStart returns the first bit of the operands and the operands missing that bit.
 //
 // All bleed operations are always returned in their original most→to→least significant order.
-func BleedStart[T Binary](width uint, operands ...T) ([][]Bit, []T) {
+func BleedStart[T Operable](width uint, operands ...T) ([][]Bit, []T) {
 	bits := make([][]Bit, 0, len(operands))
 
 	for x := 0; x < int(width); x++ {
@@ -123,7 +123,7 @@ func BleedStart[T Binary](width uint, operands ...T) ([][]Bit, []T) {
 }
 
 // GetWidestOperand returns the widest bit width of the provided operands.
-func GetWidestOperand[T Binary](operands ...T) uint {
+func GetWidestOperand[T Operable](operands ...T) uint {
 	var widest uint
 	for _, o := range operands {
 		width := GetBitWidth(o)
@@ -140,12 +140,12 @@ func GetWidestOperand[T Binary](operands ...T) uint {
 // from the West side and working towards the East.  If working latitudinally, the pattern bits are applied longitudinally across each operand in the same way.
 //
 // NOTE: If you wish for
-func AlignOperands[T Binary](operands []T, width uint, scheme pad.Scheme, traveling travel.Travel, digits ...Bit) []T {
+func AlignOperands[T Operable](operands []T, width uint, scheme pad.Scheme, traveling travel.Travel, digits ...Bit) []T {
 	// TODO: alignment
 	return operands
 }
 
-func ReverseOperands[T Binary](operands ...T) []T {
+func ReverseOperands[T Operable](operands ...T) []T {
 	// Put your thing down, flip it, and reverse it
 	reversed := make([]T, len(operands))
 	limit := len(operands) - 1
